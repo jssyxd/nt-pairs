@@ -23,6 +23,7 @@ src/nt_pairs/
   ledger.py          # 目标式成交流水账（纯逻辑）
   execution.py       # h* / 追价 / IOC 规格（纯函数）
   risk.py            # 裸腿年龄、delta、权益、配额闸门
+  leg_policy.py      # 腿选择：费率→点差→深度→成交概率（纯函数）
   strategy.py        # NautilusTrader Strategy（依赖 1.231）
   runtime.py         # TradingNode 构建（live/paper/sandbox）
 scripts/probe_basis.py  # 取数 → 基差分布 → b* → 可交易裁决

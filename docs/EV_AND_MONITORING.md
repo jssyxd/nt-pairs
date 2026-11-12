@@ -73,6 +73,25 @@ $$
 胜率几乎不变、幅度变小、**净期望翻负** → 差异 100% 来自费率。
 → 腿选择的排序应是：**费率 → 点差 → 深度 → 成交概率**；深度排在最后。
 
+**已落成代码**：`src/nt_pairs/leg_policy.py`（纯函数，10 个测试）
+```python
+LegQuote(venue, instrument_id, maker_bps, taker_bps, half_spread_bps,
+          depth25_usd, tick, price, p_fill=None, carry_bps_h=0)
+rank_legs(quotes, role="maker"|"taker", qty_usd)   # 费率 → 点差 → 深度 → p_fill
+select_pair(quotes, capture_bps, qty_usd)          # 在候选腿里挑最优 (maker, taker)
+expected_net_bps(maker, taker, capture_bps, qty)   # p_fill × (捕获 − 成本)
+pair_cost_bps(maker, taker, qty)                   # 费+半价差+滑点+carry+腿风险+对账
+```
+策略层接入方式：每轮重算 `rank_legs` / `select_pair`，
+**当某场所费率上调（活动结束 / VIP 降级）时该腿立刻出局**，这是硬约束。
+
+**实测代入（SOXL，2026-11-12 实时盘口）**：
+```
+taker 腿排序（按费率→点差→深度→p_fill）: ['LIGHTER', 'HYPERLIQUID', 'OKX']
+select_pair(capture=17 bps, qty=$500) → maker=HYPERLIQUID, taker=LIGHTER, 净=+8.67 bps/轮
+```
+即：**同一标的的三个场所，最优腿不是最深的那个，而是费率最低的那个**。
+
 ## 3. 会话分层的 EV（用户关心的「盘前/盘中/盘后/周末」）
 
 | 标的 | RTH 净 | post 净 | pre 净 | closed 净 | 配置含义 |

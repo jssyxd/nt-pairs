@@ -142,6 +142,32 @@ OKX_API_KEY=...              OKX_SECRET=...              OKX_PASSPHRASE=...
 5) |residual| 超限 → 升级动作（chase → IOC → FLATTEN → HALT）
 ```
 
+### 4.3.1 先装采集器（决定 fill 标定能否完成）
+
+`scripts/collect_l2.py` 在 VPS 上按 1 Hz 落盘两/三场所的盘口快照（价格/量/订单数）、mark、funding、OI、24h 量。
+**必须先跑它**：HL `candleSnapshot` 单次最多约 500 根、无分页 → 拿不到 30 天分钟级历史；
+没有逐笔 L2 就无法标定 `p_fill`、队列长度与成交后 markout。
+
+```bash
+cd /opt/nt-pairs
+nohup /opt/nt-pairs-venv/bin/python scripts/collect_l2.py --interval 1 --days 30 \
+  > state/collector.log 2>&1 &
+```
+- 输出：`data/collector/<VENUE>/<YYYYMMDD>.jsonl`（每行一条完整快照）。
+- 磁盘：13 标的 × 1 Hz ≈ 每日 60~120 MB/场所 → 建议 `/data` 独立盘，保留 30 天。
+- **采集器只用 urllib**：`curl` 在部分出口被拦而 urllib 正常（见 field guide），监控/采集脚本一律用 urllib。
+
+### 4.3.2 腿费率监控（腿会因活动结束而变贵）
+
+| 监控项 | 频率 | 阈值 | 动作 |
+|---|---|---|---|
+| 各场所 maker/taker 费率 | 1 h | 相对基线变化 > 0.5 bps | **冻结该腿**（不再作为 taker），重算 `b*` 与腿排序 |
+| 活动/返佣窗口 | 1 h | 窗口结束 | 同上；Lighter 的 0 费是本策略支柱，**失效即换腿或停做** |
+| 深度与点差 | 实时 | 见 §4.1 | 见 §4.1 |
+
+`src/nt_pairs/leg_policy.py` 的 `rank_legs` / `select_pair` 直接消费这些报价，
+**费率变化 → 腿排序变化 → 自动切换**，不需要改代码。
+
 ### 4.4 持久化保护
 
 | 状态 | 介质 | 写法 | 恢复 |
