@@ -110,6 +110,41 @@ def select_pair(quotes: Iterable[LegQuote], capture_bps: Decimal, qty_usd: Decim
     return best
 
 
+class RepeatedCloseDetector:
+    """陈旧报价检测器：连续 close 相同的比例（薄市场的关键数据质量指标）。
+
+    实测（2026-11-12，30 天 1h）：Lighter 侧 RKLB 31%、KORU 36%、KIOXIA 高达 93%；
+    MRVL 4%、EWY 5%、SOXL 1%；HL 侧全部 ≤1%。
+    重复率高的腿，其「基差回归」是沿用旧打印的机械假象，**不可交易**。
+    """
+
+    def __init__(self, threshold_pct: float = 10.0, min_samples: int = 30) -> None:
+        self.threshold_pct = Decimal(str(threshold_pct))
+        self.min_samples = int(min_samples)
+        self._closes: list[Decimal] = []
+
+    def push(self, close: Decimal) -> None:
+        self._closes.append(close)
+        if len(self._closes) > 2000:
+            self._closes.pop(0)
+
+    @property
+    def samples(self) -> int:
+        return len(self._closes)
+
+    def repeat_pct(self) -> Decimal:
+        if len(self._closes) < 2:
+            return Decimal("0")
+        same = sum(1 for a, b in zip(self._closes, self._closes[1:]) if a == b)
+        return (Decimal(same) * 100 / Decimal(len(self._closes) - 1)).quantize(Decimal("0.01"))
+
+    def is_stale(self) -> bool:
+        return self.samples >= self.min_samples and self.repeat_pct() > self.threshold_pct
+
+    def reset(self) -> None:
+        self._closes.clear()
+
+
 def leg_risk_bps(sigma_basis_bps: Decimal, t_leg_s: Decimal, p_one_leg: Decimal,
                  alpha: Decimal = Decimal("0.5")) -> Decimal:
     """腿风险溢价：`√(2/π)·σ·√(t/60)·P·α`。"""

@@ -101,3 +101,28 @@ def test_leg_risk_scales_with_sqrt_time():
     b = leg_risk_bps(D("10"), D("16"), D("0.3"))
     assert b == pytest.approx(2 * a, rel=1e-6)
     assert leg_risk_bps(D("0"), D("4"), D("0.3")) == D("0")
+
+def test_repeated_close_detector_flags_stale_leg():
+    from nt_pairs.leg_policy import RepeatedCloseDetector
+    det = RepeatedCloseDetector(threshold_pct=10.0, min_samples=10)
+    for _ in range(20):
+        det.push(D("100.0"))          # 全部相同 → 100% 重复
+    assert det.repeat_pct() == D("100.00")
+    assert det.is_stale() is True
+
+
+def test_repeated_close_detector_passes_clean_leg():
+    from nt_pairs.leg_policy import RepeatedCloseDetector
+    det = RepeatedCloseDetector(threshold_pct=10.0, min_samples=10)
+    for i in range(40):
+        det.push(D("100") + D(i))      # 每桶都变 → 0% 重复
+    assert det.repeat_pct() == D("0.00")
+    assert det.is_stale() is False
+
+
+def test_repeated_close_detector_needs_min_samples():
+    from nt_pairs.leg_policy import RepeatedCloseDetector
+    det = RepeatedCloseDetector(threshold_pct=10.0, min_samples=30)
+    for _ in range(5):
+        det.push(D("100"))
+    assert det.is_stale() is False     # 样本不足不下结论

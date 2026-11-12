@@ -9,6 +9,7 @@ from __future__ import annotations
 from .execution import OrderSpec, chase_price, h_star_s, hedge_order
 from .leg_policy import (
     LegQuote,
+    RepeatedCloseDetector,
     expected_net_bps,
     leg_risk_bps,
     maker_cost_bps,
@@ -38,6 +39,7 @@ __all__ = [
     "RiskLimits",
     "evaluate",
     "LegQuote",
+    "RepeatedCloseDetector",
     "rank_legs",
     "select_pair",
     "expected_net_bps",

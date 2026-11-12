@@ -36,7 +36,7 @@ hr{border:0;border-top:1px solid var(--bd);margin:24px 0}
 </style></head><body>
 <header>
 <h1>nt-pairs · 全量人机对话 / Agent 交互 / 建模与部署记录</h1>
-<div class="sub">生成时间 2026-11-12T14:42:39.067843+00:00 ｜ 仓库 nt-pairs ｜ 引擎 NautilusTrader 2.0.0rc6 ｜
+<div class="sub">生成时间 2026-11-12T14:46:58.165467+00:00 ｜ 仓库 nt-pairs ｜ 引擎 NautilusTrader 2.0.0rc6 ｜
 涵盖：人类↔Agent 对话、Captain↔worker 逐字转录、矩阵与演算、EV/净边际、实时监控口径、回测报告、部署指导书</div>
 </header>
 <nav><a href="#sec-A">A. 人类 ↔ Agent 原始对话（前序项目）</a><a href="#sec-B">B. 人类在本项目的指令 / Captain 回复原文</a><a href="#sec-C">C. Herdr 派发记录（captain ↔ worker，nt-pairs）</a><a href="#sec-D">D. Herdr 派发记录（captain ↔ worker，ant-cross-arb 前序研究）</a><a href="#sec-E">E. 项目文档：总纲、契约、状态、矩阵、EV、部署、回测</a><a href="#sec-F">F. 源码与脚本（可执行证据）</a><a href="#sec-G">G. 配置、测试与 Field Guide</a></nav>
@@ -22341,7 +22341,7 @@ worker 与 captain 之间的全部往返原文在 `.herd-dispatch/jobs/*/{input,
 &gt; github用户名:jssyxd
 &gt; github token=
 &gt; ghp_***REDACTED***
-</code></pre></div></details></section><section id="sec-F"><h2>F. 源码与脚本（可执行证据）</h2><h3>src/nt_pairs/__init__.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\__init__.py</span><span class="tag">1,110 bytes</span></div><p>&quot;&quot;&quot;nt-pairs pure-logic kernel (CONTRACT §0).</p>
+</code></pre></div></details></section><section id="sec-F"><h2>F. 源码与脚本（可执行证据）</h2><h3>src/nt_pairs/__init__.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\__init__.py</span><span class="tag">1,166 bytes</span></div><p>&quot;&quot;&quot;nt-pairs pure-logic kernel (CONTRACT §0).</p>
 <p>The modules re-exported here (pair_spec / ledger / execution / risk) NEVER</p>
 <p>import `<code>nautilus_trader</code><code>; only </code><code>strategy.py</code><code> / </code><code>runtime.py</code>` (separate</p>
 <p>tasks) may do so. This keeps the kernel testable on bare CPython.</p>
@@ -22350,6 +22350,7 @@ worker 与 captain 之间的全部往返原文在 `.herd-dispatch/jobs/*/{input,
 <p>from .execution import OrderSpec, chase_price, h_star_s, hedge_order</p>
 <p>from .leg_policy import (</p>
 <p>    LegQuote,</p>
+<p>    RepeatedCloseDetector,</p>
 <p>    expected_net_bps,</p>
 <p>    leg_risk_bps,</p>
 <p>    maker_cost_bps,</p>
@@ -22377,6 +22378,7 @@ worker 与 captain 之间的全部往返原文在 `.herd-dispatch/jobs/*/{input,
 <p>    &quot;RiskLimits&quot;,</p>
 <p>    &quot;evaluate&quot;,</p>
 <p>    &quot;LegQuote&quot;,</p>
+<p>    &quot;RepeatedCloseDetector&quot;,</p>
 <p>    &quot;rank_legs&quot;,</p>
 <p>    &quot;select_pair&quot;,</p>
 <p>    &quot;expected_net_bps&quot;,</p>
@@ -22396,6 +22398,7 @@ from __future__ import annotations
 from .execution import OrderSpec, chase_price, h_star_s, hedge_order
 from .leg_policy import (
     LegQuote,
+    RepeatedCloseDetector,
     expected_net_bps,
     leg_risk_bps,
     maker_cost_bps,
@@ -22425,6 +22428,7 @@ __all__ = [
     &quot;RiskLimits&quot;,
     &quot;evaluate&quot;,
     &quot;LegQuote&quot;,
+    &quot;RepeatedCloseDetector&quot;,
     &quot;rank_legs&quot;,
     &quot;select_pair&quot;,
     &quot;expected_net_bps&quot;,
@@ -23081,7 +23085,7 @@ class LegLedger:
             &quot;duplicates&quot;: self.duplicates,
             &quot;missing_fee_count&quot;: self.missing_fee_count,
         }
-</code></pre></div></details><h3>src/nt_pairs/leg_policy.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\leg_policy.py</span><span class="tag">4,856 bytes</span></div><p>&quot;&quot;&quot;腿选择策略（纯函数，零 IO）。</p>
+</code></pre></div></details><h3>src/nt_pairs/leg_policy.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\leg_policy.py</span><span class="tag">6,171 bytes</span></div><p>&quot;&quot;&quot;腿选择策略（纯函数，零 IO）。</p>
 <p>2026-11-12 的实测结论改了选腿顺序：<strong>费率 → 点差 → 深度 → 成交概率</strong>。</p>
 <p>把对腿从 Lighter（0 费）换成 OKX（maker2+taker5）后，胜率仍是 95~100%，但净 EV 从</p>
 <p>+0.5~+14.0 bps/轮 翻成 −6.7~−13.0 bps/轮 —— 差额 100% 来自费率。</p>
@@ -23163,6 +23167,32 @@ class LegLedger:
 <p>    if best[0] is None:</p>
 <p>        return None, None, Decimal(&quot;0&quot;)</p>
 <p>    return best</p>
+<p>class RepeatedCloseDetector:</p>
+<p>    &quot;&quot;&quot;陈旧报价检测器：连续 close 相同的比例（薄市场的关键数据质量指标）。</p>
+<p>    实测（2026-11-12，30 天 1h）：Lighter 侧 RKLB 31%、KORU 36%、KIOXIA 高达 93%；</p>
+<p>    MRVL 4%、EWY 5%、SOXL 1%；HL 侧全部 ≤1%。</p>
+<p>    重复率高的腿，其「基差回归」是沿用旧打印的机械假象，<strong>不可交易</strong>。</p>
+<p>    &quot;&quot;&quot;</p>
+<p>    def __init__(self, threshold_pct: float = 10.0, min_samples: int = 30) -&gt; None:</p>
+<p>        self.threshold_pct = Decimal(str(threshold_pct))</p>
+<p>        self.min_samples = int(min_samples)</p>
+<p>        self._closes: list[Decimal] = []</p>
+<p>    def push(self, close: Decimal) -&gt; None:</p>
+<p>        self._closes.append(close)</p>
+<p>        if len(self._closes) &gt; 2000:</p>
+<p>            self._closes.pop(0)</p>
+<p>    @property</p>
+<p>    def samples(self) -&gt; int:</p>
+<p>        return len(self._closes)</p>
+<p>    def repeat_pct(self) -&gt; Decimal:</p>
+<p>        if len(self._closes) &lt; 2:</p>
+<p>            return Decimal(&quot;0&quot;)</p>
+<p>        same = sum(1 for a, b in zip(self._closes, self._closes[1:]) if a == b)</p>
+<p>        return (Decimal(same) * 100 / Decimal(len(self._closes) - 1)).quantize(Decimal(&quot;0.01&quot;))</p>
+<p>    def is_stale(self) -&gt; bool:</p>
+<p>        return self.samples &gt;= self.min_samples and self.repeat_pct() &gt; self.threshold_pct</p>
+<p>    def reset(self) -&gt; None:</p>
+<p>        self._closes.clear()</p>
 <p>def leg_risk_bps(sigma_basis_bps: Decimal, t_leg_s: Decimal, p_one_leg: Decimal,</p>
 <p>                 alpha: Decimal = Decimal(&quot;0.5&quot;)) -&gt; Decimal:</p>
 <p>    &quot;&quot;&quot;腿风险溢价：<code>√(2/π)·σ·√(t/60)·P·α</code>。&quot;&quot;&quot;</p>
@@ -23281,6 +23311,41 @@ def select_pair(quotes: Iterable[LegQuote], capture_bps: Decimal, qty_usd: Decim
     if best[0] is None:
         return None, None, Decimal(&quot;0&quot;)
     return best
+
+
+class RepeatedCloseDetector:
+    &quot;&quot;&quot;陈旧报价检测器：连续 close 相同的比例（薄市场的关键数据质量指标）。
+
+    实测（2026-11-12，30 天 1h）：Lighter 侧 RKLB 31%、KORU 36%、KIOXIA 高达 93%；
+    MRVL 4%、EWY 5%、SOXL 1%；HL 侧全部 ≤1%。
+    重复率高的腿，其「基差回归」是沿用旧打印的机械假象，**不可交易**。
+    &quot;&quot;&quot;
+
+    def __init__(self, threshold_pct: float = 10.0, min_samples: int = 30) -&gt; None:
+        self.threshold_pct = Decimal(str(threshold_pct))
+        self.min_samples = int(min_samples)
+        self._closes: list[Decimal] = []
+
+    def push(self, close: Decimal) -&gt; None:
+        self._closes.append(close)
+        if len(self._closes) &gt; 2000:
+            self._closes.pop(0)
+
+    @property
+    def samples(self) -&gt; int:
+        return len(self._closes)
+
+    def repeat_pct(self) -&gt; Decimal:
+        if len(self._closes) &lt; 2:
+            return Decimal(&quot;0&quot;)
+        same = sum(1 for a, b in zip(self._closes, self._closes[1:]) if a == b)
+        return (Decimal(same) * 100 / Decimal(len(self._closes) - 1)).quantize(Decimal(&quot;0.01&quot;))
+
+    def is_stale(self) -&gt; bool:
+        return self.samples &gt;= self.min_samples and self.repeat_pct() &gt; self.threshold_pct
+
+    def reset(self) -&gt; None:
+        self._closes.clear()
 
 
 def leg_risk_bps(sigma_basis_bps: Decimal, t_leg_s: Decimal, p_one_leg: Decimal,
@@ -32583,7 +32648,7 @@ def test_constructor_rejects_same_venue_and_bad_ratio():
         LegLedger(LEADER, FOLLOWER, D(&quot;0&quot;))
     with pytest.raises(ValueError, match=&quot;ratio&quot;):
         LegLedger(LEADER, FOLLOWER, D(&quot;-1&quot;))
-</code></pre></div></details><h3>tests/test_leg_policy.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_leg_policy.py</span><span class="tag">3,894 bytes</span></div><p>&quot;&quot;&quot;腿选择策略的行为测试（费率优先 → 点差 → 深度 → 成交概率）。&quot;&quot;&quot;</p>
+</code></pre></div></details><h3>tests/test_leg_policy.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_leg_policy.py</span><span class="tag">4,891 bytes</span></div><p>&quot;&quot;&quot;腿选择策略的行为测试（费率优先 → 点差 → 深度 → 成交概率）。&quot;&quot;&quot;</p>
 <p>from __future__ import annotations</p>
 <p>from decimal import Decimal</p>
 <p>import pytest</p>
@@ -32658,7 +32723,27 @@ def test_constructor_rejects_same_venue_and_bad_ratio():
 <p>    a = leg_risk_bps(D(&quot;10&quot;), D(&quot;4&quot;), D(&quot;0.3&quot;))</p>
 <p>    b = leg_risk_bps(D(&quot;10&quot;), D(&quot;16&quot;), D(&quot;0.3&quot;))</p>
 <p>    assert b == pytest.approx(2 * a, rel=1e-6)</p>
-<p>    assert leg_risk_bps(D(&quot;0&quot;), D(&quot;4&quot;), D(&quot;0.3&quot;)) == D(&quot;0&quot;)</p><details><summary>原文（逐字，raw）</summary><div><pre><code>&quot;&quot;&quot;腿选择策略的行为测试（费率优先 → 点差 → 深度 → 成交概率）。&quot;&quot;&quot;
+<p>    assert leg_risk_bps(D(&quot;0&quot;), D(&quot;4&quot;), D(&quot;0.3&quot;)) == D(&quot;0&quot;)</p>
+<p>def test_repeated_close_detector_flags_stale_leg():</p>
+<p>    from nt_pairs.leg_policy import RepeatedCloseDetector</p>
+<p>    det = RepeatedCloseDetector(threshold_pct=10.0, min_samples=10)</p>
+<p>    for _ in range(20):</p>
+<p>        det.push(D(&quot;100.0&quot;))          # 全部相同 → 100% 重复</p>
+<p>    assert det.repeat_pct() == D(&quot;100.00&quot;)</p>
+<p>    assert det.is_stale() is True</p>
+<p>def test_repeated_close_detector_passes_clean_leg():</p>
+<p>    from nt_pairs.leg_policy import RepeatedCloseDetector</p>
+<p>    det = RepeatedCloseDetector(threshold_pct=10.0, min_samples=10)</p>
+<p>    for i in range(40):</p>
+<p>        det.push(D(&quot;100&quot;) + D(i))      # 每桶都变 → 0% 重复</p>
+<p>    assert det.repeat_pct() == D(&quot;0.00&quot;)</p>
+<p>    assert det.is_stale() is False</p>
+<p>def test_repeated_close_detector_needs_min_samples():</p>
+<p>    from nt_pairs.leg_policy import RepeatedCloseDetector</p>
+<p>    det = RepeatedCloseDetector(threshold_pct=10.0, min_samples=30)</p>
+<p>    for _ in range(5):</p>
+<p>        det.push(D(&quot;100&quot;))</p>
+<p>    assert det.is_stale() is False     # 样本不足不下结论</p><details><summary>原文（逐字，raw）</summary><div><pre><code>&quot;&quot;&quot;腿选择策略的行为测试（费率优先 → 点差 → 深度 → 成交概率）。&quot;&quot;&quot;
 
 from __future__ import annotations
 
@@ -32760,7 +32845,33 @@ def test_leg_risk_scales_with_sqrt_time():
     a = leg_risk_bps(D(&quot;10&quot;), D(&quot;4&quot;), D(&quot;0.3&quot;))
     b = leg_risk_bps(D(&quot;10&quot;), D(&quot;16&quot;), D(&quot;0.3&quot;))
     assert b == pytest.approx(2 * a, rel=1e-6)
-    assert leg_risk_bps(D(&quot;0&quot;), D(&quot;4&quot;), D(&quot;0.3&quot;)) == D(&quot;0&quot;)</code></pre></div></details><h3>tests/test_leg_policy_integration.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_leg_policy_integration.py</span><span class="tag">3,469 bytes</span></div><p>&quot;&quot;&quot;腿选择与执行规格的闭环测试：选腿 → maker 挂价 → taker 对冲规格。</p>
+    assert leg_risk_bps(D(&quot;0&quot;), D(&quot;4&quot;), D(&quot;0.3&quot;)) == D(&quot;0&quot;)
+
+def test_repeated_close_detector_flags_stale_leg():
+    from nt_pairs.leg_policy import RepeatedCloseDetector
+    det = RepeatedCloseDetector(threshold_pct=10.0, min_samples=10)
+    for _ in range(20):
+        det.push(D(&quot;100.0&quot;))          # 全部相同 → 100% 重复
+    assert det.repeat_pct() == D(&quot;100.00&quot;)
+    assert det.is_stale() is True
+
+
+def test_repeated_close_detector_passes_clean_leg():
+    from nt_pairs.leg_policy import RepeatedCloseDetector
+    det = RepeatedCloseDetector(threshold_pct=10.0, min_samples=10)
+    for i in range(40):
+        det.push(D(&quot;100&quot;) + D(i))      # 每桶都变 → 0% 重复
+    assert det.repeat_pct() == D(&quot;0.00&quot;)
+    assert det.is_stale() is False
+
+
+def test_repeated_close_detector_needs_min_samples():
+    from nt_pairs.leg_policy import RepeatedCloseDetector
+    det = RepeatedCloseDetector(threshold_pct=10.0, min_samples=30)
+    for _ in range(5):
+        det.push(D(&quot;100&quot;))
+    assert det.is_stale() is False     # 样本不足不下结论
+</code></pre></div></details><h3>tests/test_leg_policy_integration.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_leg_policy_integration.py</span><span class="tag">3,469 bytes</span></div><p>&quot;&quot;&quot;腿选择与执行规格的闭环测试：选腿 → maker 挂价 → taker 对冲规格。</p>
 <p>用真实测得的场所特征（费率/点差/深度）验证：</p>
 <ol><li>同一标的在三所里，<strong>费率最低的组合胜出</strong>（深度不参与排序）；</li><li>换成 OKX 做 taker 后净 EV 翻负（与 2026-11-12 实测一致）；</li><li>选出的 maker 腿能直接喂给 <code>hedge_order</code> 生成 IOC 对冲单，且<strong>永不市价</strong>。</li></ol>
 <p>&quot;&quot;&quot;</p>
