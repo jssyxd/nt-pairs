@@ -36,7 +36,7 @@ hr{border:0;border-top:1px solid var(--bd);margin:24px 0}
 </style></head><body>
 <header>
 <h1>nt-pairs · 全量人机对话 / Agent 交互 / 建模与部署记录</h1>
-<div class="sub">生成时间 2026-11-12T13:47:47.877271+00:00 ｜ 仓库 nt-pairs ｜ 引擎 NautilusTrader 2.0.0rc6 ｜
+<div class="sub">生成时间 2026-11-12T14:00:22.555756+00:00 ｜ 仓库 nt-pairs ｜ 引擎 NautilusTrader 2.0.0rc6 ｜
 涵盖：人类↔Agent 对话、Captain↔worker 逐字转录、矩阵与演算、EV/净边际、实时监控口径、回测报告、部署指导书</div>
 </header>
 <nav><a href="#sec-A">A. 人类 ↔ Agent 原始对话（前序项目）</a><a href="#sec-B">B. 人类在本项目的指令 / Captain 回复原文</a><a href="#sec-C">C. Herdr 派发记录（captain ↔ worker，nt-pairs）</a><a href="#sec-D">D. Herdr 派发记录（captain ↔ worker，ant-cross-arb 前序研究）</a><a href="#sec-E">E. 项目文档：总纲、契约、状态、矩阵、EV、部署、回测</a><a href="#sec-F">F. 源码与脚本（可执行证据）</a><a href="#sec-G">G. 配置、测试与 Field Guide</a></nav>
@@ -1448,7 +1448,7 @@ class FuturesSpreadHedgingStrategy(Strategy):
 1. 升级到 ≥1.231 后，`xyz:ANT-USD-PERP` 的 provider 解析、per-dex 抵押币账户余额口径（USDH/USDT0 换 USDC 的成本会进门槛）。
 2. OKX 股票类永续是否限美股时段（官方参考表 5x + 限时段 vs 实测 `lever=20` 闭市成交）。
 3. 1.219 → 1.231 升级本身的兼容面：instrument id、commission、reconciliation 均有变更，先在 testnet/paper 跑通再切实盘。
-</code></pre></div></details></section><section id="sec-B"><h2>B. 人类在本项目的指令 / Captain 回复原文</h2><h3>human_inputs.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\human_inputs.md</span><span class="tag">4,218 bytes</span></div><h1>人类 ↔ Agent 的输入（原文，逐条）</h1>
+</code></pre></div></details></section><section id="sec-B"><h2>B. 人类在本项目的指令 / Captain 回复原文</h2><h3>human_inputs.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\human_inputs.md</span><span class="tag">4,218 bytes</span></div><h1>人类 ↔ Agent 的输入（原文，逐条）</h1>
 <p>本文件保存本项目（nt-pairs）会话中<strong>人类发出的指令原文</strong>，供 <code>对话.html</code> 收录。</p>
 <hr/>
 <h2>H1 · 2026-11-11 · 转向 NautilusTrader 原生方案</h2>
@@ -1502,7 +1502,7 @@ class FuturesSpreadHedgingStrategy(Strategy):
 &gt; github用户名:jssyxd
 &gt; github token=
 &gt; ghp_***REDACTED***
-</code></pre></div></details><h3>captain_log.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\captain_log.md</span><span class="tag">3,928 bytes</span></div><h1>Captain（我）对人类的回复原文（逐条）</h1>
+</code></pre></div></details><h3>captain_log.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\captain_log.md</span><span class="tag">3,928 bytes</span></div><h1>Captain（我）对人类的回复原文（逐条）</h1>
 <p>本文件保存本项目中 <strong>captain 窗口输出给人类的主要回复原文</strong>，供 <code>对话.html</code> 收录。</p>
 <p>worker 与 captain 之间的全部往返原文在 <code>.herd-dispatch/jobs/*/{input,pane,report}.md</code>，</p>
 <p>由 <code>对话.html</code> 逐字收录。</p>
@@ -1562,7 +1562,7 @@ worker 与 captain 之间的全部往返原文在 `.herd-dispatch/jobs/*/{input,
 &gt;
 &gt; 可靠：**HL 主动流 16–218 笔/分 vs Lighter 0.04–2.8 笔/分** → maker 腿按 λ 选场所，不按场所名选。
 &gt; 不可靠：`P(fill)` 同一模型两次运行给出 3% 与 97%，差异全来自**贴价队列的单次快照**（1 vs 243 单位）→ 挂单前必须逐笔采样队列（≥3 次取中位数）。
-</code></pre></div></details></section><section id="sec-C"><h2>C. Herdr 派发记录（captain ↔ worker，nt-pairs）</h2><h3>job `env-adapter` · input.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\env-adapter\input.md</span><span class="tag">3,477 bytes</span></div><h1>任务 E1：NautilusTrader 1.231 环境 + HL/Lighter 适配器冒烟</h1>
+</code></pre></div></details></section><section id="sec-C"><h2>C. Herdr 派发记录（captain ↔ worker，nt-pairs）</h2><h3>job `env-adapter` · input.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\env-adapter\input.md</span><span class="tag">3,477 bytes</span></div><h1>任务 E1：NautilusTrader 1.231 环境 + HL/Lighter 适配器冒烟</h1>
 <h2>范围</h2>
 <p>仓库 <code>W:/nt-pairs</code>（<strong>全新仓库</strong>，旧 <code>W:/ant-cross-arb</code> 已废弃，禁止读写它）。</p>
 <p>只允许创建/修改：</p>
@@ -1650,7 +1650,7 @@ cd W:/nt-pairs &amp;&amp; .venv/Scripts/python.exe scripts/smoke_adapters.py --n
 ```
 
 ## 产出
-`W:/nt-pairs/.herd-dispatch/jobs/env-adapter/report.md` + 最终回复 3 行摘要。</code></pre></div></details><h3>job `env-adapter` · brief.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\env-adapter\brief.md</span><span class="tag">3,775 bytes</span></div><h1>任务 E1：NautilusTrader 1.231 环境 + HL/Lighter 适配器冒烟</h1>
+`W:/nt-pairs/.herd-dispatch/jobs/env-adapter/report.md` + 最终回复 3 行摘要。</code></pre></div></details><h3>job `env-adapter` · brief.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\env-adapter\brief.md</span><span class="tag">3,775 bytes</span></div><h1>任务 E1：NautilusTrader 1.231 环境 + HL/Lighter 适配器冒烟</h1>
 <h2>范围</h2>
 <p>仓库 <code>W:/nt-pairs</code>（<strong>全新仓库</strong>，旧 <code>W:/ant-cross-arb</code> 已废弃，禁止读写它）。</p>
 <p>只允许创建/修改：</p>
@@ -1746,7 +1746,7 @@ cd W:/nt-pairs &amp;&amp; .venv/Scripts/python.exe scripts/smoke_adapters.py --n
 ---
 Working directory: \\fnos2\iflow\nt-pairs
 You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pane split`, `herd-dispatch`, or spawn any peer agent. Answer in your final reply. If the output is long or is a deliverable, write a file and name that path in the reply.
-</code></pre></div></details><h3>job `env-adapter` · pane.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\env-adapter\pane.md</span><span class="tag">27,200 bytes</span></div><p>├─── Output ────────────────────────────────────────────────────────┤</p>
+</code></pre></div></details><h3>job `env-adapter` · pane.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\env-adapter\pane.md</span><span class="tag">27,200 bytes</span></div><p>├─── Output ────────────────────────────────────────────────────────┤</p>
 <p>│ version: 1.231.0                                                  │</p>
 <p>│ Traceback (most recent call last):                                │</p>
 <p>│   File &quot;&lt;string&gt;&quot;, line 1, in &lt;module&gt;                            │</p>
@@ -2481,7 +2481,7 @@ You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pa
 
   ⎋ Install nautilus_trader to local temp directory
  ⠏ 35m &gt; ◒ DeepSeek V4 Pro &gt; 📁 …ow\nt-pairs &gt; ⑂ master ?10 ▶─8%─┃1M─
-╰─</code></pre></div></details><h3>job `grok-okx` · input.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\grok-okx\input.md</span><span class="tag">2,327 bytes</span></div><h1>任务 G1（grok）：把 OKX 的截面数据抓下来（captain shell 被出口拦截）</h1>
+╰─</code></pre></div></details><h3>job `grok-okx` · input.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\grok-okx\input.md</span><span class="tag">2,327 bytes</span></div><h1>任务 G1（grok）：把 OKX 的截面数据抓下来（captain shell 被出口拦截）</h1>
 <h2>背景</h2>
 <p><code><a href="https://www.okx.com/api/v5/*" target="_blank">https://www.okx.com/api/v5/*</a></code> 从 captain 的 shell 直连返回空（出口限制），但本机此前的 worker 曾成功拉过 OKX 数据。</p>
 <p>请用你能用的网络通道（omp 的 <code>web_search</code> / <code>read</code> 抓取工具优先，必要时再试 bash 里的 curl）完成抓取，</p>
@@ -2541,7 +2541,7 @@ for f in (&quot;okx_instruments&quot;,&quot;okx_tickers&quot;,&quot;okx_books&qu
 EOF
 ```
 
-最终回复 3 行摘要 + 文件清单。</code></pre></div></details><h3>job `grok-okx` · brief.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\grok-okx\brief.md</span><span class="tag">2,625 bytes</span></div><h1>任务 G1（grok）：把 OKX 的截面数据抓下来（captain shell 被出口拦截）</h1>
+最终回复 3 行摘要 + 文件清单。</code></pre></div></details><h3>job `grok-okx` · brief.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\grok-okx\brief.md</span><span class="tag">2,625 bytes</span></div><h1>任务 G1（grok）：把 OKX 的截面数据抓下来（captain shell 被出口拦截）</h1>
 <h2>背景</h2>
 <p><code><a href="https://www.okx.com/api/v5/*" target="_blank">https://www.okx.com/api/v5/*</a></code> 从 captain 的 shell 直连返回空（出口限制），但本机此前的 worker 曾成功拉过 OKX 数据。</p>
 <p>请用你能用的网络通道（omp 的 <code>web_search</code> / <code>read</code> 抓取工具优先，必要时再试 bash 里的 curl）完成抓取，</p>
@@ -2609,7 +2609,7 @@ EOF
 ---
 Working directory: \\fnos2\iflow\nt-pairs
 You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pane split`, `herd-dispatch`, or spawn any peer agent. Answer in your final reply. If the output is long or is a deliverable, write a file and name that path in the reply.
-</code></pre></div></details><h3>job `grok-okx` · pane.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\grok-okx\pane.md</span><span class="tag">1,348 bytes</span></div><p>  //fnos2/iflow/nt-pairs/</p>
+</code></pre></div></details><h3>job `grok-okx` · pane.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\grok-okx\pane.md</span><span class="tag">1,348 bytes</span></div><p>  //fnos2/iflow/nt-pairs/</p>
 <p>                           ⠀⠀⠀⠀⠀⠀⣀⣀⡀⠀⠀⠀⣠⠀</p>
 <p>                           ⠀⠀⠀⣠⣾⠿⠛⠛⠛⠛⢀⣴⠃⠀</p>
 <p>                           ⠀⠀⣼⡟⠁⠀⠀⠀⢀⡴⠻⣿⡀⠀</p>
@@ -2664,7 +2664,7 @@ error sending request for url (https://auth.x.ai/.well-known/openid-c
   ╰────────────────────────────────────────────────────────────  ─╯
 
                                                         0.2.14 Beta
-</code></pre></div></details><h3>job `market-probe` · input.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\market-probe\input.md</span><span class="tag">3,857 bytes</span></div><h1>任务 E2：io:OAI ↔ Lighter OPENAI 基差实测与可交易性裁决</h1>
+</code></pre></div></details><h3>job `market-probe` · input.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\market-probe\input.md</span><span class="tag">3,857 bytes</span></div><h1>任务 E2：io:OAI ↔ Lighter OPENAI 基差实测与可交易性裁决</h1>
 <h2>范围</h2>
 <p>仓库 <code>W:/nt-pairs</code>。只允许创建：</p>
 <ul><li><code>scripts/probe_basis.py</code></li><li><code>data/</code>（输出，已 gitignore）</li><li><code>tests/test_probe_basis.py</code>（若把统计逻辑抽成函数）</li><li><code>.herd-dispatch/jobs/market-probe/report.md</code></li></ul>
@@ -2753,7 +2753,7 @@ cd W:/nt-pairs &amp;&amp; python -m pytest tests/test_probe_basis.py -q   # 若�
 
 ## 产出
 `W:/nt-pairs/.herd-dispatch/jobs/market-probe/report.md`：裁决先行 + 表 + 复现命令 + Surprises。
-最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `market-probe` · brief.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\market-probe\brief.md</span><span class="tag">4,155 bytes</span></div><h1>任务 E2：io:OAI ↔ Lighter OPENAI 基差实测与可交易性裁决</h1>
+最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `market-probe` · brief.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\market-probe\brief.md</span><span class="tag">4,155 bytes</span></div><h1>任务 E2：io:OAI ↔ Lighter OPENAI 基差实测与可交易性裁决</h1>
 <h2>范围</h2>
 <p>仓库 <code>W:/nt-pairs</code>。只允许创建：</p>
 <ul><li><code>scripts/probe_basis.py</code></li><li><code>data/</code>（输出，已 gitignore）</li><li><code>tests/test_probe_basis.py</code>（若把统计逻辑抽成函数）</li><li><code>.herd-dispatch/jobs/market-probe/report.md</code></li></ul>
@@ -2850,7 +2850,7 @@ cd W:/nt-pairs &amp;&amp; python -m pytest tests/test_probe_basis.py -q   # 若�
 ---
 Working directory: \\fnos2\iflow\nt-pairs
 You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pane split`, `herd-dispatch`, or spawn any peer agent. Answer in your final reply. If the output is long or is a deliverable, write a file and name that path in the reply.
-</code></pre></div></details><h3>job `market-probe` · pane.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\market-probe\pane.md</span><span class="tag">31,740 bytes</span></div><p>│         if side == &quot;bid&quot;:                                        │</p>
+</code></pre></div></details><h3>job `market-probe` · pane.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\market-probe\pane.md</span><span class="tag">31,740 bytes</span></div><p>│         if side == &quot;bid&quot;:                                        │</p>
 <p>│             return sum(px * sz for px, sz in levels              │</p>
 <p>│                        if px &gt;= mid * (1 - bps / 1e4))           │</p>
 <p>│         return sum(px * sz for px, sz in levels                  │</p>
@@ -3616,7 +3616,7 @@ You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pa
 
                             ⚖️ BASIS: Measure io:OAI ↔ Lighter basis
  π &gt; ⬢ glm-5.3 &gt; 📁 …os2\iflow\nt-pairs &gt; ⑂ master ?10 &gt; ◫ 69K/? ⟲ …
-╰─</code></pre></div></details><h3>job `market-probe` · report.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\market-probe\report.md</span><span class="tag">8,212 bytes</span></div><h1>E2: io:OAI (Hyperliquid Entropy) ↔ Lighter OPENAI(192) 基差实测与裁决</h1>
+╰─</code></pre></div></details><h3>job `market-probe` · report.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\market-probe\report.md</span><span class="tag">8,212 bytes</span></div><h1>E2: io:OAI (Hyperliquid Entropy) ↔ Lighter OPENAI(192) 基差实测与裁决</h1>
 <p>抓取: 首次 2026-11-11T15:19–15:20 UTC，复核 23:37Z（全量重跑）。全部公共端点、无密钥。</p>
 <p>脚本: <code>scripts/probe_basis.py</code>（纯标准库）；数据: <code>data/basis_ioOAI_lighterOPENAI.json</code></p>
 <h2>裁决（先行）</h2>
@@ -3854,7 +3854,7 @@ curl -s &#x27;https://mainnet.zklighter.elliot.ai/api/v1/orderBooks?market_id=19
 3. **`(lt_bid − hl_ask)/mid = +297 bps 是个陷阱**：它看起来像可以直接吃的无风险边际，但吃它 = 在贵的那边（Lighter）做多 + 便宜那边（HL）做空，赌的是 3% 分歧收敛——而这个分歧已经持续了至少 14 天且半衰期 6h。真正的问题是「为什么 Lighter 恒贵 3%」（pre-IPO 标的做市商风险溢价？两个 oracle 源不同？），这不在本任务范围但决定了策略生死。
 4. HL `io:OAI` 的 `deployerFeeScale` 恰好是 **1.0**（2026-09-02 起），所以费率就是基础 4.5/1.5 bps，没有额外的 deployer share——不需要标注「未含」。
 5. Lighter 的 funding 端点返回的是**对照表**（binance/bybit/lighter 三个来源的当前 rate），不是历史序列；HL 的 fundingHistory 才有逐小时历史。两边 funding 周期可能不同（HL 每小时，Lighter 未知），carry 项按 HL 口径算。
-</code></pre></div></details><h3>job `matrix` · input.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\matrix\input.md</span><span class="tag">3,489 bytes</span></div><h1>任务 M2：三场所价差矩阵（scan_matrix）</h1>
+</code></pre></div></details><h3>job `matrix` · input.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\matrix\input.md</span><span class="tag">3,489 bytes</span></div><h1>任务 M2：三场所价差矩阵（scan_matrix）</h1>
 <h2>必读</h2>
 <ul><li><code>W:/nt-pairs/docs/MATRIX_SPEC.md</code> —— <strong>口径唯一来源，逐节照做</strong>。</li><li><code>W:/nt-pairs/src/nt_pairs/sessions.py</code> —— 会话标定（已交付，7 测试全绿）；直接 import，不要重写。</li><li><code>W:/nt-pairs/CONTRACT.md</code> §7.1 —— <code>b*</code> 六项与已裁决事实。</li><li><code>W:/nt-pairs/data/raw/</code> —— 由 <code>venue-dump</code> worker 落盘（可能还在增长；<strong>先按文件存在与否优雅降级</strong>）。</li></ul>
 <h2>范围</h2>
@@ -3947,7 +3947,7 @@ EOF
 ④ 三个**必须回答**的结论：会话分裂最严重的对是哪几个、容量最大的是哪几个、单位不匹配被拒的是哪几个
 ⑤ Surprises（附错误串）。
 
-最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `matrix` · brief.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\matrix\brief.md</span><span class="tag">3,787 bytes</span></div><h1>任务 M2：三场所价差矩阵（scan_matrix）</h1>
+最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `matrix` · brief.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\matrix\brief.md</span><span class="tag">3,787 bytes</span></div><h1>任务 M2：三场所价差矩阵（scan_matrix）</h1>
 <h2>必读</h2>
 <ul><li><code>W:/nt-pairs/docs/MATRIX_SPEC.md</code> —— <strong>口径唯一来源，逐节照做</strong>。</li><li><code>W:/nt-pairs/src/nt_pairs/sessions.py</code> —— 会话标定（已交付，7 测试全绿）；直接 import，不要重写。</li><li><code>W:/nt-pairs/CONTRACT.md</code> §7.1 —— <code>b*</code> 六项与已裁决事实。</li><li><code>W:/nt-pairs/data/raw/</code> —— 由 <code>venue-dump</code> worker 落盘（可能还在增长；<strong>先按文件存在与否优雅降级</strong>）。</li></ul>
 <h2>范围</h2>
@@ -4048,7 +4048,7 @@ EOF
 ---
 Working directory: \\fnos2\iflow\nt-pairs
 You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pane split`, `herd-dispatch`, or spawn any peer agent. Answer in your final reply. If the output is long or is a deliverable, write a file and name that path in the reply.
-</code></pre></div></details><h3>job `matrix` · pane.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\matrix\pane.md</span><span class="tag">14,016 bytes</span></div><p> fraction (signed).</p>
+</code></pre></div></details><h3>job `matrix` · pane.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\matrix\pane.md</span><span class="tag">14,016 bytes</span></div><p> fraction (signed).</p>
 <p> share_abs_ge_{100,200,300}.</p>
 <p> half_life_h: rho from signed series,</p>
 <p> interval 1m for short windows (hours</p>
@@ -4807,7 +4807,7 @@ You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pa
 
 📊 MATRIX: Build three-venue spread mat
  π &gt; ⦸ Qwen3.8 Max &gt; 📁 …airs ▶─4%─┃1M─
-╰─</code></pre></div></details><h3>job `reviewer` · input.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\reviewer\input.md</span><span class="tag">2,753 bytes</span></div><h1>任务 E5：代码评审（nt-pairs P0 内核 + 策略骨架）</h1>
+╰─</code></pre></div></details><h3>job `reviewer` · input.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\reviewer\input.md</span><span class="tag">2,753 bytes</span></div><h1>任务 E5：代码评审（nt-pairs P0 内核 + 策略骨架）</h1>
 <h2>角色</h2>
 <p>你是<strong>独立评审者</strong>，作者不是你。只读 + 写评审报告，<strong>不要修改任何代码</strong>。</p>
 <h2>输入</h2>
@@ -4866,7 +4866,7 @@ cd W:/nt-pairs &amp;&amp; grep -rn &quot;TimeInForce.MARKET\|market_order\|Order
 ```
 
 ## 禁止
-改代码、`git` 写、装依赖、派生 agent。最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `soxl-sim` · input.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\soxl-sim\input.md</span><span class="tag">4,291 bytes</span></div><h1>任务 M3：滑点/容量建模 + SOXL 完整执行模拟</h1>
+改代码、`git` 写、装依赖、派生 agent。最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `soxl-sim` · input.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\soxl-sim\input.md</span><span class="tag">4,291 bytes</span></div><h1>任务 M3：滑点/容量建模 + SOXL 完整执行模拟</h1>
 <h2>必读</h2>
 <ul><li><code>W:/nt-pairs/docs/MATRIX_SPEC.md</code> §5（滑点与容量定义）。</li><li><code>W:/nt-pairs/CONTRACT.md</code> §6-1（带状规则）、§7.1（六项 <code>b*</code>、TTL、永不市价）。</li><li><code>W:/nt-pairs/docs/2026-11-11-*.md</code>（已知实测：<code>io:OAI↔OPENAI</code> 的深度与结论，避免重复踩坑）。</li><li><code>W:/nt-pairs/src/nt_pairs/{execution,risk}.py</code> —— <code>h_star_s</code>、<code>hedge_order</code> 直接复用，不要重写。</li><li><code>W:/nt-pairs/data/raw/</code>（由 <code>venue-dump</code> 落盘，可能仍在增长；缺失就降级并写 reason）。</li></ul>
 <h2>范围</h2>
@@ -4981,7 +4981,7 @@ EOF
 ① 两腿画像表 ② 七窗口 × 会话的价差表 ③ 三档 `p_fill` × 三档名义额的净期望矩阵
 ④ 「净期望 &gt; 0 的最大名义额」与依据 ⑤ 哪些数字是实测、哪些是模型假设 ⑥ Surprises。
 
-最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `soxl-sim` · brief.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\soxl-sim\brief.md</span><span class="tag">4,589 bytes</span></div><h1>任务 M3：滑点/容量建模 + SOXL 完整执行模拟</h1>
+最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `soxl-sim` · brief.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\soxl-sim\brief.md</span><span class="tag">4,589 bytes</span></div><h1>任务 M3：滑点/容量建模 + SOXL 完整执行模拟</h1>
 <h2>必读</h2>
 <ul><li><code>W:/nt-pairs/docs/MATRIX_SPEC.md</code> §5（滑点与容量定义）。</li><li><code>W:/nt-pairs/CONTRACT.md</code> §6-1（带状规则）、§7.1（六项 <code>b*</code>、TTL、永不市价）。</li><li><code>W:/nt-pairs/docs/2026-11-11-*.md</code>（已知实测：<code>io:OAI↔OPENAI</code> 的深度与结论，避免重复踩坑）。</li><li><code>W:/nt-pairs/src/nt_pairs/{execution,risk}.py</code> —— <code>h_star_s</code>、<code>hedge_order</code> 直接复用，不要重写。</li><li><code>W:/nt-pairs/data/raw/</code>（由 <code>venue-dump</code> 落盘，可能仍在增长；缺失就降级并写 reason）。</li></ul>
 <h2>范围</h2>
@@ -5104,7 +5104,7 @@ EOF
 ---
 Working directory: \\fnos2\iflow\nt-pairs
 You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pane split`, `herd-dispatch`, or spawn any peer agent. Answer in your final reply. If the output is long or is a deliverable, write a file and name that path in the reply.
-</code></pre></div></details><h3>job `soxl-sim` · pane.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\soxl-sim\pane.md</span><span class="tag">52,169 bytes</span></div><p>╭────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮</p>
+</code></pre></div></details><h3>job `soxl-sim` · pane.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\soxl-sim\pane.md</span><span class="tag">52,169 bytes</span></div><p>╭────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮</p>
 <p>│   ls -la data/raw ⇡ first 60  19ms                                                                                                         │</p>
 <p>│   ;                                                                                                                                        │</p>
 <p>│   print(&quot;=== count ===&quot;)                                                                                                                   │</p>
@@ -5838,7 +5838,7 @@ You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pa
 
   ⎋ Probing HL SOXL full context                                                              💧 SLIP: Model slippage, simulate SOXL execution
  ⠹ 3m &gt; ◕ Qwen3.8 Max &gt; 📁 \\fnos2\iflow\nt-pairs &gt; ⑂ master ?11 ▶───4%─────────────────────────────────────────────────────────┃──────────1M─
-╰─</code></pre></div></details><h3>job `strategy-core` · input.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\strategy-core\input.md</span><span class="tag">4,182 bytes</span></div><h1>任务 E3：纯逻辑内核（pair_spec / ledger / execution / risk）+ 测试</h1>
+╰─</code></pre></div></details><h3>job `strategy-core` · input.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\strategy-core\input.md</span><span class="tag">4,182 bytes</span></div><h1>任务 E3：纯逻辑内核（pair_spec / ledger / execution / risk）+ 测试</h1>
 <h2>范围</h2>
 <p>仓库 <code>W:/nt-pairs</code>。只允许创建/修改：</p>
 <ul><li><code>src/nt_pairs/__init__.py</code></li><li><code>src/nt_pairs/pair_spec.py</code></li><li><code>src/nt_pairs/ledger.py</code></li><li><code>src/nt_pairs/execution.py</code></li><li><code>src/nt_pairs/risk.py</code></li><li><code>tests/test_ledger.py</code>、<code>tests/test_execution.py</code>、<code>tests/test_risk.py</code></li></ul>
@@ -5950,7 +5950,7 @@ cd W:/nt-pairs &amp;&amp; python -m pytest tests -q
 
 ## 产出
 `W:/nt-pairs/.herd-dispatch/jobs/strategy-core/report.md`：接口对照、pytest 输出、与契约偏差、Surprises。
-最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `strategy-core` · brief.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\strategy-core\brief.md</span><span class="tag">4,480 bytes</span></div><h1>任务 E3：纯逻辑内核（pair_spec / ledger / execution / risk）+ 测试</h1>
+最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `strategy-core` · brief.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\strategy-core\brief.md</span><span class="tag">4,480 bytes</span></div><h1>任务 E3：纯逻辑内核（pair_spec / ledger / execution / risk）+ 测试</h1>
 <h2>范围</h2>
 <p>仓库 <code>W:/nt-pairs</code>。只允许创建/修改：</p>
 <ul><li><code>src/nt_pairs/__init__.py</code></li><li><code>src/nt_pairs/pair_spec.py</code></li><li><code>src/nt_pairs/ledger.py</code></li><li><code>src/nt_pairs/execution.py</code></li><li><code>src/nt_pairs/risk.py</code></li><li><code>tests/test_ledger.py</code>、<code>tests/test_execution.py</code>、<code>tests/test_risk.py</code></li></ul>
@@ -6070,7 +6070,7 @@ cd W:/nt-pairs &amp;&amp; python -m pytest tests -q
 ---
 Working directory: \\fnos2\iflow\nt-pairs
 You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pane split`, `herd-dispatch`, or spawn any peer agent. Answer in your final reply. If the output is long or is a deliverable, write a file and name that path in the reply.
-</code></pre></div></details><h3>job `strategy-core` · pane.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\strategy-core\pane.md</span><span class="tag">51,539 bytes</span></div><p>╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</p>
+</code></pre></div></details><h3>job `strategy-core` · pane.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\strategy-core\pane.md</span><span class="tag">51,539 bytes</span></div><p>╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</p>
 <p>╭─── ✎ Write: 🐍 //fnos2/iflow/nt-pairs/tests/test_execution.py · 167 lines ─────────────────────────────────────────────────────────────────╮</p>
 <p>│   1 &quot;&quot;&quot;Behaviour tests for nt_pairs.execution (CONTRACT §4).&quot;&quot;&quot;                                                                            │</p>
 <p>│   2 from __future__ import annotations                                                                                                     │</p>
@@ -6800,7 +6800,7 @@ You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pa
 
                                                                                                 ⚖️ KERNEL: Implement pure logic kernel modules
  π &gt; ◕ Qwen3.8 Max &gt; 📁 \\fnos2\iflow\nt-pairs &gt; ⑂ master ?10 ▶──────7%─────────────────────────────────────────────────────────┃──────────1M─
-╰─</code></pre></div></details><h3>job `strategy-core` · report.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\strategy-core\report.md</span><span class="tag">9,834 bytes</span></div><h1>E3 报告：纯逻辑内核（pair_spec / ledger / execution / risk）+ 测试</h1>
+╰─</code></pre></div></details><h3>job `strategy-core` · report.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\strategy-core\report.md</span><span class="tag">9,834 bytes</span></div><h1>E3 报告：纯逻辑内核（pair_spec / ledger / execution / risk）+ 测试</h1>
 <p>日期：2026-11-11 ｜ 仓库：<code>W:/nt-pairs</code>（= <code>\\fnos2\iflow\nt-pairs</code>，同一目录）</p>
 <p>运行环境：裸 CPython 3.12.9 + pytest 9.1.1（未用 <code>.venv</code>，未 import <code>nautilus_trader</code>）</p>
 <h2>1. 交付文件</h2>
@@ -6971,7 +6971,7 @@ pair_spec 无独立测试文件（brief 只允许 3 个测试文件），用一�
 4. **Decimal 28 位精度的坑（预防性绕开）**：`h_star` 的 k² 缩放在 1.97/13.05 这类除不尽的数上，`(2a)²` 与 `4a²` 可能在第 28 位有效数字上差 1 ulp，等值断言会闪断 —— 缩放律测试改用 `1/10` 精确可除的数（0.6 → 2.4），参考值 1.3673 s 单独用容差断言。
 5. **float 边界**：risk 年龄边界测试全部用 x.0/x.5 这类二进制可精确表示的值（`now - (now - age) == age` 严格成立），避免 59.9 之类的浮点残差把边界测试变成掷硬币。
 6. **网络盘 I/O 慢**：一次全目录 pytest 冷启动 ~60 s（UNC/SMB），热缓存后 2.7 s；不影响结果。
-</code></pre></div></details><h3>job `strategy-nautilus` · input.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\strategy-nautilus\input.md</span><span class="tag">4,897 bytes</span></div><h1>任务 E4：NautilusTrader Strategy + 运行时装配（io:OAI ↔ Lighter OPENAI）</h1>
+</code></pre></div></details><h3>job `strategy-nautilus` · input.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\strategy-nautilus\input.md</span><span class="tag">4,897 bytes</span></div><h1>任务 E4：NautilusTrader Strategy + 运行时装配（io:OAI ↔ Lighter OPENAI）</h1>
 <h2>前置（必须先读）</h2>
 <ul><li><code>W:/nt-pairs/CONTRACT.md</code> 全文（尤其 §2、§4、§5、§6、§6-1）。</li><li><code>W:/nt-pairs/.herd-dispatch/jobs/env-adapter/report.md</code> —— <strong>instrument id 与 config 字段的唯一事实来源</strong>。</li><li><code>W:/nt-pairs/.herd-dispatch/jobs/strategy-core/report.md</code> —— 纯逻辑模块的实际签名（已交付，56 测试全绿）。</li><li><code>W:/nt-pairs/src/nt_pairs/*.py</code> 现状（pair_spec/ledger/execution/risk 已由别人实现，<strong>不要改</strong>）。</li><li><code>W:/nt-pairs/docs/2026-11-11-basis-probe.md</code> 与 <code>docs/2026-11-11-expectancy-test.md</code>。</li></ul>
 <h2>解释器与版本（已实测，不得再改）</h2>
@@ -7075,7 +7075,7 @@ cd W:/nt-pairs
 
 ## 产出
 `W:/nt-pairs/.herd-dispatch/jobs/strategy-nautilus/report.md`：实现要点、实测 API 名、pytest 输出、未验证项、Surprises。
-最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `strategy-nautilus` · brief.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\strategy-nautilus\brief.md</span><span class="tag">5,195 bytes</span></div><h1>任务 E4：NautilusTrader Strategy + 运行时装配（io:OAI ↔ Lighter OPENAI）</h1>
+最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `strategy-nautilus` · brief.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\strategy-nautilus\brief.md</span><span class="tag">5,195 bytes</span></div><h1>任务 E4：NautilusTrader Strategy + 运行时装配（io:OAI ↔ Lighter OPENAI）</h1>
 <h2>前置（必须先读）</h2>
 <ul><li><code>W:/nt-pairs/CONTRACT.md</code> 全文（尤其 §2、§4、§5、§6、§6-1）。</li><li><code>W:/nt-pairs/.herd-dispatch/jobs/env-adapter/report.md</code> —— <strong>instrument id 与 config 字段的唯一事实来源</strong>。</li><li><code>W:/nt-pairs/.herd-dispatch/jobs/strategy-core/report.md</code> —— 纯逻辑模块的实际签名（已交付，56 测试全绿）。</li><li><code>W:/nt-pairs/src/nt_pairs/*.py</code> 现状（pair_spec/ledger/execution/risk 已由别人实现，<strong>不要改</strong>）。</li><li><code>W:/nt-pairs/docs/2026-11-11-basis-probe.md</code> 与 <code>docs/2026-11-11-expectancy-test.md</code>。</li></ul>
 <h2>解释器与版本（已实测，不得再改）</h2>
@@ -7187,7 +7187,7 @@ cd W:/nt-pairs
 ---
 Working directory: \\fnos2\iflow\nt-pairs
 You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pane split`, `herd-dispatch`, or spawn any peer agent. Answer in your final reply. If the output is long or is a deliverable, write a file and name that path in the reply.
-</code></pre></div></details><h3>job `strategy-nautilus` · pane.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\strategy-nautilus\pane.md</span><span class="tag">29,776 bytes</span></div><p>│ persist.                                                         │</p>
+</code></pre></div></details><h3>job `strategy-nautilus` · pane.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\strategy-nautilus\pane.md</span><span class="tag">29,776 bytes</span></div><p>│ persist.                                                         │</p>
 <p>╰─── Wall: 0.30s · Timeout: 30s ───────────────────────────────────╯</p>
 <p> TradingNode doesn&#x27;t seem to exist as a class in nautilus_trader</p>
 <p> 2.0.0rc6. The architecture might be different. Let me look at how</p>
@@ -7953,7 +7953,7 @@ You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pa
 
   ⎋ Explore OrderBookDeltas, BookType, BookOrder
  ⠼ 9m &gt; ◒ DeepSeek V4 Pro &gt; 📁 …ow\nt-pairs &gt; ⑂ master ?11 ▶─5%─┃1M─
-╰─</code></pre></div></details><h3>job `venue-dump` · input.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\venue-dump\input.md</span><span class="tag">4,555 bytes</span></div><h1>任务 M1：三场所原始数据落盘（OKX / Lighter / Hyperliquid）</h1>
+╰─</code></pre></div></details><h3>job `venue-dump` · input.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\venue-dump\input.md</span><span class="tag">4,555 bytes</span></div><h1>任务 M1：三场所原始数据落盘（OKX / Lighter / Hyperliquid）</h1>
 <h2>背景</h2>
 <p>captain 的 shell 直连 OKX/Binance 返回空（出口受限），但 worker 沙箱通常可达（此前 <code>universe-map</code> 成功拉到 OKX）。</p>
 <p>本任务只做<strong>取数与落盘</strong>，不做分析。</p>
@@ -8075,7 +8075,7 @@ EOF
 ```
 （`python`=3.12；`py`=3.14 无 pytest，勿用。）
 
-最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `venue-dump` · brief.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\venue-dump\brief.md</span><span class="tag">4,853 bytes</span></div><h1>任务 M1：三场所原始数据落盘（OKX / Lighter / Hyperliquid）</h1>
+最终回复给路径 + 3 行摘要。</code></pre></div></details><h3>job `venue-dump` · brief.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\venue-dump\brief.md</span><span class="tag">4,853 bytes</span></div><h1>任务 M1：三场所原始数据落盘（OKX / Lighter / Hyperliquid）</h1>
 <h2>背景</h2>
 <p>captain 的 shell 直连 OKX/Binance 返回空（出口受限），但 worker 沙箱通常可达（此前 <code>universe-map</code> 成功拉到 OKX）。</p>
 <p>本任务只做<strong>取数与落盘</strong>，不做分析。</p>
@@ -8205,7 +8205,7 @@ EOF
 ---
 Working directory: \\fnos2\iflow\nt-pairs
 You are a worker, not an orchestrator. Do not run `herdr agent start`, `herdr pane split`, `herd-dispatch`, or spawn any peer agent. Answer in your final reply. If the output is long or is a deliverable, write a file and name that path in the reply.
-</code></pre></div></details><h3>job `venue-dump` · pane.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.herd-dispatch\jobs\venue-dump\pane.md</span><span class="tag">20,282 bytes</span></div><ul><li>限速：每场所 ≥150 ms 间隔；OKX 历史 K 线分页要遵守 limit=300。</li><li>失败重试 ≤2 次，仍失败就写 error 文件（不要静默）。</li><li>不改 src/、tests/、CONTRACT.md；不 git 写；不派生 agent。</li><li>报告 W:/nt-pairs/.herd-dispatch/jobs/venue-dump/report.md：</li></ul>
+</code></pre></div></details><h3>job `venue-dump` · pane.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.herd-dispatch\jobs\venue-dump\pane.md</span><span class="tag">20,282 bytes</span></div><ul><li>限速：每场所 ≥150 ms 间隔；OKX 历史 K 线分页要遵守 limit=300。</li><li>失败重试 ≤2 次，仍失败就写 error 文件（不要静默）。</li><li>不改 src/、tests/、CONTRACT.md；不 git 写；不派生 agent。</li><li>报告 W:/nt-pairs/.herd-dispatch/jobs/venue-dump/report.md：</li></ul>
 <p>   ① 每个场所成功/失败的文件数 ② 关键发现（哪些标的三方都有、哪些只</p>
 <p>   在两方）</p>
 <p>   ③ 端点坑（附错误串）④ Surprises。</p>
@@ -18980,7 +18980,7 @@ dataclass 在做 `KW_ONLY` / 类型注解内省时 `sys.modules.get(cls.__module
 任务文字写「≥ 60 → FREEZE_NEW」「≥ 180 → FLATTEN」「≥ 600 → HALT」，用 `≥`。
 测试用 age=59→NONE / 60→FREEZE_NEW / 180→FLATTEN / 600→HALT 验证边界闭合。
 `naked_age_s` 用 `max(0.0, now - naked_since_ts)` 钳非负。
-</code></pre></div></details></section><section id="sec-E"><h2>E. 项目文档：总纲、契约、状态、矩阵、EV、部署、回测</h2><h3>README.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\README.md</span><span class="tag">4,233 bytes</span></div><h1>nt-pairs</h1>
+</code></pre></div></details></section><section id="sec-E"><h2>E. 项目文档：总纲、契约、状态、矩阵、EV、部署、回测</h2><h3>README.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\README.md</span><span class="tag">4,233 bytes</span></div><h1>nt-pairs</h1>
 <p>在 <strong>NautilusTrader 1.231</strong> 上重建的两腿对冲基差振荡系统。第一对标的：</p>
 <table><thead><tr><th>腿</th><th>场所</th><th>标的</th><th>角色</th></tr></thead><tbody>
 <tr><td>A</td><td>Hyperliquid（Entropy HIP-3 dex <code>io</code>）</td><td><code>io:OAI</code>（界面名 OPENAI）</td><td>leader（maker）</td></tr>
@@ -19116,7 +19116,7 @@ python -m pytest -q                # 纯逻辑 + 统计测试（不依赖 nautil
 - pre-IPO 永续的「基差」可能包含估值口径差异（不是可收割的错价）。
 - 两腿保证金不互通：单边被强平会让整个组合变成裸腿。
 - HL 请求配额按地址计（`10000 + 累计成交`），配额耗尽时平仓只能靠预挂的 trigger。
-- 本仓库默认 `dry_run=True`，不发真实订单。</code></pre></div></details><h3>CONTRACT.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\CONTRACT.md</span><span class="tag">9,617 bytes</span></div><h1>nt-pairs 契约（captain 定义，worker 实现，不得改语义）</h1>
+- 本仓库默认 `dry_run=True`，不发真实订单。</code></pre></div></details><h3>CONTRACT.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\CONTRACT.md</span><span class="tag">9,617 bytes</span></div><h1>nt-pairs 契约（captain 定义，worker 实现，不得改语义）</h1>
 <p>目标：用 NautilusTrader 验证「io:OAI（Hyperliquid Entropy）↔ Lighter OPENAI」两腿基差振荡是否正期望，</p>
 <p>并把执行做成<strong>成交流水驱动</strong>：被动腿挂单（leader），对手腿按实际成交逐笔 IOC 对冲（follower）。</p>
 <h2>0. 目录与职责</h2>
@@ -19410,7 +19410,7 @@ sigma_b  = 1.4826 × MAD（同窗口）
 - 不改 `W:/ant-cross-arb`（旧方案已废弃）。
 - 不引入除 `nautilus_trader/pyyaml/pytest` 外的依赖。
 - 不做真实下单，不读用户密钥；所有 live 配置用环境变量占位。
-- 不提交 `.venv/`、`data/`、`state/`。</code></pre></div></details><h3>STATUS.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\STATUS.md</span><span class="tag">6,105 bytes</span></div><h1>状态（2026-11-11 收尾）</h1>
+- 不提交 `.venv/`、`data/`、`state/`。</code></pre></div></details><h3>STATUS.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\STATUS.md</span><span class="tag">6,105 bytes</span></div><h1>状态（2026-11-11 收尾）</h1>
 <h2>2026-11-12 追加：三场所矩阵阶段</h2>
 <table><thead><tr><th>项</th><th>状态</th><th>证据</th></tr></thead><tbody>
 <tr><td>矩阵规格（窗口/会话/成本/容量/排序）</td><td>✅</td><td><code>docs/MATRIX_SPEC.md</code></td></tr>
@@ -19552,7 +19552,7 @@ sigma_b  = 1.4826 × MAD（同窗口）
    「避开美股盘中」不是通用规则。
 5. **补齐 OKX / Binance 历史**：需要一个能访问 `www.okx.com` 的出口（本机被拦）。
 6. **恢复多 agent 复核**：provider 配额 12-07 16:00 UTC 重置；`--kind grok` 需要人工登录 x.ai。
-</code></pre></div></details><h3>docs/2026-11-11-basis-probe.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\2026-11-11-basis-probe.md</span><span class="tag">4,729 bytes</span></div><h1>基差实测：io:OAI ↔ Lighter OPENAI（2026-11-11，captain 亲算）</h1>
+</code></pre></div></details><h3>docs/2026-11-11-basis-probe.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\2026-11-11-basis-probe.md</span><span class="tag">4,729 bytes</span></div><h1>基差实测：io:OAI ↔ Lighter OPENAI（2026-11-11，captain 亲算）</h1>
 <h2>方法（可复现）</h2>
 <pre><code># HL：14 天 1h K 线
 POST https://api.hyperliquid.xyz/info
@@ -19709,7 +19709,7 @@ basis_bps = (P_lighter / P_hl - 1) * 1e4
 
 **数据陷阱（必须记住）**：Lighter 的 1m K 线**只在有成交时生成**，3 天请求只回 762 根。
 任何「按行对齐」的统计都会把缺行当成连续时间，从而系统性高估波动率或算出错的半衰期；
-正确做法是重建固定网格 + 前向填充 + 标注 `stale` 占比。</code></pre></div></details><h3>docs/2026-11-11-economics.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\2026-11-11-economics.md</span><span class="tag">3,348 bytes</span></div><h1>经济性核算：这对标的「值不值得做」（2026-11-11）</h1>
+正确做法是重建固定网格 + 前向填充 + 标注 `stale` 占比。</code></pre></div></details><h3>docs/2026-11-11-economics.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\2026-11-11-economics.md</span><span class="tag">3,348 bytes</span></div><h1>经济性核算：这对标的「值不值得做」（2026-11-11）</h1>
 <p>结论：<strong>当前状态下不值得投入实盘资金</strong>。不是因为它没有价差（价差 300 bps，很宽），而是因为</p>
 <p><strong>容量被 HL <code>io:OAI</code> 的盘口锁死</strong>，且<strong>回归假设在最近 20 天不成立</strong>。</p>
 <h2>1. 容量（谁限制了仓位）</h2>
@@ -19820,7 +19820,7 @@ basis_bps = (P_lighter / P_hl - 1) * 1e4
 - **上实盘的前置条件**（缺一不可）：
   1. 因果回测（含 34 bps 成本、含漂移过滤）净期望 &gt; 0 且分月不翻转；
   2. Nautilus L2 回放的 maker 成交率与实盘 500 ms 标定结果一致；
-  3. 单腿深度 ≥ 10 × 单笔名义（当前不满足）。</code></pre></div></details><h3>docs/2026-11-11-expectancy-test.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\2026-11-11-expectancy-test.md</span><span class="tag">5,452 bytes</span></div><h1>「是否正期望」的第一轮因果检验（2026-11-11）</h1>
+  3. 单腿深度 ≥ 10 × 单笔名义（当前不满足）。</code></pre></div></details><h3>docs/2026-11-11-expectancy-test.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\2026-11-11-expectancy-test.md</span><span class="tag">5,452 bytes</span></div><h1>「是否正期望」的第一轮因果检验（2026-11-11）</h1>
 <p><strong>结论先行：以「围绕滚动中位数做带状回归」的朴素版本，在最近 20 天的小时数据上是负期望。</strong></p>
 <p>这不是执行成本造成的（成本约 34 bps/往返，而实测均值亏损 −36 ~ −64 bps/轮，扣成本前就已为负），</p>
 <p>而是<strong>基差本身在趋势性下移</strong>。</p>
@@ -19973,7 +19973,7 @@ basis_bps = (P_lighter / P_hl - 1) * 1e4
 收益必须来自**执行层**（maker 赚半价差 / 赚流动性提供），而不是「预测基差方向」。
 这正好回到用户最初的直觉：**挂单成交的那一侧赚的是价差，另一侧只是对冲**。
 也因此，必须先回答「在这两个薄盘口上，maker 的成交概率与逆向选择各是多少」——
-这正是 `docs/2026-11-11-economics.md` 里列为上实盘前置条件第 2 条的东西。</code></pre></div></details><h3>docs/BACKTEST_REPORT.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\BACKTEST_REPORT.md</span><span class="tag">8,911 bytes</span></div><h1>回测结果回报书（nt-pairs · io:OAI 先行版 + 全候选矩阵）</h1>
+这正是 `docs/2026-11-11-economics.md` 里列为上实盘前置条件第 2 条的东西。</code></pre></div></details><h3>docs/BACKTEST_REPORT.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\BACKTEST_REPORT.md</span><span class="tag">8,911 bytes</span></div><h1>回测结果回报书（nt-pairs · io:OAI 先行版 + 全候选矩阵）</h1>
 <p>版本 <strong>2026-11-12</strong> ｜ 仓库 <code>W:/nt-pairs</code> ｜ 引擎 <strong>NautilusTrader 2.0.0rc6</strong>（cp312 win wheel）</p>
 <hr/>
 <h2>0. 执行摘要与裁决</h2>
@@ -20207,7 +20207,7 @@ python scripts/sim_soxl.py                       # SOXL 完整执行模拟
 python scripts/fill_model.py                     # 成交率/排队模型
 python scripts/probe_basis.py --days 14          # 基差分布与 b*
 ```
-</code></pre></div></details><h3>docs/DEPLOYMENT_GUIDE.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\DEPLOYMENT_GUIDE.md</span><span class="tag">14,435 bytes</span></div><h1>部署指导书（nt-pairs · io:OAI 先行版 + 全候选矩阵）</h1>
+</code></pre></div></details><h3>docs/DEPLOYMENT_GUIDE.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\DEPLOYMENT_GUIDE.md</span><span class="tag">14,435 bytes</span></div><h1>部署指导书（nt-pairs · io:OAI 先行版 + 全候选矩阵）</h1>
 <p>目标：在 <strong>NautilusTrader 2.0.0rc6</strong> 上把「leader maker + follower IOC 影子跟单」的两腿系统</p>
 <p>安全地跑起来。本文覆盖：VPS、账户与密钥、WS 订阅与心跳、持久化保护、WS+REST 混合、</p>
 <p>监控与告警、上线闸门、回滚手册。</p>
@@ -20626,7 +20626,7 @@ journalctl -u nt-pairs -f
 - [ ] 告警通道已验证（含一次真实触发）
 - [ ] `dry_run=1` 连续 24 h 无异常
 - [ ] 回滚手册演练一次（杀进程 → 在途单被撤 → 重启后对账闭合）
-</code></pre></div></details><h3>docs/EV_AND_MONITORING.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\EV_AND_MONITORING.md</span><span class="tag">6,927 bytes</span></div><h1>期望值（EV）与期望净边际：定义、逐标的数据、监控口径</h1>
+</code></pre></div></details><h3>docs/EV_AND_MONITORING.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\EV_AND_MONITORING.md</span><span class="tag">6,927 bytes</span></div><h1>期望值（EV）与期望净边际：定义、逐标的数据、监控口径</h1>
 <p>本文件回答三件事：① 每个候选的<strong>期望净边际</strong>是多少、正还是负；② 实时监控要看什么、阈值怎么定；</p>
 <p>③ 开平仓滑点怎么算、什么深度才算「可成交」。</p>
 <hr/>
@@ -20837,7 +20837,7 @@ k = 1 + 1/√ESS,  ESS = n(1−ρ)/(1+ρ)
 ```
 
 **已知不可靠项**：`p_fill`（单次盘口快照会让结果在 3%↔97% 之间跳）→ 必须逐笔采样队列后再用；
-`recon = 0.5 bps`（假设）→ 待实盘标定；`HL deployer fee share`（未含）→ 以成交回执 `fee` 校准。</code></pre></div></details><h3>docs/FILL_MODEL.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\FILL_MODEL.md</span><span class="tag">3,232 bytes</span></div><h1>成交率与排队模型（fill model）</h1>
+`recon = 0.5 bps`（假设）→ 待实盘标定；`HL deployer fee share`（未含）→ 以成交回执 `fee` 校准。</code></pre></div></details><h3>docs/FILL_MODEL.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\FILL_MODEL.md</span><span class="tag">3,232 bytes</span></div><h1>成交率与排队模型（fill model）</h1>
 <p>生成：2026-11-12T13:35:04.535405+00:00；方法见 <code>scripts/fill_model.py</code> 头注释。</p>
 <h2>1. 每侧的主动流与排队</h2>
 <table><thead><tr><th>对</th><th>基差</th><th>HL 点差</th><th>LT 点差</th><th>HL 主动卖 λ(/min)</th><th>HL 主动卖均量</th><th>LT 主动买 λ(/min)</th><th>LT 主动买均量</th><th>HL 贴价队列</th><th>LT 贴价队列</th></tr></thead><tbody>
@@ -20919,7 +20919,7 @@ k = 1 + 1/√ESS,  ESS = n(1−ρ)/(1+ρ)
 - 排队量取「贴价同档 resting size」，**真实队列在触价瞬间可能已被抢跑** → 这是乐观上界；
 - Poisson + 平均单笔量忽略了单笔量分布的厚尾（少数大单会一次吃完队列）→ 实际 P(fill) 更低；
 - 本模型只回答「能不能成交」，**不回答「成交后是不是逆向选择」**——后者需要成交后 markout，需要实盘/L2 回放。
-</code></pre></div></details><h3>docs/MATRIX.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\MATRIX.md</span><span class="tag">4,838 bytes</span></div><h1>三场所价差矩阵（2026-11-12 实测）</h1>
+</code></pre></div></details><h3>docs/MATRIX.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\MATRIX.md</span><span class="tag">4,838 bytes</span></div><h1>三场所价差矩阵（2026-11-12 实测）</h1>
 <p>生成：2026-11-12T13:28:41.188654+00:00；HL↔Lighter 为 30 天 1h 序列（会话分层），</p>
 <p>OKX / Binance 为 2026-11-11 截面快照（本机直连被出口拦截，无历史序列）。</p>
 <table><thead><tr><th>#</th><th>pair</th><th>30d mean</th><th>p95</th><th>b*</th><th>k·b*</th><th>覆盖</th><th>cap($)</th><th>会话分裂</th><th>单位校验</th><th>可交易</th></tr></thead><tbody>
@@ -21096,7 +21096,7 @@ OKX / Binance 为 2026-11-11 截面快照（本机直连被出口拦截，无历
 | xyz:NBIS|189 | 369 | +4.9 | 16.1 | 7.6 |
 | io:NBIS|189 | 369 | +0.1 | 13.4 | 7.6 |
 | xyz:MSTR|122 | 369 | +0.8 | 12.8 | 8.1 |
-</code></pre></div></details><h3>docs/MATRIX_PREVIEW.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\MATRIX_PREVIEW.md</span><span class="tag">5,065 bytes</span></div><h1>三场所矩阵：captain 基线预览（2026-11-12）</h1>
+</code></pre></div></details><h3>docs/MATRIX_PREVIEW.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\MATRIX_PREVIEW.md</span><span class="tag">5,065 bytes</span></div><h1>三场所矩阵：captain 基线预览（2026-11-12）</h1>
 <p>在 worker 的完整矩阵（<code>docs/MATRIX.md</code>）产出前，这里先给出<strong>可复现的基线</strong>，</p>
 <p>用来校验 worker 结果是否跑偏。口径与 <code>docs/MATRIX_SPEC.md</code> 一致。</p>
 <h2>1. HL ↔ Lighter：30 天 1h 基差 + 会话分层（实测）</h2>
@@ -21241,7 +21241,7 @@ OKX / Binance 为 2026-11-11 截面快照（本机直连被出口拦截，无历
 
 **结论：SOXL 是当前唯一「回归幅度 &gt; 成本」的候选**，扣成本后 +4~+6 bps/轮。
 但 100% 胜率必须证伪：需要在「两侧同一时刻都有成交」的桶上重算，并检查 markout——
-这可能是 Lighter 报价滞后造成的机械回归，而不是可执行的 alpha。</code></pre></div></details><h3>docs/MATRIX_SPEC.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\MATRIX_SPEC.md</span><span class="tag">4,395 bytes</span></div><h1>矩阵口径（captain 定义，worker 必须照此实现）</h1>
+这可能是 Lighter 报价滞后造成的机械回归，而不是可执行的 alpha。</code></pre></div></details><h3>docs/MATRIX_SPEC.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\MATRIX_SPEC.md</span><span class="tag">4,395 bytes</span></div><h1>矩阵口径（captain 定义，worker 必须照此实现）</h1>
 <p>目标：对 <strong>OKX / Lighter / Hyperliquid</strong> 三场所所有可配对标的，产出</p>
 <p>「价差矩阵 × 窗口 × 会话 × 容量 × 滑点」的一张可排序表，并对 SOXL 做完整执行模拟。</p>
 <h2>1. 配对与单位</h2>
@@ -21395,7 +21395,7 @@ rank         = edge_ratio × min(1, cap_usd/5000) / (1 + session_split)
 - 纯标准库（`scipy` 不可用）；统计量自己实现。
 - 缺数据的对**不要静默丢弃**：写 `&quot;reasons&quot;: [&quot;no_candles:B&quot;]` 并保留在输出里。
 - 所有 USD 金额是「名义额」，不是保证金。
-- 数值必须可复现：输出里带 `sources`（每个文件用到的 raw 文件路径 + 抓取时间）。</code></pre></div></details><h3>docs/MATRIX_SUMMARY.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\MATRIX_SUMMARY.md</span><span class="tag">6,947 bytes</span></div><h1>三场所矩阵总结（2026-11-12）</h1>
+- 数值必须可复现：输出里带 `sources`（每个文件用到的 raw 文件路径 + 抓取时间）。</code></pre></div></details><h3>docs/MATRIX_SUMMARY.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\MATRIX_SUMMARY.md</span><span class="tag">6,947 bytes</span></div><h1>三场所矩阵总结（2026-11-12）</h1>
 <p>口径见 <code>docs/MATRIX_SPEC.md</code>；captain 基线见 <code>docs/MATRIX_PREVIEW.md</code>；全量矩阵见 <code>docs/MATRIX.md</code>。</p>
 <hr/>
 <h2>1. 宇宙：能组双腿的标的</h2>
@@ -21593,7 +21593,7 @@ NVDA / INTC / SNDK / MSTR / CRCL 虽然「过闸」，但**扣真实成本后为
 | OKX 多窗口统计 | 本机出口拦截（`www.okx.com` / `aws.okx.com` / `static.okx.com` 全 000），只有 2026-11-11 截面快照 |
 | 多 agent 并行复核 | provider 配额耗尽（`429 insufficient_quota`，重置 12-07 16:00 UTC）；`--kind grok` 需人工登录 |
 | `p_fill` / markout 标定 | 需要 L2 回放或实盘 fill 日志（尚无） |
-| 2.0 runtime 节点启动 | Nautilus 2.0 移除了 `TradingNode`，需单独一轮 |</code></pre></div></details><h3>docs/SOXL_SIM.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\SOXL_SIM.md</span><span class="tag">2,731 bytes</span></div><h1>SOXL 执行模拟（HL <code>xyz:SOXL</code> ↔ Lighter <code>OPENAI</code>）</h1>
+| 2.0 runtime 节点启动 | Nautilus 2.0 移除了 `TradingNode`，需单独一轮 |</code></pre></div></details><h3>docs/SOXL_SIM.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\SOXL_SIM.md</span><span class="tag">2,731 bytes</span></div><h1>SOXL 执行模拟（HL <code>xyz:SOXL</code> ↔ Lighter <code>OPENAI</code>）</h1>
 <p>生成：2026-11-12T13:02:12.741527+00:00</p>
 <h2>1. 两腿画像</h2>
 <table><thead><tr><th>腿</th><th>mid</th><th>点差(bps)</th><th>tick</th><th>24h 量</th></tr></thead><tbody>
@@ -21687,7 +21687,7 @@ NVDA / INTC / SNDK / MSTR / CRCL 虽然「过闸」，但**扣真实成本后为
 - carry 用 HL 1h funding 近似 0.5 bps；Lighter funding 周期未确认。
 - 盘口深度为抓取瞬间快照，单点采样。
 - 1m 口径下 Lighter K 线极稀疏（30 天仅约 500 根 5m），日内统计不稳健。
-</code></pre></div></details><h3>docs/captain_log.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\captain_log.md</span><span class="tag">3,928 bytes</span></div><h1>Captain（我）对人类的回复原文（逐条）</h1>
+</code></pre></div></details><h3>docs/captain_log.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\captain_log.md</span><span class="tag">3,928 bytes</span></div><h1>Captain（我）对人类的回复原文（逐条）</h1>
 <p>本文件保存本项目中 <strong>captain 窗口输出给人类的主要回复原文</strong>，供 <code>对话.html</code> 收录。</p>
 <p>worker 与 captain 之间的全部往返原文在 <code>.herd-dispatch/jobs/*/{input,pane,report}.md</code>，</p>
 <p>由 <code>对话.html</code> 逐字收录。</p>
@@ -21747,7 +21747,7 @@ worker 与 captain 之间的全部往返原文在 `.herd-dispatch/jobs/*/{input,
 &gt;
 &gt; 可靠：**HL 主动流 16–218 笔/分 vs Lighter 0.04–2.8 笔/分** → maker 腿按 λ 选场所，不按场所名选。
 &gt; 不可靠：`P(fill)` 同一模型两次运行给出 3% 与 97%，差异全来自**贴价队列的单次快照**（1 vs 243 单位）→ 挂单前必须逐笔采样队列（≥3 次取中位数）。
-</code></pre></div></details><h3>docs/human_inputs.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\human_inputs.md</span><span class="tag">4,218 bytes</span></div><h1>人类 ↔ Agent 的输入（原文，逐条）</h1>
+</code></pre></div></details><h3>docs/human_inputs.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\docs\human_inputs.md</span><span class="tag">4,218 bytes</span></div><h1>人类 ↔ Agent 的输入（原文，逐条）</h1>
 <p>本文件保存本项目（nt-pairs）会话中<strong>人类发出的指令原文</strong>，供 <code>对话.html</code> 收录。</p>
 <hr/>
 <h2>H1 · 2026-11-11 · 转向 NautilusTrader 原生方案</h2>
@@ -21801,7 +21801,7 @@ worker 与 captain 之间的全部往返原文在 `.herd-dispatch/jobs/*/{input,
 &gt; github用户名:jssyxd
 &gt; github token=
 &gt; ghp_***REDACTED***
-</code></pre></div></details></section><section id="sec-F"><h2>F. 源码与脚本（可执行证据）</h2><h3>src/nt_pairs/__init__.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\__init__.py</span><span class="tag">746 bytes</span></div><p>&quot;&quot;&quot;nt-pairs pure-logic kernel (CONTRACT §0).</p>
+</code></pre></div></details></section><section id="sec-F"><h2>F. 源码与脚本（可执行证据）</h2><h3>src/nt_pairs/__init__.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\src/nt_pairs\__init__.py</span><span class="tag">746 bytes</span></div><p>&quot;&quot;&quot;nt-pairs pure-logic kernel (CONTRACT §0).</p>
 <p>The modules re-exported here (pair_spec / ledger / execution / risk) NEVER</p>
 <p>import `<code>nautilus_trader</code><code>; only </code><code>strategy.py</code><code> / </code><code>runtime.py</code>` (separate</p>
 <p>tasks) may do so. This keeps the kernel testable on bare CPython.</p>
@@ -21854,7 +21854,7 @@ __all__ = [
     &quot;RiskLimits&quot;,
     &quot;evaluate&quot;,
 ]
-</code></pre></div></details><h3>src/nt_pairs/execution.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\execution.py</span><span class="tag">6,662 bytes</span></div><p>&quot;&quot;&quot;Execution primitives (CONTRACT §4). Pure functions, no `<code>nautilus_trader</code>`.</p>
+</code></pre></div></details><h3>src/nt_pairs/execution.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\src/nt_pairs\execution.py</span><span class="tag">6,662 bytes</span></div><p>&quot;&quot;&quot;Execution primitives (CONTRACT §4). Pure functions, no `<code>nautilus_trader</code>`.</p>
 <p>Hedging is fill-driven and <strong>IOC-limit only</strong> — a market order is never</p>
 <p>produced anywhere in this module. All prices/quantities are `<code>Decimal</code>`;</p>
 <p>floats are rejected (:func:<code>~nt_pairs.pair_spec.to_decimal</code>).</p>
@@ -22215,7 +22215,7 @@ def chase_price(
             f&quot;{price} (ticks={ticks}, tick={tick})&quot;
         )
     return price
-</code></pre></div></details><h3>src/nt_pairs/ledger.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\ledger.py</span><span class="tag">5,860 bytes</span></div><p>&quot;&quot;&quot;Target-based fill ledger (CONTRACT §3). Pure logic, no `<code>nautilus_trader</code>`.</p>
+</code></pre></div></details><h3>src/nt_pairs/ledger.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\src/nt_pairs\ledger.py</span><span class="tag">5,860 bytes</span></div><p>&quot;&quot;&quot;Target-based fill ledger (CONTRACT §3). Pure logic, no `<code>nautilus_trader</code>`.</p>
 <p>Event source in production: Nautilus `<code>OrderFilled</code><code> (</code><code>last_qty</code>`,</p>
 <p>`<code>order_side</code><code>, </code><code>instrument_id</code><code>, </code><code>trade_id</code>`) — but this module only needs</p>
 <p>the primitives below.</p>
@@ -22501,7 +22501,7 @@ class LegLedger:
             &quot;duplicates&quot;: self.duplicates,
             &quot;missing_fee_count&quot;: self.missing_fee_count,
         }
-</code></pre></div></details><h3>src/nt_pairs/pair_spec.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\pair_spec.py</span><span class="tag">6,230 bytes</span></div><p>&quot;&quot;&quot;Pair specification and unit conversion (CONTRACT §1-§2).</p>
+</code></pre></div></details><h3>src/nt_pairs/pair_spec.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\src/nt_pairs\pair_spec.py</span><span class="tag">6,230 bytes</span></div><p>&quot;&quot;&quot;Pair specification and unit conversion (CONTRACT §1-§2).</p>
 <p>Pure data + validation. No IO beyond :func:<code>load_pair</code>; NEVER imports</p>
 <p>`<code>nautilus_trader</code><code>. All quantities are :class:</code>~decimal.Decimal`; floats are</p>
 <p>rejected at every boundary (:func:<code>to_decimal</code>) so unit conversion stays exact</p>
@@ -22835,7 +22835,7 @@ def load_pair(path: str | Path) -&gt; PairSpec:
         sigma_1m_bps=data[&quot;sigma_1m_bps&quot;],
         max_leg_usd=data[&quot;max_leg_usd&quot;],
     )
-</code></pre></div></details><h3>src/nt_pairs/risk.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\risk.py</span><span class="tag">4,435 bytes</span></div><p>&quot;&quot;&quot;Risk gates (CONTRACT §5). Pure function, no `<code>nautilus_trader</code>`.</p>
+</code></pre></div></details><h3>src/nt_pairs/risk.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\src/nt_pairs\risk.py</span><span class="tag">4,435 bytes</span></div><p>&quot;&quot;&quot;Risk gates (CONTRACT §5). Pure function, no `<code>nautilus_trader</code>`.</p>
 <p>:func:<code>evaluate</code> maps the current world state to one :class:<code>Action</code> plus a</p>
 <p>human-readable reason. Priority (CONTRACT §5):</p>
 <ol><li>`<code>pos_known=False</code>` → WARN only — never flatten on uncertain state.</li><li>Equity drawdown: `<code>&gt;= equity_kill_pct</code><code> → HALT, </code><code>&gt;= equity_freeze_pct</code>`</li></ol>
@@ -23080,7 +23080,7 @@ def evaluate(
                 reason = f&quot;{reason}; {note}&quot;
 
     return action, reason
-</code></pre></div></details><h3>src/nt_pairs/runtime.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\runtime.py</span><span class="tag">4,120 bytes</span></div><p>&quot;&quot;&quot;运行时装配：把 env 变量变成两个适配器的 client config。</p>
+</code></pre></div></details><h3>src/nt_pairs/runtime.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\src/nt_pairs\runtime.py</span><span class="tag">4,120 bytes</span></div><p>&quot;&quot;&quot;运行时装配：把 env 变量变成两个适配器的 client config。</p>
 <p>NautilusTrader 2.0 移除了 1.x 的 <code>TradingNode</code> / <code>TradingNodeConfig</code>；本模块只做<strong>配置装配</strong></p>
 <p>（可用 <code>--check</code> 脱敏打印），节点/引擎的启动方式属于 2.0 的新 runtime API，尚未在本仓库接线</p>
 <p>（见 STATUS.md 的待办）。</p>
@@ -23302,7 +23302,7 @@ def main() -&gt; int:
 
 
 if __name__ == &quot;__main__&quot;:
-    raise SystemExit(main())</code></pre></div></details><h3>src/nt_pairs/sessions.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\sessions.py</span><span class="tag">3,791 bytes</span></div><p>&quot;&quot;&quot;美股会话标定（纯函数，无第三方依赖）。</p>
+    raise SystemExit(main())</code></pre></div></details><h3>src/nt_pairs/sessions.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\src/nt_pairs\sessions.py</span><span class="tag">3,791 bytes</span></div><p>&quot;&quot;&quot;美股会话标定（纯函数，无第三方依赖）。</p>
 <p>用于把任意 UTC 时间戳映射到：pre-market / RTH / after-hours / closed，</p>
 <p>并区分周末、美国联邦假日、以及提前收盘日。</p>
 <p>时区用固定规则而非 pytz：美东在 3 月第二个周日 02:00 切 EDT、11 月第一个周日 02:00 切 EST。</p>
@@ -23498,7 +23498,7 @@ def bucket_sessions(ts_ms_list: list[int]) -&gt; dict[str, int]:
     out = {&quot;pre&quot;: 0, &quot;rth&quot;: 0, &quot;post&quot;: 0, &quot;closed&quot;: 0}
     for ts in ts_ms_list:
         out[classify(ts).session] += 1
-    return out</code></pre></div></details><h3>src/nt_pairs/strategy.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\strategy.py</span><span class="tag">12,937 bytes</span></div><p>&quot;&quot;&quot;NautilusTrader 2.0 策略：leader 挂单 + follower 按成交逐笔 IOC 对冲。</p>
+    return out</code></pre></div></details><h3>src/nt_pairs/strategy.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\src/nt_pairs\strategy.py</span><span class="tag">12,937 bytes</span></div><p>&quot;&quot;&quot;NautilusTrader 2.0 策略：leader 挂单 + follower 按成交逐笔 IOC 对冲。</p>
 <p>设计约束（见 CONTRACT.md §6 与 §6-1）：</p>
 <ul><li>只有 leader 挂被动单（post_only）；follower 只做 IOC 限价对冲，<strong>永不市价</strong>。</li><li>对冲量来自成交流水（<code>LegLedger</code>），不是计划量。</li><li>开平仓用带状规则（b_hat ± z·σ_b），且带漂移过滤。</li><li>默认 dry_run=True：所有下单只记日志。</li></ul>
 <p>&quot;&quot;&quot;</p>
@@ -24182,7 +24182,7 @@ class PairHedgeStrategy(Strategy):
 
     def on_stop(self) -&gt; None:
         self._save_state()
-        self.log.info(&quot;pair strategy stopped&quot;)</code></pre></div></details><h3>scripts/build_dialogue_html.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\scripts\build_dialogue_html.py</span><span class="tag">11,371 bytes</span></div><p>#!/usr/bin/env python</p>
+        self.log.info(&quot;pair strategy stopped&quot;)</code></pre></div></details><h3>scripts/build_dialogue_html.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\scripts\build_dialogue_html.py</span><span class="tag">11,371 bytes</span></div><p>#!/usr/bin/env python</p>
 <p>&quot;&quot;&quot;把本项目的全部人机对话、Agent 交互转录、模型推导与交付文档汇总成一个自包含 HTML。</p>
 <p>收录范围（一个字都不删）：</p>
 <ul><li>人类 ↔ Agent 原始对话（《对话2.md》《nautilus原生方案讨论.md》）</li><li>人类在本项目的指令原文（docs/human_inputs.md）</li><li>Captain 对人类的回复原文（docs/captain_log.md）</li><li>每一个 Herdr job 的：captain 下发的 brief（input.md）→ worker 终端逐字转录（pane.md）→ worker 交付（report.md）</li><li>项目全部文档、代码、配置、测试、field guide</li></ul>
@@ -24670,7 +24670,7 @@ def main() -&gt; int:
 
 
 if __name__ == &quot;__main__&quot;:
-    raise SystemExit(main())</code></pre></div></details><h3>scripts/build_matrix.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\scripts\build_matrix.py</span><span class="tag">23,177 bytes</span></div><p>#!/usr/bin/env python</p>
+    raise SystemExit(main())</code></pre></div></details><h3>scripts/build_matrix.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\scripts\build_matrix.py</span><span class="tag">23,177 bytes</span></div><p>#!/usr/bin/env python</p>
 <p>&quot;&quot;&quot;三场所价差矩阵（HL ↔ Lighter 全窗口 + OKX/Binance 截面快照）。</p>
 <p>数据来源：</p>
 <ul><li>Hyperliquid：<code>POST <a href="https://api.hyperliquid.xyz/info" target="_blank">https://api.hyperliquid.xyz/info</a></code>（perpDexs / metaAndAssetCtxs / candleSnapshot / l2Book）</li><li>Lighter：<code><a href="https://mainnet.zklighter.elliot.ai/api/v1/*" target="_blank">https://mainnet.zklighter.elliot.ai/api/v1/*</a></code>（orderBookDetails / candles / orderBookOrders）</li><li>OKX / Binance：<strong>本机直连被出口拦截</strong>，使用 ant-cross-arb 工作区里 2026-11-11 的落盘快照</li></ul>
@@ -25600,7 +25600,7 @@ def main() -&gt; int:
 
 
 if __name__ == &quot;__main__&quot;:
-    raise SystemExit(main())</code></pre></div></details><h3>scripts/fetch_raw_data.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\scripts\fetch_raw_data.py</span><span class="tag">29,922 bytes</span></div><p>#!/usr/bin/env python3</p>
+    raise SystemExit(main())</code></pre></div></details><h3>scripts/fetch_raw_data.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\scripts\fetch_raw_data.py</span><span class="tag">29,922 bytes</span></div><p>#!/usr/bin/env python3</p>
 <p>&quot;&quot;&quot;</p>
 <p>M1: Venue raw data dump — OKX / Lighter / Hyperliquid</p>
 <p>Read-only public endpoints, no keys. Rate limit ≥150ms per venue.</p>
@@ -27005,7 +27005,7 @@ print(f&quot;Report saved to {report_path}&quot;)
 (REPORT_DIR / &quot;report.json&quot;).write_text(json.dumps(report, ensure_ascii=False, indent=2, default=str))
 
 print(&quot;\n=== DONE ===&quot;)
-print(f&quot;Report: {report_path}&quot;)</code></pre></div></details><h3>scripts/fill_model.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\scripts\fill_model.py</span><span class="tag">11,768 bytes</span></div><p>#!/usr/bin/env python</p>
+print(f&quot;Report: {report_path}&quot;)</code></pre></div></details><h3>scripts/fill_model.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\scripts\fill_model.py</span><span class="tag">11,768 bytes</span></div><p>#!/usr/bin/env python</p>
 <p>&quot;&quot;&quot;成交率与逆向选择模型（fill model）—— 检验「97% 胜率」是否可执行。</p>
 <p>方法（只用公开端点）：</p>
 <ol><li>拉两侧的成交流（HL <code>recentTrades</code> / Lighter <code>recentTrades</code>）与当前盘口；</li><li>估算<strong>对手方主动流</strong>强度 λ（笔/分钟）与平均单笔量；</li><li>估算被动单在挂价处的<strong>排队量</strong>（盘口同档 resting size）；</li><li>用 Poisson 到达 + 队列模型给出 <code>p_fill(h)</code>（挂单后 h 分钟内成交的概率）；</li><li>用观测到的基差 markout（成交后 1/5/15 分钟）估计<strong>逆向选择</strong>（成交即亏）成本；</li><li>合成每轮净期望：<code>p_fill × (捕获 − 成本 − 逆向选择) − (1−p_fill) × 机会成本</code>。</li></ol>
@@ -27412,7 +27412,7 @@ def main() -&gt; int:
 
 
 if __name__ == &quot;__main__&quot;:
-    raise SystemExit(main())</code></pre></div></details><h3>scripts/matrix_stats.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\scripts\matrix_stats.py</span><span class="tag">9,837 bytes</span></div><p>&quot;&quot;&quot;纯统计与口径函数（M2 矩阵用，零 IO，可单测）。</p>
+    raise SystemExit(main())</code></pre></div></details><h3>scripts/matrix_stats.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\scripts\matrix_stats.py</span><span class="tag">9,837 bytes</span></div><p>&quot;&quot;&quot;纯统计与口径函数（M2 矩阵用，零 IO，可单测）。</p>
 <p>所有函数只依赖 math/statistics，与 scripts/scan_matrix.py 的 IO 层解耦。</p>
 <p>分位数、AR(1)、单位证据、会话分层、窗口对齐、打分公式都在这里定义，</p>
 <p>scan_matrix 只做枚举/读盘/组装。</p>
@@ -27886,7 +27886,7 @@ def rank_score(edge_ratio_v: float, cap_usd: float, session_split_v: float,
         return float(&quot;nan&quot;)
     sp = session_split_v if not math.isnan(session_split_v) else 0.0
     return edge_ratio_v * min(1.0, cap_usd / 5000.0) / (1 + max(sp, 0.0))
-</code></pre></div></details><h3>scripts/probe_basis.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\scripts\probe_basis.py</span><span class="tag">20,818 bytes</span></div><p>#!/usr/bin/env python3</p>
+</code></pre></div></details><h3>scripts/probe_basis.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\scripts\probe_basis.py</span><span class="tag">20,818 bytes</span></div><p>#!/usr/bin/env python3</p>
 <p>&quot;&quot;&quot;io:OAI (Hyperliquid Entropy io-dex) &lt;-&gt; Lighter OPENAI (market_id 192) basis probe.</p>
 <p>Stdlib only (urllib). Public endpoints, no keys. Writes JSON to</p>
 <p>data/basis_ioOAI_lighterOPENAI.json and prints a report.</p>
@@ -28807,7 +28807,7 @@ def main() -&gt; int:
 
 if __name__ == &quot;__main__&quot;:
     sys.exit(main())
-</code></pre></div></details><h3>scripts/screen_candidates.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\scripts\screen_candidates.py</span><span class="tag">5,898 bytes</span></div><p>#!/usr/bin/env python</p>
+</code></pre></div></details><h3>scripts/screen_candidates.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\scripts\screen_candidates.py</span><span class="tag">5,898 bytes</span></div><p>#!/usr/bin/env python</p>
 <p>&quot;&quot;&quot;候选标的的事件级 fade 回放（captain 2026-11-12 实测脚本，固化以便复现）。</p>
 <p>对每个 HL↔Lighter 同名对：</p>
 <ul><li>取 5m K 线（最近 2 天，Lighter 侧分页）；</li><li>用滚动 4h 中位数 + MAD 构造带，<code>|z| ≥ 1.5</code> 反向（fade）入场，</li></ul>
@@ -29052,7 +29052,7 @@ def main() -&gt; int:
 
 
 if __name__ == &quot;__main__&quot;:
-    raise SystemExit(main())</code></pre></div></details><h3>scripts/sim_soxl.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\scripts\sim_soxl.py</span><span class="tag">12,930 bytes</span></div><p>#!/usr/bin/env python</p>
+    raise SystemExit(main())</code></pre></div></details><h3>scripts/sim_soxl.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\scripts\sim_soxl.py</span><span class="tag">12,930 bytes</span></div><p>#!/usr/bin/env python</p>
 <p>&quot;&quot;&quot;SOXL 完整执行模拟：HL <code>xyz:SOXL</code> ↔ Lighter <code>OPENAI</code>（market 197）。</p>
 <p>做四件事：</p>
 <ol><li>两腿画像（tick/数量/费率/深度/24h 量/funding）；</li><li>基差序列（5m，30 天）+ 会话分层；</li><li>回归（fade）规则的<strong>事件级</strong>回放：信号 → 下一根 open 入场 → 回到带内平仓，</li></ol>
@@ -29567,7 +29567,7 @@ def main() -&gt; int:
 
 
 if __name__ == &quot;__main__&quot;:
-    raise SystemExit(main())</code></pre></div></details><h3>scripts/smoke_adapters.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\scripts\smoke_adapters.py</span><span class="tag">9,841 bytes</span></div><p>#!/usr/bin/env python</p>
+    raise SystemExit(main())</code></pre></div></details><h3>scripts/smoke_adapters.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\scripts\smoke_adapters.py</span><span class="tag">9,841 bytes</span></div><p>#!/usr/bin/env python</p>
 <p>&quot;&quot;&quot;Smoke-test NautilusTrader 1.231 Hyperliquid &amp; Lighter adapters.</p>
 <p>Usage:</p>
 <p>    python scripts/smoke_adapters.py --no-network</p>
@@ -30042,7 +30042,7 @@ def main() -&gt; None:
 
 
 if __name__ == &quot;__main__&quot;:
-    main()</code></pre></div></details></section><section id="sec-G"><h2>G. 配置、测试与 Field Guide</h2><h3>configs/openai_entropy_lighter.json</h3><div class="file-meta"><span class="tag">W:\nt-pairs\configs\openai_entropy_lighter.json</span><span class="tag">1,506 bytes</span></div><p>{</p>
+    main()</code></pre></div></details></section><section id="sec-G"><h2>G. 配置、测试与 Field Guide</h2><h3>configs/openai_entropy_lighter.json</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\configs\openai_entropy_lighter.json</span><span class="tag">1,506 bytes</span></div><p>{</p>
 <p>  &quot;name&quot;: &quot;OAI_entropy__OPENAI_lighter&quot;,</p>
 <p>  &quot;leader&quot;: {</p>
 <p>    &quot;venue&quot;: &quot;HYPERLIQUID&quot;,</p>
@@ -30106,7 +30106,7 @@ if __name__ == &quot;__main__&quot;:
     &quot;min_qty(HL) 由 $10 最小名义反推，随价格变化，运行时需按 instrument 重新计算。&quot;,
     &quot;腿的主被动按深度判，不按所名；本配置假设 HL 为 leader，最终以 probe 的深度结果为准。&quot;
   ]
-}</code></pre></div></details><h3>configs/soxl_xyz_binance.json</h3><div class="file-meta"><span class="tag">W:\nt-pairs\configs\soxl_xyz_binance.json</span><span class="tag">1,354 bytes</span></div><p>{</p>
+}</code></pre></div></details><h3>configs/soxl_xyz_binance.json</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\configs\soxl_xyz_binance.json</span><span class="tag">1,354 bytes</span></div><p>{</p>
 <p>  &quot;name&quot;: &quot;SOXL_xyz__SOXLUSDT_binance&quot;,</p>
 <p>  &quot;leader&quot;: {</p>
 <p>    &quot;venue&quot;: &quot;HYPERLIQUID&quot;,</p>
@@ -30170,7 +30170,7 @@ if __name__ == &quot;__main__&quot;:
     &quot;费率为基础档，未含账户等级折扣；实际以成交回执 fee 为准。&quot;,
     &quot;sigma_1m_bps 为占位，需用 scripts/probe_basis.py 重算。&quot;
   ]
-}</code></pre></div></details><h3>tests/test_execution.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_execution.py</span><span class="tag">6,004 bytes</span></div><p>&quot;&quot;&quot;Behaviour tests for nt_pairs.execution (CONTRACT §4).&quot;&quot;&quot;</p>
+}</code></pre></div></details><h3>tests/test_execution.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\tests\test_execution.py</span><span class="tag">6,004 bytes</span></div><p>&quot;&quot;&quot;Behaviour tests for nt_pairs.execution (CONTRACT §4).&quot;&quot;&quot;</p>
 <p>from __future__ import annotations</p>
 <p>from decimal import Decimal</p>
 <p>import pytest</p>
@@ -30461,7 +30461,7 @@ def test_chase_price_rejects_bad_input():
         chase_price(D(&quot;100&quot;), D(&quot;100.1&quot;), &quot;HOLD&quot;, D(&quot;0.1&quot;), 1)
     with pytest.raises(ValueError, match=&quot;non-positive&quot;):
         chase_price(D(&quot;0.10&quot;), D(&quot;0.11&quot;), &quot;SELL&quot;, D(&quot;0.01&quot;), 20)  # bid-0.20 &lt; 0
-</code></pre></div></details><h3>tests/test_ledger.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_ledger.py</span><span class="tag">5,958 bytes</span></div><p>&quot;&quot;&quot;Behaviour tests for nt_pairs.ledger (CONTRACT §3).&quot;&quot;&quot;</p>
+</code></pre></div></details><h3>tests/test_ledger.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\tests\test_ledger.py</span><span class="tag">5,958 bytes</span></div><p>&quot;&quot;&quot;Behaviour tests for nt_pairs.ledger (CONTRACT §3).&quot;&quot;&quot;</p>
 <p>from __future__ import annotations</p>
 <p>from decimal import Decimal</p>
 <p>import pytest</p>
@@ -30731,7 +30731,7 @@ def test_constructor_rejects_same_venue_and_bad_ratio():
         LegLedger(LEADER, FOLLOWER, D(&quot;0&quot;))
     with pytest.raises(ValueError, match=&quot;ratio&quot;):
         LegLedger(LEADER, FOLLOWER, D(&quot;-1&quot;))
-</code></pre></div></details><h3>tests/test_matrix_stats.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_matrix_stats.py</span><span class="tag">5,799 bytes</span></div><p>&quot;&quot;&quot;matrix_stats 纯函数的行为测试（captain 重写：原文件在 worker 配额耗尽时被截断）。&quot;&quot;&quot;</p>
+</code></pre></div></details><h3>tests/test_matrix_stats.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\tests\test_matrix_stats.py</span><span class="tag">5,799 bytes</span></div><p>&quot;&quot;&quot;matrix_stats 纯函数的行为测试（captain 重写：原文件在 worker 配额耗尽时被截断）。&quot;&quot;&quot;</p>
 <p>from __future__ import annotations</p>
 <p>import math</p>
 <p>import sys</p>
@@ -31008,7 +31008,7 @@ def test_edge_ratio_and_capacity_and_rank():
     r = ms.rank_score(1.5, 5000.0, 0.5)
     assert r &gt; 0
     r2 = ms.rank_score(1.5, 100.0, 0.0)
-    assert r2 &lt; r</code></pre></div></details><h3>tests/test_probe_basis.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_probe_basis.py</span><span class="tag">3,730 bytes</span></div><p>&quot;&quot;&quot;Unit tests for the pure statistics in scripts/probe_basis.py.</p>
+    assert r2 &lt; r</code></pre></div></details><h3>tests/test_probe_basis.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\tests\test_probe_basis.py</span><span class="tag">3,730 bytes</span></div><p>&quot;&quot;&quot;Unit tests for the pure statistics in scripts/probe_basis.py.</p>
 <p>Run: python -m pytest tests/test_probe_basis.py -q</p>
 <p>(sys.path hack because scripts/ is not a package.)</p>
 <p>&quot;&quot;&quot;</p>
@@ -31206,7 +31206,7 @@ def test_decide_logic():
     v3 = decide(stats, 20.0, 1.1, True, 10.0, depths3)
     assert not v3[&quot;tradable&quot;]
     assert any(&quot;hl&quot; in r for r in v3[&quot;reasons&quot;])
-</code></pre></div></details><h3>tests/test_risk.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_risk.py</span><span class="tag">5,284 bytes</span></div><p>&quot;&quot;&quot;Behaviour tests for nt_pairs.risk (CONTRACT §5).&quot;&quot;&quot;</p>
+</code></pre></div></details><h3>tests/test_risk.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\tests\test_risk.py</span><span class="tag">5,284 bytes</span></div><p>&quot;&quot;&quot;Behaviour tests for nt_pairs.risk (CONTRACT §5).&quot;&quot;&quot;</p>
 <p>from __future__ import annotations</p>
 <p>from decimal import Decimal</p>
 <p>import pytest</p>
@@ -31485,7 +31485,7 @@ def test_float_money_inputs_rejected():
         call(naked_usd=1.5)
     with pytest.raises(ValueError, match=&quot;float&quot;):
         call(equity_now=9500.0)
-</code></pre></div></details><h3>tests/test_sessions.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_sessions.py</span><span class="tag">1,783 bytes</span></div><p>&quot;&quot;&quot;会话标定的行为测试（2026 年 NYSE 日历）。&quot;&quot;&quot;</p>
+</code></pre></div></details><h3>tests/test_sessions.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\tests\test_sessions.py</span><span class="tag">1,783 bytes</span></div><p>&quot;&quot;&quot;会话标定的行为测试（2026 年 NYSE 日历）。&quot;&quot;&quot;</p>
 <p>from __future__ import annotations</p>
 <p>from datetime import datetime, timezone</p>
 <p>import pytest</p>
@@ -31581,7 +31581,7 @@ def test_dst_boundary_et_offset():
 def test_minutes_fields():
     s = classify(ms(2026, 11, 12, 14, 0))  # 09:00 ET
     assert s.session == &quot;pre&quot;
-    assert s.minutes_to_rth_open == pytest.approx(30.0)</code></pre></div></details><h3>tests/test_strategy_smoke.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_strategy_smoke.py</span><span class="tag">2,762 bytes</span></div><p>&quot;&quot;&quot;策略骨架冒烟测试（不连网、不下单）。</p>
+    assert s.minutes_to_rth_open == pytest.approx(30.0)</code></pre></div></details><h3>tests/test_strategy_smoke.py</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\tests\test_strategy_smoke.py</span><span class="tag">2,762 bytes</span></div><p>&quot;&quot;&quot;策略骨架冒烟测试（不连网、不下单）。</p>
 <p>只验证「能在 2.0rc6 里实例化 + dry_run 绝不调用 submit_order + 带状状态可持久化」，</p>
 <p>不验证真实撮合（那需要 L2 回放，见 docs/2026-11-11-economics.md 的前置条件）。</p>
 <p>&quot;&quot;&quot;</p>
@@ -31735,7 +31735,7 @@ def test_naked_timer_sets_since(tmp_path):
     s.naked_since = None
     # 没有 book 时 _hedge 不应崩，且应记录裸腿起点
     s._hedge()
-    assert s.naked_since is not None</code></pre></div></details><h3>.field-guide/nautilus_lighter_data.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\.field-guide\nautilus_lighter_data.md</span><span class="tag">11,662 bytes</span></div><h1>Field Guide: nt-pairs（NautilusTrader 重建）环境与数据</h1>
+    assert s.naked_since is not None</code></pre></div></details><h3>.field-guide/nautilus_lighter_data.md</h3><div class="file-meta"><span class="tag">C:\Users\da\tmp\nt-pairs-publish\.field-guide\nautilus_lighter_data.md</span><span class="tag">11,662 bytes</span></div><h1>Field Guide: nt-pairs（NautilusTrader 重建）环境与数据</h1>
 <h2>2026-11-11: Lighter 适配器的版本陷阱（决定整个技术选型）</h2>
 <ul><li><code>nautilus_trader==1.231.0</code>（PyPI latest 的 1.x）<strong>没有 Python 端 Lighter 适配器</strong>：</li></ul>
 <p>  <code>nautilus_trader/adapters/</code> 里只有 hyperliquid，没有 lighter；上游 <code>crates/adapters/lighter</code> 存在但未暴露到 Python 包。</p>
