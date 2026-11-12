@@ -66,6 +66,15 @@ def lt_candles(mid: int, days: int = 2) -> dict[int, tuple[float, float]]:
     return out
 
 
+def repeat_close_pct(series: dict) -> float:
+    """相邻桶 close 完全相同的比例（陈旧打印）。>10% 的腿不得用于 EV 结论。"""
+    vals = [series[t][1] for t in sorted(series)]
+    if len(vals) < 2:
+        return 0.0
+    same = sum(1 for a, b in zip(vals, vals[1:]) if a == b)
+    return round(100.0 * same / (len(vals) - 1), 2)
+
+
 def books(coin: str, mid: int):
     d = post({"type": "l2Book", "coin": coin})
     hb = [(float(x["px"]), float(x["sz"])) for x in d["levels"][0]]
@@ -83,7 +92,8 @@ def tick_of(bids, asks) -> float:
 
 
 def main() -> int:
-    print(f"{'sym':8s}{'n':>4s}{'b*':>7s}{'cap':>8s}{'net':>7s}{'win':>6s}{'rth':>8s}{'closed':>8s}{'depthLT25':>11s}")
+    print(f"{'sym':8s}{'n':>4s}{'b*':>7s}{'cap':>8s}{'net':>7s}{'win':>6s}{'rth':>8s}{'closed':>8s}"
+          f"{'depthLT25':>11s}{'repHL':>7s}{'repLT':>7s}{'flag':>8s}")
     for name, coin, mid in CAND:
         try:
             h, l = hl_candles(coin), lt_candles(mid)
@@ -122,10 +132,14 @@ def main() -> int:
             caps = [e["cap"] for e in ev]
             rth = [e["cap"] for e in ev if e["sess"] == "rth"]
             clo = [e["cap"] for e in ev if e["sess"] == "closed"]
+            rep_hl = repeat_close_pct(h)
+            rep_lt = repeat_close_pct(l)
+            flag = "STALE" if max(rep_hl, rep_lt) > 10 else ""
             print(f"{name:8s}{len(ev):4d}{bstar:7.1f}{statistics.mean(caps):8.1f}"
                   f"{statistics.mean(caps) - bstar:7.1f}{100 * sum(1 for x in caps if x > 0) / len(caps):6.0f}"
                   f"{((statistics.mean(rth) - bstar) if rth else float('nan')):8.1f}"
-                  f"{((statistics.mean(clo) - bstar) if clo else float('nan')):8.1f}{depth_lt:11.0f}")
+                  f"{((statistics.mean(clo) - bstar) if clo else float('nan')):8.1f}{depth_lt:11.0f}"
+                  f"{rep_hl:7.1f}{rep_lt:7.1f}{flag:>8s}")
         except Exception as exc:  # noqa: BLE001
             print(f"{name:8s} ERR {type(exc).__name__} {exc}")
     return 0

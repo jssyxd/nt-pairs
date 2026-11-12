@@ -184,6 +184,18 @@ with open(tmp, "w", encoding="utf-8") as fh: json.dump(state, fh); fh.flush(); o
 os.replace(tmp, path)
 ```
 
+### 4.1.1 数据质量闸门（2026-11-12 新增，上线前必须打开）
+
+薄市场的一侧可能**长时间不成交** → 它的 close 只是沿用上一笔打印 → 基差曲线出现台阶 →
+「回归」看起来极漂亮但**不可成交**。实测：Lighter 的 RKLB 30 天里有 **31%** 的小时 close 与上一根完全相同，
+KORU **36%**（且 30 天只有 189 根），而 MRVL 4% / EWY 5% / SOXL 1%，HL 侧全部 ≤1%。
+
+运行期规则：
+1. 每小时算一次两腿的「重复收盘率」（连续 1h close 相同的比例）。
+2. 任一侧 > **10%** → 该腿**立即退出候选**（不是降仓，是停用），并重新跑 `select_pair`。
+3. 历史回测脚本（`screen_candidates.py` / `screen_candidates_okx.py`）已输出 `repHL/repLT` 与 `STALE` 标记；
+   **任何被标 `STALE` 的对，其 EV 结论一律作废**。
+
 ## 5. 进程与 systemd
 
 ```ini
