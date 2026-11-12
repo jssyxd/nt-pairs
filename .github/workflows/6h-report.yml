@@ -21,6 +21,8 @@ on:
 permissions:
   contents: read
   issues: write
+  # 失败通告 job 要下载本 run 的 artifact（actions/download-artifact）
+  actions: read
 
 concurrency:
   group: 6h-report-${{ github.ref }}

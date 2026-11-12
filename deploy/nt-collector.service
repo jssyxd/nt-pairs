@@ -8,7 +8,8 @@ Type=simple
 User=root
 WorkingDirectory=/opt/nt-pairs
 Environment=PYTHONUNBUFFERED=1
-# 只采 KIOXIA / RKLB 两对；depth 10 控磁盘；跨天压缩；保留 7 天
+# 只采 KIOXIA / RKLB 两对；depth 10 控磁盘；跨天压缩；保留 7 天；
+# --min-free-mb 512：磁盘不足时采集器自行停止，绝不写挂同机的 ant-arb.service
 ExecStart=/usr/bin/python3 /opt/nt-pairs/collect_l2.py \
   --symbols KIOXIA,RKLB \
   --venues HYPERLIQUID,LIGHTER,OKX \
@@ -16,9 +17,12 @@ ExecStart=/usr/bin/python3 /opt/nt-pairs/collect_l2.py \
   --depth 10 \
   --compress \
   --keep-days 7 \
+  --min-free-mb 512 \
   --root /opt/nt-pairs/data/collector \
   --days 30
 Restart=always
+# 采集器因磁盘不足主动退出（exit 2）时不要立刻重启，否则只是反复撞同一堵墙
+RestartPreventExitStatus=2
 RestartSec=15
 # 采集器吃内存很小，但别让 OOM 影响同机的 ant-arb.service
 MemoryMax=256M

@@ -145,10 +145,18 @@ def snap(venue: str, ident: str, sym: str, market_id: int | None, depth: int = 0
     return snap_okx(ident, depth)
 
 
-def out_path(venue: str, root: str, day: str) -> str:
+def out_path(venue: str, root: str, stamp: str) -> str:
     p = os.path.join(root, venue)
     os.makedirs(p, exist_ok=True)
-    return os.path.join(p, f"{day}.jsonl")
+    return os.path.join(p, f"{stamp}.jsonl")
+
+
+def free_mb(path: str) -> float:
+    """磁盘剩余空间（MB）。用于保护同机其它服务不被采集器写满磁盘。"""
+    try:
+        return shutil.disk_usage(os.path.dirname(os.path.abspath(path)) or "/").free / 1e6
+    except OSError:
+        return 1e9
 
 
 def compress_day(path: str) -> None:
@@ -192,6 +200,8 @@ def main() -> int:
     ap.add_argument("--workers", type=int, default=10, help="并发抓取线程数")
     ap.add_argument("--depth", type=int, default=0, help="每侧保留档位（0=端点返回的全部）")
     ap.add_argument("--compress", action="store_true", help="跨天关闭后把当日文件压成 .gz")
+    ap.add_argument("--min-free-mb", type=float, default=512.0,
+                    help="磁盘剩余低于此值（MB）则停止采集并退出；0=不检查")
     args = ap.parse_args()
     venues = set(args.venues.split(","))
     if args.targets:
@@ -215,6 +225,23 @@ def main() -> int:
     while True:
         tick = time.time()
         stamp = datetime.now(timezone.utc).isoformat()
+        if args.min_free_mb > 0:
+            free = free_mb(args.root)
+            if free < args.min_free_mb:
+                # 先把已关闭的历史文件压掉，再判断；仍不足就退出，不能把同机
+                # 的其它服务（如 ant-arb.service）写挂。
+                for venue in list(handles):
+                    handles[venue].close()
+                    if args.compress:
+                        compress_day(paths[venue])
+                handles.clear()
+                paths.clear()
+                prune_old(args.root, 1)
+                free = free_mb(args.root)
+                if free < args.min_free_mb:
+                    print(f"stopping: free disk {free:.0f}MB < {args.min_free_mb:.0f}MB",
+                          file=sys.stderr)
+                    return 2
         today = datetime.now(timezone.utc).strftime("%Y%m%d")
         if today != day:
             # 跨天：关闭并压缩昨日文件
