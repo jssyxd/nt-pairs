@@ -228,6 +228,19 @@ SERIES: dict[str, Callable[[str, int], dict[int, float]]] = {
 }
 
 
+def repeat_close_pct(series: dict[int, float]) -> float:
+    """相邻桶 close 完全相同的比例 → **陈旧打印**（薄市场的关键数据质量指标）。
+
+    实测：Lighter RKLB 31%、KORU 36%（且 KORU 30 天只有 189 根），
+    MRVL 4% / EWY 5% / SOXL 1%；HL 侧全部 ≤1%。
+    """
+    vals = [series[t] for t in sorted(series)]
+    if len(vals) < 2:
+        return 0.0
+    same = sum(1 for a, b in zip(vals, vals[1:]) if a == b)
+    return round(100.0 * same / (len(vals) - 1), 2)
+
+
 def stats(values: list[float]) -> dict:
     if not values:
         return {}
@@ -278,6 +291,12 @@ def main() -> int:
                         if a["mid"] <= 0 or b["mid"] <= 0:
                             continue
                         pairs.append((a, b))
+    # 按「两腿 24h 量乘积」排序，只保留流动性最好的 N 对（默认 60），避免薄市场拖慢与误导
+    pairs.sort(key=lambda ab: (ab[0].get("vol24h") or 0) * (ab[1].get("vol24h") or 0), reverse=True)
+    cap_n = int(os.environ.get("MATRIX_MAX_PAIRS", "60"))
+    if len(pairs) > cap_n:
+        print(f"  cap {cap_n} of {len(pairs)} pairs (MATRIX_MAX_PAIRS)", file=sys.stderr)
+        pairs = pairs[:cap_n]
     print(f"[2/5] candidate pairs: {len(pairs)}", file=sys.stderr)
 
     out_pairs = []
@@ -301,7 +320,15 @@ def main() -> int:
             rsd = statistics.pstdev(ratios) if len(ratios) > 1 else 0.0
             rcv = rsd / rm if rm else 1.0
             rec["ratio_evidence"] = {"mean": round(rm, 6), "sd": round(rsd, 6), "cv": round(rcv, 6), "n": len(ratios)}
-            rec["unit_fail"] = bool(rcv > 0.005 or abs(rm - 1) > 0.05)
+            # 单位失配（硬失败）只看**量级**：同名字不同标的会差 10x/100x。
+            # CV 高往往来自**陈旧报价**（薄市场的打印间隔），不是单位问题 → 软标记。
+            rec["unit_fail"] = bool(abs(rm - 1) > 0.05)
+            rec["repeat_close_pct_A"] = repeat_close_pct(sa)
+            rec["repeat_close_pct_B"] = repeat_close_pct(sb)
+            rec["bars_A"], rec["bars_B"] = len(sa), len(sb)
+            rec["data_quality_cv"] = round(rcv, 6)
+            rec["stale_print_suspect"] = bool(rcv > 0.005
+                                              or max(repeat_close_pct(sa), repeat_close_pct(sb)) > 10.0)
             rec["windows"]["30d"] = stats(basis)
             rec["windows"]["14d"] = stats([x for t, x in zip(ts, basis) if t >= ts[-1] - 14 * 86400 * 1000])
             rec["windows"]["7d"] = stats([x for t, x in zip(ts, basis) if t >= ts[-1] - 7 * 86400 * 1000])
@@ -315,8 +342,7 @@ def main() -> int:
         rec["A"]["book"] = book_stats(ba)
         rec["B"]["book"] = book_stats(bb)
         out_pairs.append(rec)
-        if (idx + 1) % 25 == 0:
-            print(f"  {idx+1}/{len(pairs)}", file=sys.stderr)
+        print(f"  {idx+1}/{len(pairs)} {rec['pair']} n={len(rec.get('windows', {}).get('30d', {}))}", file=sys.stderr)
 
     print("[3/5] scoring ...", file=sys.stderr)
     for rec in out_pairs:
@@ -354,7 +380,8 @@ def main() -> int:
                         "capacity_ok": cap >= 1000.0,
                         "session_split": round(split, 3) if split is not None else None,
                         "rank": round(rank, 3) if rank is not None else None}
-        rec["tradable"] = bool(edge is not None and edge > 0 and cap >= 1000.0)
+        rec["tradable"] = bool(edge is not None and edge > 0 and cap >= 1000.0
+                               and not rec.get("stale_print_suspect"))
 
     payload = {"generated_utc": datetime.now(timezone.utc).isoformat(), "pairs": out_pairs}
     os.makedirs("data", exist_ok=True)
@@ -364,8 +391,8 @@ def main() -> int:
     rows.sort(key=lambda p: -p["score"]["rank"])
     lines = ["# 三场所价差矩阵（2026-11-12 实测）", "",
              f"生成：{payload['generated_utc']}；HL / Lighter / OKX，30 天 1h，会话分层。", "",
-             "| # | pair | 30d mean | p95 | b* | 其中费 | k·b* | 覆盖 | cap($) | 会话分裂 | 可交易 |",
-             "|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|:--:|"]
+             "| # | pair | 30d mean | p95 | b* | 其中费 | k·b* | 覆盖 | cap($) | 会话分裂 | CV | 可交易 |",
+             "|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|:--:|"]
     for i, p in enumerate(rows[:60], 1):
         w = p["windows"]["30d"]
         c = p["costs"]
@@ -373,7 +400,8 @@ def main() -> int:
         lines.append(
             f"| {i} | {p['pair']} | {w['mean']:+.1f} | {w['p95']:.1f} | {c['b_star_bps']:.1f} | {c['fee_total']:.1f} | "
             f"{c['k_b_star']:.1f} | {s['edge_ratio']:.2f} | {p['capacity']['cap_usd']:.0f} | "
-            f"{s['session_split'] if s['session_split'] is not None else 'n/a'} | {'✅' if p['tradable'] else '❌'} |")
+            f"{s['session_split'] if s['session_split'] is not None else 'n/a'} | "
+            f"{p.get('data_quality_cv', 0):.5f} | {'✅' if p['tradable'] else '❌'} |")
     # 每个标的的最佳腿组合（费率优先）
     best: dict[str, dict] = {}
     for p in out_pairs:

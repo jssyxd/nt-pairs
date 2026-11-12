@@ -7,8 +7,13 @@
 
 - 同一底层资产在 ≥2 个场所出现即构成候选对（`pair = (venueA:symA, venueB:symB)`）。
 - 单位换算 `ratio = qty_B / qty_A`，默认 1.0；**必须写证据**：
-  `ratio_evidence = {price_ratio_mean, price_ratio_sd, cv, n}`，`cv > 0.005` 或 `|mean-1| > 0.05` 判为
-  **不可配对**（unit mismatch），并在矩阵里标 `unit_fail`，不参与后续排名。
+  `ratio_evidence = {price_ratio_mean, price_ratio_sd, cv, n}`。
+  - **硬失败（unit_fail）**：`|mean - 1| > 0.05` → 同名字不同标的（实测 ANT/ANTH 差 164 倍、io:OAI 差 17 倍、
+    SKHX vs SKHYNIX 差 165 倍），不参与排名。
+  - **软标记（stale_print_suspect）**：`cv > 0.005` → **不是**单位问题，而是薄市场打印间隔造成的陈旧报价；
+    这类对的基差统计（尤其 p95）不可信，`tradable` 也要被排除。
+    实测：`xyz:RKLB` cv=0.0052、`xyz:KORU` cv=0.0107（30 天 p95 高达 90/150 bps），
+    而 `MRVL` 0.0021、`EWY` 0.0016、`SOXL` 0.0012 是干净的。
 - HL 的 symbol 带 dex 前缀（`xyz:SOXL`、`io:OAI`、`vntl:OPENAI`），OKX 是 `<SYM>-USDT-SWAP`，Lighter 用 `symbol`+`market_id`。
 
 ## 2. 基差定义

@@ -319,7 +319,8 @@ class PairHedgeStrategy(Strategy):
         reduce_only: bool,
         tag: str,
     ) -> None:
-        order_side = OrderSide.BUY if side == "buy" else OrderSide.SELL
+        # execution.hedge_order 返回 "BUY"/"SELL"；这里大小写都要正确映射（曾被小写判断反选方向）
+        order_side = OrderSide.BUY if str(side).upper() == "BUY" else OrderSide.SELL
         post_only = tif is TimeInForce.GTC and not reduce_only
         if self.cfg.dry_run:
             self.log.info(

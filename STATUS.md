@@ -29,7 +29,7 @@
 | 项 | 状态 | 证据 |
 |---|---|---|
 | 新仓库 + 契约 | ✅ | `CONTRACT.md`、`configs/*.json`、`README.md` |
-| 纯逻辑内核（pair_spec/ledger/execution/risk） | ✅ | `src/nt_pairs/`，`python -m pytest tests -q` → 66 passed |
+| 纯逻辑内核（pair_spec/ledger/execution/risk/sessions/leg_policy） | ✅ | `src/nt_pairs/`，`python -m pytest tests -q` → **103 passed** |
 | Nautilus 策略（leader maker + follower IOC 影子跟单） | ✅ 可实例化 | `src/nt_pairs/strategy.py`；np2 下 6 个冒烟测试通过 |
 | 运行时配置装配（HL + Lighter） | ✅ 配置层 | `python -m nt_pairs.runtime --check` 可脱敏打印 |
 | 运行时节点启动 | ❌ **未接线** | Nautilus **2.0 移除了 `TradingNode`/`TradingNodeConfig`**；本仓库未实现 2.0 的新 runtime 启动路径 |
@@ -38,6 +38,11 @@
 | 容量/经济性 | ✅ 单腿上限 $5–65 | `docs/2026-11-11-economics.md` |
 | 版本定型 | ✅ nautilus_trader **2.0.0rc6**（1.231 无 Python 端 Lighter 适配器） | `.field-guide/nautilus_lighter_data.md` |
 | 独立评审 agent | ⏳ 未派发 | 评审要点已写在 `.herd-dispatch/jobs/reviewer/input.md` |
+| 腿选择策略（费率优先） | ✅ `src/nt_pairs/leg_policy.py` + 10 测试 | 实测：taker 排序 LIGHTER > HYPERLIQUID > OKX |
+| L2 采集器 | ✅ 冒烟通过 | `scripts/collect_l2.py`（HL/Lighter 13 标的全通） |
+| 采集分析器（p_fill / markout / 真实 EV） | ✅ 夹具测试通过 | `scripts/analyze_collector.py` |
+| 三场所统一矩阵（HL/Lighter/OKX，费率优先排序） | ⏳ 运行中 | `scripts/build_matrix.py`（OKX 走 urllib 分页） |
+| 数据质量闸门（重复收盘率） | ✅ 新增 | Lighter RKLB 31% / KORU 36% vs MRVL 4% / EWY 5% / SOXL 1% |
 
 ## 测试口径
 
@@ -80,3 +85,38 @@
    「避开美股盘中」不是通用规则。
 5. **补齐 OKX / Binance 历史**：需要一个能访问 `www.okx.com` 的出口（本机被拦）。
 6. **恢复多 agent 复核**：provider 配额 12-07 16:00 UTC 重置；`--kind grok` 需要人工登录 x.ai。
+
+
+---
+
+## 2026-11-12 晚间追加：腿选择的结论已经落成代码
+
+**实测**：把对腿从 Lighter（maker0/taker0）换成 OKX（maker2/taker5）后，fade 规则的**胜率不变**（95~100%），
+但**净 EV 从 +0.5~+14.0 翻成 −6.7~−13.0 bps/轮** —— 差额 100% 来自费率。
+
+→ 腿选择排序必须是：**费率 → 点差 → 深度 → 成交概率**（深度排最后）。
+→ 已实现 `src/nt_pairs/leg_policy.py`：
+`rank_legs(quotes, role, qty)` / `select_pair(quotes, capture_bps, qty)` / `expected_net_bps(...)`。
+实测代入 SOXL：taker 排序 `LIGHTER > HYPERLIQUID > OKX`；`select_pair(capture=17, qty=$500)` → 净 **+8.67 bps/轮**。
+→ 配套：`scripts/collect_l2.py`（L2 采集）+ `scripts/analyze_collector.py`（标定 p_fill / 队列 / markout / 真实 EV）
++ 部署指导书新增「采集器」与「腿费率监控」两节（费率一变，腿排序自动变，腿自动出局）。
+
+
+---
+
+## 2026-11-12 深夜：更正头条结论 —— RKLB 的「最优」是陈旧报价假象
+
+30 天 1h 全序列的**重复收盘价比例**（相邻桶 close 完全相同 = 无新成交、沿用旧打印）：
+
+| 标的 | Lighter 侧 | HL 侧 | Lighter 桶数 | 判定 |
+|---|---:|---:|---:|---|
+| RKLB | **31%** | 0% | 720 | ❌ +14.0 bps/轮是机械回归 |
+| KORU | **36%** | 0% | **189** | ❌ 同上 + 样本不足 |
+| MRVL / EWY / SOXL | 4% / 5% / 1% | 1% / 1% / 0% | 720 | ✅ 干净 |
+
+→ **更正后的候选排序：MRVL (+5.5) ≈ EWY (+4.0) > SOXL (+2.7)**；RKLB 降级为「待清洗后再评估」。
+→ 矩阵新增两个**互不替代**的闸门：
+  ① `unit_fail`：`|ratio_mean−1| > 5%`（标的不同：ANT/ANTH 164×、io:OAI 17×、SKHX/SKHYNIX 165×）；
+  ② `stale_print_suspect`：CV > 0.005 或任一侧重复收盘率 > 10%（报价不新鲜）→ 排除出 `tradable`。
+→ 这是本项目第三次「结论被自己推翻」（前两次：方向标注、tick 估计）。**任何高胜率（>90%）的回归结果，
+  必须先查重复收盘率与 markout，再谈 EV。**
