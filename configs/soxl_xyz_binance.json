@@ -1,0 +1,33 @@
+{
+  "name": "SOXL_xyz__SOXLUSDT_binance",
+  "leader": {
+    "venue": "HYPERLIQUID",
+    "instrument_id": "xyz:SOXL-USD-PERP.HYPERLIQUID",
+    "price_tick": "0.01",
+    "size_increment": "0.01",
+    "min_qty": "0.01",
+    "min_notional_usd": "10",
+    "maker_fee_bps": "1.5",
+    "taker_fee_bps": "4.5"
+  },
+  "follower": {
+    "venue": "BINANCE",
+    "instrument_id": "SOXLUSDT-PERP.BINANCE",
+    "price_tick": "0.01",
+    "size_increment": "0.01",
+    "min_qty": "0.01",
+    "min_notional_usd": "5",
+    "maker_fee_bps": "2.0",
+    "taker_fee_bps": "4.5"
+  },
+  "ratio": "1",
+  "unit_evidence": "PENDING：两侧均 1 单位 = 1 股 SOXL（HL xyz szDecimals=2；Binance TradFi contractSize=None 推断 1 股）。上线前必须用同一时刻两所 mid 比值（应 ≈1.000±0.005）与 nautilus instrument provider 实际解析结果复核。",
+  "sigma_1m_bps": "8",
+  "max_leg_usd": "5000",
+  "_notes": [
+    "候选对，未验证：HL xyz:SOXL 日成交 $346M，Binance SOXLUSDT 24h 约 $5.85B（2026-11-11 实测），深度高 2–3 个数量级。",
+    "instrument_id 与合约乘数待 nautilus 2.0rc6 的 Binance/Hyperliquid provider 实测确认后再改为正式值。",
+    "费率为基础档，未含账户等级折扣；实际以成交回执 fee 为准。",
+    "sigma_1m_bps 为占位，需用 scripts/probe_basis.py 重算。"
+  ]
+}

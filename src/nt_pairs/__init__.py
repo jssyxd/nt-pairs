@@ -1,0 +1,29 @@
+"""nt-pairs pure-logic kernel (CONTRACT §0).
+
+The modules re-exported here (pair_spec / ledger / execution / risk) NEVER
+import ``nautilus_trader``; only ``strategy.py`` / ``runtime.py`` (separate
+tasks) may do so. This keeps the kernel testable on bare CPython.
+"""
+from __future__ import annotations
+
+from .execution import OrderSpec, chase_price, h_star_s, hedge_order
+from .ledger import LegLedger
+from .pair_spec import Leg, PairSpec, load_pair, to_decimal
+from .risk import Action, RiskLimits, evaluate
+
+__version__ = "0.1.0"
+
+__all__ = [
+    "Leg",
+    "PairSpec",
+    "load_pair",
+    "to_decimal",
+    "LegLedger",
+    "OrderSpec",
+    "h_star_s",
+    "hedge_order",
+    "chase_price",
+    "Action",
+    "RiskLimits",
+    "evaluate",
+]

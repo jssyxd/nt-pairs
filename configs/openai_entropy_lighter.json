@@ -1,0 +1,33 @@
+{
+  "name": "OAI_entropy__OPENAI_lighter",
+  "leader": {
+    "venue": "HYPERLIQUID",
+    "instrument_id": "io:OAI-USD-PERP.HYPERLIQUID",
+    "price_tick": "0.1",
+    "size_increment": "0.001",
+    "min_qty": "0.008",
+    "min_notional_usd": "10",
+    "maker_fee_bps": "1.5",
+    "taker_fee_bps": "4.5"
+  },
+  "follower": {
+    "venue": "LIGHTER",
+    "instrument_id": "OPENAI-PERP.LIGHTER",
+    "price_tick": "0.01",
+    "size_increment": "0.0001",
+    "min_qty": "0.0035",
+    "min_notional_usd": "10",
+    "maker_fee_bps": "0",
+    "taker_fee_bps": "0"
+  },
+  "ratio": "1",
+  "unit_evidence": "两边均按 1 unit 计；2026-11-11 实测 HL io:OAI mid 1356.25 vs Lighter OPENAI mid 1400.21（价差 324 bps 是待验证的基差，不是单位错配）。instrument_id 与 tick 待 env-adapter 冒烟确认。",
+  "sigma_1m_bps": "15",
+  "max_leg_usd": "500",
+  "_notes": [
+    "maker_fee_bps/taker_fee_bps 为平台基础档；HL io dex 的 deployer fee share 未计入。实际费率必须由 perpDexs.deployerFeeScale 乘算，并以成交回执的 fee 字段校准（HIP-3 每个 dex 自设倍率，部署方最多分走一半）。",
+    "sigma_1m_bps 由 scripts/probe_basis.py 的实测替换；当前 15 为占位（实测 io:OAI↔LIGHTER 为 12.86）。",
+    "min_qty(HL) 由 $10 最小名义反推，随价格变化，运行时需按 instrument 重新计算。",
+    "腿的主被动按深度判，不按所名；本配置假设 HL 为 leader，最终以 probe 的深度结果为准。"
+  ]
+}
