@@ -21,7 +21,7 @@
 |---|---|---|---|
 | HL K 线/盘口 | `POST api.hyperliquid.xyz/info`（`candleSnapshot` / `l2Book` / `metaAndAssetCtxs` / `fundingHistory`） | 30d 1h、2d 5m、120min 1m | HIP-3 必须带 `dex`；不带 dex 返回主池 |
 | Lighter K 线/盘口/成交 | `mainnet.zklighter.elliot.ai/api/v1/{candles,orderBookOrders,recentTrades,orderBookDetails}` | 同上 | 5 个参数全必填；时间戳秒→毫秒；单次约 500 根需分页 |
-| OKX / Binance | **本机出口拦截**，只有 2026-11-11 截面快照（旧工作区） | 单点 | `www.okx.com`/`aws.okx.com`/`fapi.binance.com` 全部 000 |
+| OKX / Binance | **Python urllib 可达**（curl 不通）；已取到 30 天 1h | 30d | ⚠️ `curl` 全部 000 但 `urllib` 正常 —— 早期「被墙」结论是验证方法错误 |
 
 对齐：同一时间桶的 close；任一侧缺桶 → 丢弃并计数；`basis_bps = (P_B/P_A/ratio − 1)×1e4`。
 会话：`src/nt_pairs/sessions.py`（2026 NYSE 日历，含 DST、9 假日、2 提前收盘日）。
@@ -104,6 +104,24 @@
 | NautilusTrader 2.0 | PyPI `nautilus_trader==2.0.0rc6` | 执行引擎、适配器（hyperliquid / lighter）、回测撮合与 L2 行走 |
 | 姊妹项目 arbTwin / GLFTmm | jssyxd 本地仓库 | 波段状态机、b*/p95 选票、被动退出队列、费率三元组 |
 | LightGBM 成交概率模型 | Kaggle/Optiver 配方（**尚未训练**） | 下一步：用 `L1-fill` 标签 + 校准曲线替代常数 `p_fill` |
+
+## 4.5 换腿检验：把对腿从 Lighter 换成 OKX（30 天 1h，134~180 事件/标的）
+
+| 标的 | b* | Capture | **净 EV** | 胜率 | OKX 点差 | OKX 深度 |
+|---|---:|---:|---:|---:|---:|---:|
+| SOXL | 20.1 | +11.0 | **−9.1** | 100% | 1.68 | $895k |
+| RKLB | 20.6 | +13.3 | **−7.3** | 100% | 3.13 | $47k |
+| MRVL | 17.3 | +8.5 | **−8.8** | 100% | 0.63 | $103k |
+| EWY | 16.9 | +7.3 | **−9.6** | 100% | 0.70 | $264k |
+| INTC | 19.7 | +6.8 | **−13.0** | 100% | 1.67 | $353k |
+| NVDA | 16.3 | +4.6 | **−11.7** | 95% | 0.64 | $588k |
+| SNDK | 15.5 | +6.0 | **−9.5** | 100% | 1.11 | $1.49M |
+| MSTR | 17.1 | +10.4 | **−6.7** | 100% | 0.87 | $531k |
+
+**胜率不变、期望翻负** → 回归是真的，被**费率**吃掉（OKX 腿 7 bps + HL 腿 6 bps = 13 bps/轮固定费）。
+→ **Lighter 的零费率是策略的隐性支柱**；腿选择排序应为「费率 → 点差 → 深度 → 成交概率」。
+→ OKX 腿的基差质量反而更好（ρ 0.22~0.72 vs Lighter 0.89，均值 +14.8~+17.1 bps，p95 21~27 bps），
+  但它的 Capture 更小（4.6~13.3 vs 16.2~28.2 bps），两者叠加后仍不敌费率。
 
 ## 5. 负面结果（同样重要）
 

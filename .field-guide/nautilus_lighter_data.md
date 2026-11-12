@@ -94,7 +94,17 @@ HyperliquidExecutionClientConfig(account_id, private_key, vault_address, account
   看到 `blocked` 时先 `result --name <n> --refresh` 看有没有 429 字样。
 - 处置：`stop --name <n> --yes` 收工，剩余工作由 captain 本地脚本完成；或换 provider（`--kind grok`）。
 
-## 2026-11-12: 本机出口：OKX / Binance 直连被拦，HL / Lighter 可达
+## 2026-11-12（更正于同日 22:2x）：OKX 用 curl 不通，但 **Python urllib 正常**
+
+- `curl https://www.okx.com/api/v5/...` 全部 `000`（连 DNS/TLS 都过不去），
+  **但同一台机器上 `urllib.request` + `User-Agent: Mozilla/5.0` 可以正常取到**
+  （`public/time`、`market/books`、`market/history-candles` 都返回 `code:"0"`）。
+- 结论：**「OKX 被墙」的结论是错的**，错在只用 curl 验证。采集器/分析脚本必须用 urllib 或 requests，
+  并把「同一 URL 两种客户端结果不同」当成第一排查项。
+- 推论：之前判定「无法采集 OKX 多窗口」的阻塞**不成立**；HL↔OKX 的 30 天 1h 基差已实测取到
+  （见 `docs/MATRIX_SUMMARY.md` §7）。
+
+## 2026-11-12: 本机出口：OKX / Binance 直连被拦，HL / Lighter 可达（curl 视角，已被上一条更正）
 
 - captain shell：`api.hyperliquid.xyz` ✅、`mainnet.zklighter.elliot.ai` ✅；
   `www.okx.com` / `aws.okx.com` / `static.okx.com` / `fapi.binance.com` 全部 `000`（连 DNS 都不通/超时）。
