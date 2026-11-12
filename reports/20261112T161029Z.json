@@ -1,0 +1,157 @@
+{
+ "generated_utc": "2026-11-12T16:10:29Z",
+ "window_start": "2026-11-12T10:10:29Z",
+ "window_hours": 6.0,
+ "logs": {
+  "files": [],
+  "lines": 0,
+  "lines_in_window": 0,
+  "fills": 0,
+  "no_fills": 0,
+  "risk_events": 0,
+  "errors": 0,
+  "basis": [],
+  "ev": [],
+  "p_fill": [],
+  "findings": [],
+  "dir_exists": true
+ },
+ "error_signatures": [],
+ "collector": {
+  "root": "/opt/nt-pairs/data/collector",
+  "exists": true,
+  "venues": {
+   "HYPERLIQUID": {
+    "samples": 542,
+    "window_samples": 542,
+    "files": 1,
+    "first_ts": "2026-11-12T15:58:10.535061+00:00",
+    "last_ts": "2026-11-12T16:10:20.657267+00:00",
+    "symbols": {
+     "xyz:SOXL": {
+      "n": 89,
+      "stale": 0
+     },
+     "xyz:RKLB": {
+      "n": 89,
+      "stale": 2
+     },
+     "xyz:KIOXIA": {
+      "n": 89,
+      "stale": 3
+     },
+     "xyz:MRVL": {
+      "n": 89,
+      "stale": 2
+     },
+     "xyz:EWY": {
+      "n": 89,
+      "stale": 6
+     },
+     "io:OAI": {
+      "n": 89,
+      "stale": 26
+     },
+     "para:ANTH": {
+      "n": 8,
+      "stale": 5
+     }
+    },
+    "stale_ratio": 0.08118081180811808,
+    "n_symbols": 7
+   },
+   "LIGHTER": {
+    "samples": 547,
+    "window_samples": 547,
+    "files": 1,
+    "first_ts": "2026-11-12T15:58:10.535061+00:00",
+    "last_ts": "2026-11-12T16:10:20.657267+00:00",
+    "symbols": {
+     "RKLB": {
+      "n": 90,
+      "stale": 3
+     },
+     "SOXL": {
+      "n": 90,
+      "stale": 2
+     },
+     "KIOXIA": {
+      "n": 90,
+      "stale": 6
+     },
+     "MRVL": {
+      "n": 90,
+      "stale": 0
+     },
+     "EWY": {
+      "n": 90,
+      "stale": 7
+     },
+     "OPENAI": {
+      "n": 89,
+      "stale": 6
+     },
+     "ANTHROPIC": {
+      "n": 8,
+      "stale": 0
+     }
+    },
+    "stale_ratio": 0.043875685557586835,
+    "n_symbols": 7
+   },
+   "OKX": {
+    "samples": 546,
+    "window_samples": 546,
+    "files": 1,
+    "first_ts": "2026-11-12T15:58:10.535061+00:00",
+    "last_ts": "2026-11-12T16:10:20.657267+00:00",
+    "symbols": {
+     "SOXL-USDT-SWAP": {
+      "n": 90,
+      "stale": 3
+     },
+     "RKLB-USDT-SWAP": {
+      "n": 90,
+      "stale": 4
+     },
+     "KIOXIA-USDT-SWAP": {
+      "n": 90,
+      "stale": 23
+     },
+     "MRVL-USDT-SWAP": {
+      "n": 90,
+      "stale": 2
+     },
+     "EWY-USDT-SWAP": {
+      "n": 89,
+      "stale": 8
+     },
+     "OPENAI-USDT-SWAP": {
+      "n": 89,
+      "stale": 17
+     },
+     "ANTHROPIC-USDT-SWAP": {
+      "n": 8,
+      "stale": 2
+     }
+    },
+    "stale_ratio": 0.10805860805860806,
+    "n_symbols": 7
+   }
+  },
+  "total_samples": 1635,
+  "window_samples": 1635
+ },
+ "matrix": {
+  "available": false,
+  "generated_utc": "",
+  "pairs": 0,
+  "tradable": 0,
+  "top": [],
+  "repeat_close": [],
+  "basis_p95": []
+ },
+ "sim": {
+  "available": false
+ }
+}
