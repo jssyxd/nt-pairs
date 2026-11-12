@@ -27,9 +27,10 @@
 | 资源占用 | ✅ 内存 12.4 MB（上限 256 MB）、CPU 50% 配额 | `systemctl status` |
 | Nautilus 2.0.0rc6 | ✅ 装在 `/opt/nt-pairs/venv312`（Python 3.12.16） | `importlib.metadata.version` → `2.0.0rc6` |
 | 两个适配器 | ✅ `hyperliquid` + `lighter` 均可用 | `from nautilus_trader.adapters.lighter import ...` |
-| 节点装配 | ✅ `nt_pairs.node --check` 通过 | LiveNode + PairHedgeStrategy 注册成功 |
+| 节点装配 | ✅ `nt_pairs.live_runner --dry-run` 通过 | LiveNode + PairHedgeStrategy + PairHeartbeatActor 注册成功 |
 | WS 链路 | ✅ 两所均连上并订阅成功 | `Subscribed xyz:RKLB-USD-PERP.HYPERLIQUID order book deltas` / `Subscribed RKLB-PERP.LIGHTER order book deltas` |
-| L2 数据实流 | ✅ Lighter 211 条 / 30 s；HL 有数据但条数少（见 §4.3） | `scripts/smoke_node.py` RESULT |
+| L2 数据实流 | ✅ Lighter 211 条 / 30 s；HL 少量（正常，见 §4.3） | `scripts/smoke_node.py` RESULT |
+| 两对节点实跑 | ✅ RKLB 与 KIOXIA 都在 VPS 上跑通 dry-run，heartbeat 正常 | `nt_pairs.live_runner --dry-run` |
 
 ## 2. VPS 环境（为什么是这个配置）
 
@@ -50,7 +51,7 @@
 | `scripts/collect_l2.py` | L2 采集器。新增：`--symbols` 过滤、`--depth` 档位上限、`--root`、`--keep-days`、`--compress`；**修好 OKX 腿**（`/market/tickers` 对所有 instId 返回 400，改用单数 `/market/ticker`）；新增 KIOXIA 三所目标 |
 | `scripts/analyze_collector.py` | 分析器。改为可读 `.jsonl.gz`，并容忍被截断的归档 |
 | `scripts/smoke_node.py` | **新增**：只连数据、不用密钥、不下单的节点冒烟，验证两腿 WS 真的收到增量 |
-| `src/nt_pairs/node.py` | **新增**：Nautilus 2.0 节点启动器（`LiveNodeBuilder`）。补上 STATUS.md 里「运行时节点启动 ❌ 未接线」的缺口 |
+| `src/nt_pairs/live_node.py` + `live_runner.py` | Nautilus 2.0 节点装配与启动（`LiveNodeBuilder`），补上 STATUS.md 里「运行时节点启动 ❌ 未接线」的缺口。**dry-run 用沙盒执行端 + 凭据泄漏自检**，比裸 `LiveNodeBuilder` 更安全 |
 | `configs/kioxia_xyz_lighter.json` | **新增**：KIOXIA 配对配置（含实测 tick/费率/容量/单位证据） |
 | `configs/rklb_xyz_lighter.json` | **新增**：RKLB 配对配置 |
 | `deploy/nt-collector.service` | **新增**：采集器 systemd 单元 |
@@ -112,25 +113,41 @@ PYTHONPATH=/opt/nt-pairs/src /opt/nt-pairs/venv312/bin/python analyze_collector.
 | 成交后 markout_5 | 均值 > 0（对 fade 方向） | ≤ 0 → 机械回归，不成立 |
 | 每侧 ±25bps 深度 | ≥ 10 × 单腿名义 | 不足 → 降规模 |
 
-### 4.3 补做：HL 侧流式条数偏低
+### 4.3 已查清：HL 侧 WS「条数少」不是故障
 
-节点冒烟里 HL 30 s 只收到 3 条增量，而 Lighter 收到 211 条。已排除「没连上」和「没订阅」
-（日志有 `Subscribed ... order book deltas`）。待查两种可能：
+节点冒烟里 HL 30 s 只收到 3 条增量，而 Lighter 收到 211 条，疑似 HL 没推流。
+**已用裸 WebSocket 客户端直连 `api.hyperliquid.xyz/ws` 验证**：
 
-1. HIP-3 `xyz` dex 的 `l2Book` 在 WS 侧是否需要额外参数（REST 侧实测正常：单次返回 20 档）
-2. 是否只推**变化档位**（`L2_MBP` 默认 diff），而 `xyz:RKLB` 盘口在 30 s 内变动少
+```
+订阅 {"type":"l2Book","coin":"xyz:RKLB"} → 20 s 内收到 3 条 channel=l2Book 消息
+订阅 {"type":"l2Book","coin":"xyz:KIOXIA"} → 20 s 内收到 3 条
+```
 
-在标定前用**采集器数据**（REST 轮询，1 Hz+）作为基线，不要用 WS 条数下结论。
+→ HL 的 `l2Book` **推的是整档快照（每条含完整 20 档），不是增量 diff**，
+且只在盘口变化时才推。`xyz:RKLB` 在 30 s 内只变动 3 次，所以条数少是**正常的**。
+（对照：Lighter 推真增量，条数自然多。）
+
+结论：**HL 链路无故障**，不要按「WS 没数据」排查。标定仍以采集器 REST 轮询数据为准。
 
 ### 4.4 标定通过后：纸面 24 h（dry-run）
 
 ```bash
 cd /opt/nt-pairs
-PYTHONPATH=/opt/nt-pairs/src /opt/nt-pairs/venv312/bin/python -m nt_pairs.node \
-  --pair configs/rklb_xyz_lighter.json --follower-price 64.5 --state-dir state
+PYTHONPATH=/opt/nt-pairs/src /opt/nt-pairs/venv312/bin/python -m nt_pairs.live_runner \
+  --config configs/rklb_xyz_lighter.json --dry-run --max-secs 86400
 ```
 
-`nt_pairs.node` 默认 `dry_run=True`（不下单，只写日志）。核对：两腿事件流无丢失、residual 归零、状态机无异常。
+`--dry-run` 走**沙盒执行端**、不读私钥、不可能发真实订单（启动前还会自检凭据字段为空）。
+核对：两腿 `subscribed=true`、heartbeat 里 `residual` 恒为 0、`naked_age_s` 不增长、状态机无异常。
+
+> 实测（2026-11-13，VPS 上 RKLB 对跑 45 s）：heartbeat 每 5 s 一条，
+> `basis_bps` 在 **−5.5 ~ +6.1 bps** 之间跳动，两腿 `subscribed` 均为 true，`residual=0`。
+> **注意这个区间远小于 RKLB 的 `b*`=16.7 bps** —— 再次印证「RKLB 的 +14 bps/轮」不是可成交的回归。
+
+**KIOXIA 对跑（同样 25 s dry-run）**：`basis_bps` 在 **+19.3 ~ +23.4 bps** 之间，
+两腿 `subscribed=true`、`residual=0`。
+但 KIOXIA 的 `b*`=**29.2 bps**（六项成本）——**实测基差 19~23 bps 仍低于 b\***，
+且 Lighter 侧价差中位 35.5 bps、重复收盘率 55%。→ **两个标的当前都过不了成本闸门。**
 
 ### 4.5 纸面通过后：极小额实盘
 
