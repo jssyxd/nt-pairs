@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import os
@@ -118,6 +119,10 @@ def p_fill(h_min: float, lam_per_min: float, avg_size: float, queue_ahead: float
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser(description="成交率与逆向选择模型（只用公开端点）")
+    ap.add_argument("--out-json", default=OUT_JSON, help="输出 JSON 路径")
+    ap.add_argument("--out-md", default=OUT_MD, help="输出 Markdown 路径")
+    args = ap.parse_args()
     out = {"generated_utc": datetime.now(timezone.utc).isoformat(), "pairs": []}
     for name, coin, mid in PAIRS:
         try:
@@ -166,8 +171,8 @@ def main() -> int:
               f"λLT_buy={lt_buy_flow['lambda_per_min']:.2f}/min "
               f"queueHL={hl_touch_qty:.0f} queueLT={lt_touch_qty:.0f}", file=sys.stderr)
 
-    os.makedirs("data", exist_ok=True)
-    json.dump(out, open(OUT_JSON, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    os.makedirs(os.path.dirname(os.path.abspath(args.out_json)), exist_ok=True)
+    json.dump(out, open(args.out_json, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
     lines = ["# 成交率与排队模型（fill model）", "",
              f"生成：{out['generated_utc']}；方法见 `scripts/fill_model.py` 头注释。", "",
@@ -214,8 +219,9 @@ def main() -> int:
               "- 排队量取「贴价同档 resting size」，**真实队列在触价瞬间可能已被抢跑** → 这是乐观上界；",
               "- Poisson + 平均单笔量忽略了单笔量分布的厚尾（少数大单会一次吃完队列）→ 实际 P(fill) 更低；",
               "- 本模型只回答「能不能成交」，**不回答「成交后是不是逆向选择」**——后者需要成交后 markout，需要实盘/L2 回放。"]
-    open(OUT_MD, "w", encoding="utf-8").write("\n".join(lines) + "\n")
-    print(f"wrote {OUT_JSON} / {OUT_MD}")
+    os.makedirs(os.path.dirname(os.path.abspath(args.out_md)), exist_ok=True)
+    open(args.out_md, "w", encoding="utf-8").write("\n".join(lines) + "\n")
+    print(f"wrote {args.out_json} / {args.out_md}")
     return 0
 
 

@@ -1,0 +1,3 @@
+BOOK io:OAI-USD-PERP.HYPERLIQUID has=True count=123 mid=('1336.200', '1337.700')
+BOOK OPENAI-PERP.LIGHTER has=True count=321 mid=('1377.21', '1378.48')
+deltas 80

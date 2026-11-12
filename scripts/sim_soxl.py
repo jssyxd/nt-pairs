@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import os
@@ -165,6 +166,10 @@ def summarize(events: list[dict], bstar: float) -> dict:
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser(description="SOXL 完整执行模拟（只用公开端点）")
+    ap.add_argument("--out-json", default=OUT_JSON, help="输出 JSON 路径")
+    ap.add_argument("--out-md", default=OUT_MD, help="输出 Markdown 路径")
+    args = ap.parse_args()
     print("candles ...", file=sys.stderr)
     h5 = hl_candles(HL_COIN, "5m", 2)
     l5 = lt_candles(LT_ID, "5m", 2)
@@ -238,8 +243,8 @@ def main() -> int:
             "1m 口径下 Lighter K 线极稀疏（30 天仅约 500 根 5m），日内统计不稳健。",
         ],
     }
-    os.makedirs("data", exist_ok=True)
-    json.dump(result, open(OUT_JSON, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    os.makedirs(os.path.dirname(os.path.abspath(args.out_json)), exist_ok=True)
+    json.dump(result, open(args.out_json, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
     lines = ["# SOXL 执行模拟（HL `xyz:SOXL` ↔ Lighter `OPENAI`）", "",
              f"生成：{result['generated_utc']}", "",
@@ -269,8 +274,8 @@ def main() -> int:
             f"{st['exp_net_bps_pfill_0.2']:+.1f} | {st['exp_net_bps_pfill_0.5']:+.1f} | {st['exp_net_bps_pfill_0.8']:+.1f} |")
     lines += ["", f"容量（±25bps 深度的 10%）：**${result['capacity']['cap_usd_10pct_of_depth25']:.0f}**", "",
               "## 4. 模型假设（必须与实测区分）", ""] + [f"- {a}" for a in result["assumptions"]]
-    os.makedirs("docs", exist_ok=True)
-    open(OUT_MD, "w", encoding="utf-8").write("\n".join(lines) + "\n")
+    os.makedirs(os.path.dirname(os.path.abspath(args.out_md)), exist_ok=True)
+    open(args.out_md, "w", encoding="utf-8").write("\n".join(lines) + "\n")
     print(json.dumps({"overall": result["overall"], "capacity": result["capacity"]}, ensure_ascii=False))
     return 0
 

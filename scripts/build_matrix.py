@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import os
@@ -268,6 +269,13 @@ def stats(values: list[float]) -> dict:
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser(description="三场所价差矩阵（只用公开端点）")
+    ap.add_argument("--pairs", type=int, default=int(os.environ.get("MATRIX_MAX_PAIRS", "60")),
+                    help="参与统计的对数上限（按两腿 24h 量乘积排序取前 N；默认 60，"
+                         "CI 冒烟用小值如 --pairs 10）")
+    ap.add_argument("--out-json", default="data/matrix.json", help="输出 JSON 路径")
+    ap.add_argument("--out-md", default="docs/MATRIX.md", help="输出 Markdown 路径")
+    args = ap.parse_args()
     print("[1/5] venues ...", file=sys.stderr)
     hl = load_hl()
     lt = load_lighter()
@@ -293,9 +301,9 @@ def main() -> int:
                         pairs.append((a, b))
     # 按「两腿 24h 量乘积」排序，只保留流动性最好的 N 对（默认 60），避免薄市场拖慢与误导
     pairs.sort(key=lambda ab: (ab[0].get("vol24h") or 0) * (ab[1].get("vol24h") or 0), reverse=True)
-    cap_n = int(os.environ.get("MATRIX_MAX_PAIRS", "60"))
+    cap_n = max(1, args.pairs)
     if len(pairs) > cap_n:
-        print(f"  cap {cap_n} of {len(pairs)} pairs (MATRIX_MAX_PAIRS)", file=sys.stderr)
+        print(f"  cap {cap_n} of {len(pairs)} pairs (--pairs)", file=sys.stderr)
         pairs = pairs[:cap_n]
     print(f"[2/5] candidate pairs: {len(pairs)}", file=sys.stderr)
 
@@ -384,8 +392,8 @@ def main() -> int:
                                and not rec.get("stale_print_suspect"))
 
     payload = {"generated_utc": datetime.now(timezone.utc).isoformat(), "pairs": out_pairs}
-    os.makedirs("data", exist_ok=True)
-    json.dump(payload, open("data/matrix.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    os.makedirs(os.path.dirname(os.path.abspath(args.out_json)), exist_ok=True)
+    json.dump(payload, open(args.out_json, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
     rows = [p for p in out_pairs if p["score"].get("rank") is not None]
     rows.sort(key=lambda p: -p["score"]["rank"])
@@ -428,8 +436,8 @@ def main() -> int:
         lines += ["", f"### 会话 {sess} top10（p95）", "", "| pair | n | mean | p95 | sd |", "|---|---:|---:|---:|---:|"]
         for _, p, st in sub[:10]:
             lines.append(f"| {p['pair']} | {st['n']} | {st['mean']:+.1f} | {st['p95']:.1f} | {st['sd']:.1f} |")
-    os.makedirs("docs", exist_ok=True)
-    open("docs/MATRIX.md", "w", encoding="utf-8").write("\n".join(lines) + "\n")
+    os.makedirs(os.path.dirname(os.path.abspath(args.out_md)), exist_ok=True)
+    open(args.out_md, "w", encoding="utf-8").write("\n".join(lines) + "\n")
     print(f"[4/5] tradable={sum(1 for p in out_pairs if p['tradable'])} of {len(out_pairs)}", file=sys.stderr)
     return 0
 

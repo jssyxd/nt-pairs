@@ -1,0 +1,6 @@
+2026-11-12T03:00:00Z INFO  collection started root=/opt/nt-pairs/data/collector venues=HYPERLIQUID,LIGHTER,OKX
+2026-11-12T03:00:01Z INFO  ok=13 err=0
+2026-11-12T03:10:01Z INFO  ok=780 err=2
+2026-11-12T04:10:01Z INFO  ok=1560 err=2
+2026-11-12T05:00:01Z INFO  ok=2340 err=3
+2026-11-12T05:00:02Z INFO  venue=OKX symbol=SOXL-USDT-SWAP error=timeout

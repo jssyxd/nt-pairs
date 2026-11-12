@@ -1,0 +1,35 @@
+{
+  "name": "RKLB_xyz__RKLB_lighter",
+  "leader": {
+    "venue": "HYPERLIQUID",
+    "instrument_id": "xyz:RKLB-USD-PERP.HYPERLIQUID",
+    "price_tick": "0.001",
+    "size_increment": "0.01",
+    "min_qty": "0.01",
+    "min_notional_usd": "10",
+    "maker_fee_bps": "1.5",
+    "taker_fee_bps": "4.5"
+  },
+  "follower": {
+    "venue": "LIGHTER",
+    "instrument_id": "RKLB-PERP.LIGHTER",
+    "price_tick": "0.01",
+    "size_increment": "0.0001",
+    "min_qty": "0.085",
+    "min_notional_usd": "10",
+    "maker_fee_bps": "0",
+    "taker_fee_bps": "0"
+  },
+  "ratio": "1",
+  "unit_evidence": "2026-11-12 实测：HL xyz:RKLB mid 64.3995 / Lighter RKLB(market_id=186) mid 64.49 → 比值 1.0014（差 14 bps）。两侧均为 1 unit = 1 股（HL szDecimals=2，Lighter multiplier=1.0）。tick 由盘口反推：HL 0.001、Lighter 0.01。",
+  "sigma_1m_bps": "15",
+  "max_leg_usd": "100",
+  "_notes": [
+    "【当前不可实盘】2026-11-12 矩阵把本对判为 tradable=false、stale_print_suspect=true：Lighter 侧 1h close 重复率 31.4%（阈值 10%）。此前 '+14.0 bps/轮 为最优候选' 的头条结论已被此闸门推翻。",
+    "【容量】2026-11-12 实测快照：HL xyz:RKLB ±25bps 深度约 $213k/$281k，Lighter 侧约 $72k/$55k —— 两侧都远大于单腿名义，容量不是瓶颈（对比 KIOXIA）。",
+    "【费率】Lighter maker/taker 均 0；HL 基础档 maker 1.5 / taker 4.5 bps，xyz dex deployerFeeScale=1.0。",
+    "【最大杠杆】HL xyz:RKLB maxLeverage=10、onlyIsolated=true、逐仓（noCross）。",
+    "Lighter min_base_amount=0.085（约 $5.5 @ $65）、size_decimals=4、price_decimals=2；日成交额仅约 $146k → 24h 活动性偏低，是重复收盘率的根源。",
+    "sigma_1m_bps 为占位，须用 scripts/probe_basis.py 或采集器数据重算。"
+  ]
+}

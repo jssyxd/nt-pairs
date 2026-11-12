@@ -27,6 +27,12 @@ src/nt_pairs/
   strategy.py        # NautilusTrader Strategy（依赖 1.231）
   runtime.py         # TradingNode 构建（live/paper/sandbox）
 scripts/probe_basis.py  # 取数 → 基差分布 → b* → 可交易裁决
+scripts/make_report.py  # VPS 侧 6 小时报告（纯标准库、脱敏）
+scripts/ci_summary.py   # CI 侧把报告 + 只读探针渲染成 job summary
+scripts/vps_report_cron.sh  # VPS 侧 cron：生成报告 → git push reports/（deploy key）
+.github/workflows/6h-report.yml  # 每 6 小时汇报 + PR/push 快测 + 失败开 issue
+reports/              # VPS 推上来的 6 小时报告（Markdown + 机读 JSON）
+docs/CI_CD.md         # 链路图、失败处理、手动补跑、captain 待办
 tests/
 ```
 

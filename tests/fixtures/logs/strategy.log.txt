@@ -1,0 +1,18 @@
+2026-11-12T03:00:01Z INFO  service=nt-pairs state=running pid=8123
+2026-11-12T03:00:02Z INFO  api_key=HL_PRIVATE_KEY=0x1234567890abcdef feed=ok
+2026-11-12T03:05:11Z INFO  pair=xyz:SOXL|OPENAI basis=17.4 event=signal
+2026-11-12T03:05:12Z INFO  pair=xyz:SOXL|OPENAI event=fill qty=100 px=62.88
+2026-11-12T03:05:20Z INFO  pair=xyz:SOXL|OPENAI event=fill qty=100 px=62.87
+2026-11-12T03:05:21Z INFO  pair=xyz:SOXL|OPENAI event=hedge_filled fee=1.5
+2026-11-12T03:09:59Z INFO  pair=xyz:SOXL|OPENAI event=exit net_ev_bps=3.4
+2026-11-12T03:12:00Z INFO  pair=xyz:MRVL|OPENAI basis=5.1 event=signal
+2026-11-12T03:17:00Z INFO  pair=xyz:MRVL|OPENAI event=no_fill reason=queue_ahead
+2026-11-12T03:17:01Z INFO  pair=xyz:MRVL|OPENAI event=cancel
+2026-11-12T03:20:00Z WARN  risk stale_book age_ms=1500 pair=xyz:MRVL|OPENAI
+2026-11-12T04:02:11Z ERROR request failed: timeout host=api.hyperliquid.xyz
+2026-11-12T04:02:12Z ERROR request failed: timeout host=api.hyperliquid.xyz
+2026-11-12T04:03:00Z INFO  FINDING: Lighter 侧 SOXL 贴价队列从 1 跳到 243 单位，p_fill 不可信
+2026-11-12T04:10:00Z INFO  event=fill pair=xyz:EWY|OPENAI qty=50 px=41.2 p_fill=0.62
+2026-11-12T04:12:00Z INFO  event=no_fill pair=xyz:KORU|OPENAI
+2026-11-12T04:15:00Z WARN  risk margin_low ratio=0.11
+2026-11-12T05:00:00Z INFO  service=nt-pairs state=running pid=8123

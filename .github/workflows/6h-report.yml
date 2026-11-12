@@ -1,0 +1,198 @@
+name: 6h-report
+
+# 每 6 小时汇报一次工作进展 / 交易日志摘要 / 关键发现。
+#
+# 设计约束（见 docs/CI_CD.md）：
+#   * CI **不持有任何交易所密钥**：VPS 侧 cron 用 SSH deploy key 把报告推进仓库 `reports/`，
+#     CI 只读仓库内容 + 用内置 GITHUB_TOKEN 渲染 job summary / 开失败 issue；
+#   * workflow 文件里**不出现任何密钥、token、密码**；`secrets.*` 只在名字层面出现
+#     （且当前实现**零 secret**：`GITHUB_TOKEN` 是 GitHub 内置的）。
+#   * `pull_request` / `push` 只跑快速单测，避免刷屏；汇报汇总只在 schedule / push 到 main 时做。
+
+on:
+  schedule:
+    # 每 6 小时（UTC）：00:00 / 06:00 / 12:00 / 18:00
+    - cron: "0 */6 * * *"
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: 6h-report-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ------------------------------------------------------------------ 快速单测
+  unit-tests:
+    name: unit tests (fast)
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pure-logic test deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest pyyaml
+
+      - name: Run pure-logic tests (no nautilus needed)
+        run: python -m pytest tests -q
+
+  # ------------------------------------------------------------------ 汇报汇总
+  report:
+    name: 6h report summary
+    if: >-
+      always() &&
+      (github.event_name == 'schedule'
+       || github.event_name == 'workflow_dispatch'
+       || (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install probe deps (public endpoints only)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pyyaml
+
+      - name: Probe public data (matrix / fill model / SOXL sim)
+        id: probe
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          mkdir -p ci-out
+          rc=0
+          # 只读公开端点；不使用任何密钥。失败不吞掉，退出码写进 ci-out/probe_exit.txt。
+          python scripts/build_matrix.py --pairs 10 \
+            --out-json ci-out/matrix.json --out-md ci-out/MATRIX.md \
+            > ci-out/build_matrix.log 2>&1 || rc=1
+          python scripts/fill_model.py \
+            --out-json ci-out/fill_model.json --out-md ci-out/FILL_MODEL.md \
+            > ci-out/fill_model.log 2>&1 || rc=1
+          python scripts/sim_soxl.py \
+            --out-json ci-out/soxl_sim.json --out-md ci-out/SOXL_SIM.md \
+            > ci-out/sim_soxl.log 2>&1 || rc=1
+          echo "${rc}" > ci-out/probe_exit.txt
+          echo "probe_exit=${rc}" >> "$GITHUB_OUTPUT"
+          for f in ci-out/*.log; do echo "--- ${f}"; tail -n 20 "${f}"; done
+
+      - name: Render job summary
+        id: summary
+        continue-on-error: true
+        run: |
+          # `bash -e` 下不能让渲染命令直接终止本步：退出码必须被记录下来
+          rc=0
+          python scripts/ci_summary.py \
+            --reports reports \
+            --matrix ci-out/matrix.json \
+            --fill ci-out/fill_model.json \
+            --sim ci-out/soxl_sim.json \
+            --out ci-out/summary.md || rc=$?
+          echo "${rc}" > ci-out/summary_exit.txt
+          echo "summary_exit=${rc}" >> "$GITHUB_OUTPUT"
+          if [ -s ci-out/summary.md ]; then
+            cat ci-out/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "${rc}"
+
+      - name: Upload probe outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: 6h-report-summary
+          path: ci-out/
+          if-no-files-found: ignore
+
+      - name: Fail the job when probe or summary failed
+        run: |
+          set -uo pipefail
+          probe_rc=$(cat ci-out/probe_exit.txt 2>/dev/null || echo 1)
+          summary_rc=$(cat ci-out/summary_exit.txt 2>/dev/null || echo 1)
+          if [ "${probe_rc}" != "0" ]; then
+            echo "::error::公开数据探针失败（见 artifact 里的 ci-out/*.log）"
+          fi
+          if [ "${summary_rc}" = "3" ]; then
+            echo "::error::reports/ 里没有报告，或最新报告超过 24 小时未更新（VPS 侧 cron/deploy key 问题）"
+          elif [ "${summary_rc}" != "0" ]; then
+            echo "::error::summary 渲染失败（退出码 ${summary_rc}）"
+          fi
+          [ "${probe_rc}" = "0" ] && [ "${summary_rc}" = "0" ]
+
+  # ------------------------------------------------------------------ 失败通告
+  notify:
+    name: open/update issue on failure
+    needs: [unit-tests, report]
+    # 只有「汇报链路失败」或「推到 main 的单测失败」才开 issue；PR 上的单测失败不刷屏
+    if: >-
+      always() &&
+      (needs.report.result == 'failure'
+       || (needs.unit-tests.result == 'failure'
+           && github.event_name == 'push' && github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download probe outputs
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: 6h-report-summary
+          path: ci-out
+
+      - name: Create or update the 6h-report issue
+        env:
+          # 内置 GITHUB_TOKEN（非仓库 secret）；只用于写 issue
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          UNIT_TESTS_RESULT: ${{ needs.unit-tests.result }}
+          REPORT_RESULT: ${{ needs.report.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title="6h-report"
+          probe_rc=$(cat ci-out/probe_exit.txt 2>/dev/null || echo n/a)
+          summary_rc=$(cat ci-out/summary_exit.txt 2>/dev/null || echo n/a)
+          body=$(cat <<EOF
+          自动汇报流水线失败（UTC $(date -u +%Y-%m-%dT%H:%M:%SZ)）。
+
+          | 项 | 结果 |
+          |---|---|
+          | unit-tests | ${UNIT_TESTS_RESULT} |
+          | report | ${REPORT_RESULT} |
+          | probe 退出码 | ${probe_rc} |
+          | summary 渲染退出码 | ${summary_rc} |
+          | run | ${RUN_URL} |
+
+          最近一次失败原因：
+          - \`probe_exit=1\`：公开数据探针（\`build_matrix.py\` / \`fill_model.py\` / \`sim_soxl.py\`）失败，
+            详见 run 里 artifact \`6h-report-summary\` 的 \`ci-out/*.log\`；
+          - \`summary_exit=3\`：\`reports/\` 里没有报告，或最新报告超过 24 小时未更新 ——
+            **VPS 侧 cron / deploy key 有问题**；
+          - \`unit-tests=failure\`：纯逻辑单测失败。
+
+          下一步：打开上面的 run 链接；补跑用本 workflow 的 \`workflow_dispatch\`。
+          EOF
+          )
+          # 固定标题的 issue：存在（未关闭）就追加评论，不存在就新建
+          number=$(gh issue list --state open --limit 100 --json number,title \
+            --jq '[.[] | select(.title == "'"$title"'")] | .[0].number // empty')
+          if [ -n "${number}" ]; then
+            gh issue comment "${number}" --body "${body}"
+          else
+            gh issue create --title "${title}" --body "${body}"
+          fi

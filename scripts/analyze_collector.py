@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import math
 import os
@@ -36,16 +37,25 @@ def load_venue(root: str, venue: str) -> dict[str, list[dict]]:
     if not os.path.isdir(d):
         return out
     for fn in sorted(os.listdir(d)):
-        if not fn.endswith(".jsonl"):
+        path = os.path.join(d, fn)
+        if fn.endswith(".jsonl.gz"):
+            opener = lambda p=path: gzip.open(p, "rt", encoding="utf-8", errors="replace")  # noqa: E731
+        elif fn.endswith(".jsonl"):
+            opener = lambda p=path: open(p, encoding="utf-8", errors="replace")  # noqa: E731
+        else:
             continue
-        with open(os.path.join(d, fn), encoding="utf-8", errors="replace") as fh:
-            for line in fh:
-                try:
-                    r = json.loads(line)
-                except Exception:  # noqa: BLE001
-                    continue
-                if r.get("symbol"):
-                    out[r["symbol"]].append(r)
+        with opener() as fh:
+            try:
+                for line in fh:
+                    try:
+                        r = json.loads(line)
+                    except Exception:  # noqa: BLE001
+                        continue
+                    if r.get("symbol"):
+                        out[r["symbol"]].append(r)
+            except (EOFError, OSError, gzip.BadGzipFile):
+                # 正在写入或被截断的归档：已读到的行仍然有效
+                pass
     for sym in out:
         out[sym].sort(key=lambda x: x.get("t_epoch", 0.0))
     return out

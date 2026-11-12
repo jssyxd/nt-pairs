@@ -1,0 +1,103 @@
+[
+ {
+  "venue": "HYPERLIQUID",
+  "ident": "xyz:RKLB",
+  "symbol": "RKLB"
+ },
+ {
+  "venue": "HYPERLIQUID",
+  "ident": "xyz:KIOXIA",
+  "symbol": "KIOXIA"
+ },
+ {
+  "venue": "HYPERLIQUID",
+  "ident": "xyz:SOXL",
+  "symbol": "SOXL"
+ },
+ {
+  "venue": "HYPERLIQUID",
+  "ident": "xyz:MRVL",
+  "symbol": "MRVL"
+ },
+ {
+  "venue": "HYPERLIQUID",
+  "ident": "xyz:EWY",
+  "symbol": "EWY"
+ },
+ {
+  "venue": "HYPERLIQUID",
+  "ident": "xyz:OPENAI",
+  "symbol": "OPENAI"
+ },
+ {
+  "venue": "HYPERLIQUID",
+  "ident": "io:OAI",
+  "symbol": "OPENAI"
+ },
+ {
+  "venue": "LIGHTER",
+  "ident": "186",
+  "symbol": "RKLB",
+  "market_id": 186
+ },
+ {
+  "venue": "LIGHTER",
+  "ident": "225",
+  "symbol": "KIOXIA",
+  "market_id": 225
+ },
+ {
+  "venue": "LIGHTER",
+  "ident": "197",
+  "symbol": "SOXL",
+  "market_id": 197
+ },
+ {
+  "venue": "LIGHTER",
+  "ident": "174",
+  "symbol": "MRVL",
+  "market_id": 174
+ },
+ {
+  "venue": "LIGHTER",
+  "ident": "166",
+  "symbol": "EWY",
+  "market_id": 166
+ },
+ {
+  "venue": "LIGHTER",
+  "ident": "192",
+  "symbol": "OPENAI",
+  "market_id": 192
+ },
+ {
+  "venue": "OKX",
+  "ident": "RKLB-USDT-SWAP",
+  "symbol": "RKLB"
+ },
+ {
+  "venue": "OKX",
+  "ident": "KIOXIA-USDT-SWAP",
+  "symbol": "KIOXIA"
+ },
+ {
+  "venue": "OKX",
+  "ident": "SOXL-USDT-SWAP",
+  "symbol": "SOXL"
+ },
+ {
+  "venue": "OKX",
+  "ident": "MRVL-USDT-SWAP",
+  "symbol": "MRVL"
+ },
+ {
+  "venue": "OKX",
+  "ident": "EWY-USDT-SWAP",
+  "symbol": "EWY"
+ },
+ {
+  "venue": "OKX",
+  "ident": "OPENAI-USDT-SWAP",
+  "symbol": "OPENAI"
+ }
+]

@@ -1,0 +1,35 @@
+{
+  "name": "KIOXIA_xyz__KIOXIA_lighter",
+  "leader": {
+    "venue": "HYPERLIQUID",
+    "instrument_id": "xyz:KIOXIA-USD-PERP.HYPERLIQUID",
+    "price_tick": "0.001",
+    "size_increment": "0.001",
+    "min_qty": "0.01",
+    "min_notional_usd": "10",
+    "maker_fee_bps": "1.5",
+    "taker_fee_bps": "4.5"
+  },
+  "follower": {
+    "venue": "LIGHTER",
+    "instrument_id": "KIOXIA-PERP.LIGHTER",
+    "price_tick": "0.01",
+    "size_increment": "0.0001",
+    "min_qty": "0.015",
+    "min_notional_usd": "10",
+    "maker_fee_bps": "0",
+    "taker_fee_bps": "0"
+  },
+  "ratio": "1",
+  "unit_evidence": "2026-11-12 实测：HL xyz:KIOXIA mid 58.073 / Lighter KIOXIA(market_id=225) mid 57.805 → 比值 0.9953（差 47 bps）。两侧 multiplier/ctVal 均为 1（HL szDecimals=3，Lighter multiplier=1.0，ctValCcy=KIOXIA），单位一致（1 unit = 1 股）。tick 由盘口反推：HL 0.001、Lighter 0.01。",
+  "sigma_1m_bps": "20",
+  "max_leg_usd": "100",
+  "_notes": [
+    "【当前不可实盘】2026-11-12 矩阵把本对判为 tradable=false、stale_print_suspect=true：Lighter 侧 1h close 重复率 54.8%（阈值 10%），即薄市场沿用旧打印造成的机械回归。",
+    "【容量】Lighter 侧 ±25bps 深度实测仅约 $4.4k/$7.9k（2026-11-12 快照），矩阵给单腿上限 $1,000 → 只能极小规模，且该数字建立在陈旧报价上，须以采集器实测复核。",
+    "【费率】Lighter maker/taker 均 0（零费率是本策略支柱）；HL 基础档 maker 1.5 / taker 4.5 bps，xyz dex deployerFeeScale=1.0（未加价），实际费率仍须以成交回执 fee 字段校准。",
+    "【最大杠杆】HL xyz:KIOXIA maxLeverage=10、onlyIsolated=true、逐仓（noCross）。",
+    "Lighter min_base_amount=0.015（$10 最小名义）、size_decimals=4、price_decimals=2。",
+    "sigma_1m_bps 为占位，须用 scripts/probe_basis.py 或采集器数据重算。"
+  ]
+}

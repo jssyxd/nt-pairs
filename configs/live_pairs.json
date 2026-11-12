@@ -1,0 +1,90 @@
+{
+  "global": {
+    "dry_run": true,
+    "max_leg_notional_usd": "500",
+    "min_leg_notional_usd": "100",
+    "margin_usage_cap_per_venue": 0.5,
+    "daily_loss_cap_pct": 0.02,
+    "equity_freeze_pct": 0.05,
+    "equity_kill_pct": 0.10,
+    "naked_warn_s": 60,
+    "naked_flatten_s": 180,
+    "naked_halt_s": 600,
+    "hedge_ttl_s": 20,
+    "chase_collar_ticks": 2,
+    "taker_collar_bps": 50,
+    "max_rounds_per_day": 3,
+    "allowed_sessions": ["closed", "post", "pre", "rth"],
+    "session_policy": {
+      "RKLB": ["closed", "post", "pre", "rth"],
+      "KIOXIA": ["closed", "post"]
+    },
+    "reject_if_repeat_close_pct_gt": 10,
+    "min_p95_over_k_bstar": 1.0
+  },
+  "pairs": [
+    {
+      "name": "RKLB_xyz_lighter",
+      "symbol": "RKLB",
+      "leader": {
+        "venue": "HYPERLIQUID",
+        "instrument_id": "xyz:RKLB-USD-PERP.HYPERLIQUID",
+        "role": "maker",
+        "side_on_entry": "buy",
+        "leverage": 10,
+        "leverage_mode": "cross",
+        "note": "leader = 便宜腿（HL taker 费 4.5 bps）；maker 挂单腿"
+      },
+      "follower": {
+        "venue": "LIGHTER",
+        "instrument_id": "RKLB-PERP.LIGHTER",
+        "role": "taker",
+        "side_on_entry": "sell",
+        "leverage": 20,
+        "leverage_mode": "isolated",
+        "note": "follower = 贵腿，零费率 → 总固定费 4.5 bps（实测最优腿组合）"
+      },
+      "backup": {
+        "venue": "OKX",
+        "instrument_id": "RKLB-USDT-SWAP.OKX",
+        "role": "taker_fallback",
+        "side_on_entry": "sell",
+        "leverage": 5,
+        "leverage_mode": "cross",
+        "note": "Lighter 腿拒单/超时未成时改用 OKX 吃单；费率 5 bps，需重算 b*"
+      },
+      "rationale": "Lighter 侧重复收盘率 31%（30 天 1h）→ 数据质量闸门默认拒绝；实盘前必须确认 <=10%，否则该腿退出。",
+      "status": "blocked_pending_data_quality"
+    },
+    {
+      "name": "KIOXIA_xyz_okx",
+      "symbol": "KIOXIA",
+      "leader": {
+        "venue": "HYPERLIQUID",
+        "instrument_id": "xyz:KIOXIA-USD-PERP.HYPERLIQUID",
+        "role": "maker",
+        "side_on_entry": "buy",
+        "leverage": 10,
+        "leverage_mode": "cross"
+      },
+      "follower": {
+        "venue": "OKX",
+        "instrument_id": "KIOXIA-USDT-SWAP.OKX",
+        "role": "taker",
+        "side_on_entry": "sell",
+        "leverage": 5,
+        "leverage_mode": "cross",
+        "note": "Lighter KIOXIA 无盘口 → taker 腿只能走 OKX；OKX taker 费 5 bps，按六项口径该腿 EV 为负 → 仅作执行系统验证，不放大"
+      },
+      "backup": null,
+      "rationale": "宽度足够（p95 高），但对手腿深度薄、费率高；作为『验证 3 腿/兜底逻辑』的样本，不作为收益来源。",
+      "status": "strategy_validation_only"
+    }
+  ],
+  "leverage_alignment": {
+    "rule": "按保证金占用对齐，而不是按倍数对齐：名义 N 两腿相同（美元中性），每个场所的杠杆取该场所该合约的允许上限，但实际下单量由 min(0.5×E_venue×lev_venue) 反推；两腿各自的保证金占用都 <= 50%。",
+    "hl_leverage_source": "instrument.maxLeverage（HIP-3 每标的不同，xyz:RKLB/xz:KIOXIA 需在运行时读）",
+    "lighter_leverage_source": "股票永续 20x（pre-IPO 5x），实际下单仍受 margin_usage_cap 约束",
+    "okx_leverage_source": "instrument.lever（股票类参考 5x；实测 ANTHROPIC 为 20，需以 API 为准）"
+  }
+}
