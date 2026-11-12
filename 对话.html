@@ -36,7 +36,7 @@ hr{border:0;border-top:1px solid var(--bd);margin:24px 0}
 </style></head><body>
 <header>
 <h1>nt-pairs · 全量人机对话 / Agent 交互 / 建模与部署记录</h1>
-<div class="sub">生成时间 2026-11-12T14:46:58.165467+00:00 ｜ 仓库 nt-pairs ｜ 引擎 NautilusTrader 2.0.0rc6 ｜
+<div class="sub">生成时间 2026-11-12T14:52:34.254941+00:00 ｜ 仓库 nt-pairs ｜ 引擎 NautilusTrader 2.0.0rc6 ｜
 涵盖：人类↔Agent 对话、Captain↔worker 逐字转录、矩阵与演算、EV/净边际、实时监控口径、回测报告、部署指导书</div>
 </header>
 <nav><a href="#sec-A">A. 人类 ↔ Agent 原始对话（前序项目）</a><a href="#sec-B">B. 人类在本项目的指令 / Captain 回复原文</a><a href="#sec-C">C. Herdr 派发记录（captain ↔ worker，nt-pairs）</a><a href="#sec-D">D. Herdr 派发记录（captain ↔ worker，ant-cross-arb 前序研究）</a><a href="#sec-E">E. 项目文档：总纲、契约、状态、矩阵、EV、部署、回测</a><a href="#sec-F">F. 源码与脚本（可执行证据）</a><a href="#sec-G">G. 配置、测试与 Field Guide</a></nav>
@@ -21178,114 +21178,114 @@ k = 1 + 1/√ESS,  ESS = n(1−ρ)/(1+ρ)
 - 排队量取「贴价同档 resting size」，**真实队列在触价瞬间可能已被抢跑** → 这是乐观上界；
 - Poisson + 平均单笔量忽略了单笔量分布的厚尾（少数大单会一次吃完队列）→ 实际 P(fill) 更低；
 - 本模型只回答「能不能成交」，**不回答「成交后是不是逆向选择」**——后者需要成交后 markout，需要实盘/L2 回放。
-</code></pre></div></details><h3>docs/MATRIX.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\MATRIX.md</span><span class="tag">10,702 bytes</span></div><h1>三场所价差矩阵（2026-11-12 实测）</h1>
-<p>生成：2026-11-12T14:41:54.577405+00:00；HL / Lighter / OKX，30 天 1h，会话分层。</p>
+</code></pre></div></details><h3>docs/MATRIX.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\MATRIX.md</span><span class="tag">10,762 bytes</span></div><h1>三场所价差矩阵（2026-11-12 实测）</h1>
+<p>生成：2026-11-12T14:50:55.449517+00:00；HL / Lighter / OKX，30 天 1h，会话分层。</p>
 <table><thead><tr><th>#</th><th>pair</th><th>30d mean</th><th>p95</th><th>b*</th><th>其中费</th><th>k·b*</th><th>覆盖</th><th>cap($)</th><th>会话分裂</th><th>CV</th><th>可交易</th></tr></thead><tbody>
-<tr><td>1</td><td>io:ANTH</td><td>193</td><td>-15.3</td><td>266.6</td><td>9.7</td><td>6.0</td><td>15.3</td><td>16.44</td><td>4176</td><td>0.031</td><td>0.03184</td><td>❌</td></tr>
-<tr><td>2</td><td>io:OAI</td><td>192</td><td>+356.4</td><td>472.0</td><td>15.5</td><td>6.0</td><td>19.6</td><td>23.05</td><td>667</td><td>0.27</td><td>0.00763</td><td>❌</td></tr>
-<tr><td>3</td><td>xyz:KORU</td><td>226</td><td>+0.6</td><td>150.2</td><td>41.1</td><td>6.0</td><td>44.7</td><td>2.36</td><td>3999</td><td>0.115</td><td>0.01071</td><td>❌</td></tr>
-<tr><td>4</td><td>xyz:UNITREE</td><td>220</td><td>+9.5</td><td>51.0</td><td>12.6</td><td>6.0</td><td>13.7</td><td>2.72</td><td>3588</td><td>0.162</td><td>0.00346</td><td>✅</td></tr>
-<tr><td>5</td><td>xyz:MRVL</td><td>174</td><td>+3.6</td><td>32.4</td><td>12.2</td><td>6.0</td><td>12.7</td><td>1.54</td><td>17514</td><td>0.442</td><td>0.00206</td><td>✅</td></tr>
-<tr><td>6</td><td>xyz:EWY</td><td>166</td><td>+4.1</td><td>32.2</td><td>14.6</td><td>6.0</td><td>15.2</td><td>1.12</td><td>4762</td><td>0.088</td><td>0.00158</td><td>✅</td></tr>
-<tr><td>7</td><td>xyz:RKLB</td><td>186</td><td>+5.0</td><td>90.6</td><td>13.9</td><td>6.0</td><td>14.6</td><td>5.20</td><td>820</td><td>0.005</td><td>0.00517</td><td>❌</td></tr>
-<tr><td>8</td><td>xyz:CBRS</td><td>175</td><td>+6.8</td><td>29.0</td><td>15.8</td><td>6.0</td><td>16.4</td><td>0.77</td><td>4493</td><td>0.015</td><td>0.00150</td><td>✅</td></tr>
-<tr><td>9</td><td>xyz:SOXL</td><td>197</td><td>+7.0</td><td>25.4</td><td>14.5</td><td>6.0</td><td>15.1</td><td>0.69</td><td>35610</td><td>0.107</td><td>0.00116</td><td>✅</td></tr>
-<tr><td>10</td><td>xyz:IBM</td><td>188</td><td>+3.1</td><td>19.1</td><td>12.4</td><td>6.0</td><td>13.0</td><td>0.47</td><td>18362</td><td>0.017</td><td>0.00117</td><td>✅</td></tr>
-<tr><td>11</td><td>xyz:KIOXIA</td><td>225</td><td>-6.5</td><td>287.2</td><td>27.0</td><td>6.0</td><td>29.9</td><td>8.60</td><td>242</td><td>0.17</td><td>0.01491</td><td>❌</td></tr>
-<tr><td>12</td><td>xyz:MSFT</td><td>115</td><td>+6.4</td><td>12.4</td><td>8.8</td><td>6.0</td><td>9.3</td><td>0.34</td><td>8422</td><td>0.12</td><td>0.00038</td><td>✅</td></tr>
-<tr><td>13</td><td>io:EWY</td><td>166</td><td>+0.7</td><td>29.0</td><td>19.6</td><td>6.0</td><td>20.4</td><td>0.42</td><td>4155</td><td>0.191</td><td>0.00164</td><td>✅</td></tr>
-<tr><td>14</td><td>xyz:COIN</td><td>109</td><td>+2.6</td><td>12.8</td><td>9.1</td><td>6.0</td><td>9.5</td><td>0.34</td><td>11514</td><td>0.158</td><td>0.00063</td><td>✅</td></tr>
-<tr><td>15</td><td>xyz:STRC</td><td>156</td><td>+0.2</td><td>17.8</td><td>13.0</td><td>6.0</td><td>13.9</td><td>0.28</td><td>7532</td><td>0.359</td><td>0.00105</td><td>✅</td></tr>
-<tr><td>16</td><td>xyz:CXMT</td><td>217</td><td>-5.3</td><td>100.1</td><td>39.7</td><td>6.0</td><td>42.5</td><td>1.35</td><td>794</td><td>0.146</td><td>0.00764</td><td>❌</td></tr>
-<tr><td>17</td><td>xyz:PLTR</td><td>111</td><td>+2.8</td><td>13.2</td><td>10.4</td><td>6.0</td><td>11.0</td><td>0.20</td><td>4738</td><td>0.098</td><td>0.00070</td><td>✅</td></tr>
-<tr><td>18</td><td>xyz:ZHIPU</td><td>205</td><td>-2.2</td><td>101.6</td><td>35.3</td><td>6.0</td><td>37.2</td><td>1.73</td><td>429</td><td>0.066</td><td>0.00694</td><td>❌</td></tr>
-<tr><td>19</td><td>xyz:CRWV</td><td>167</td><td>+3.9</td><td>49.2</td><td>25.6</td><td>6.0</td><td>26.8</td><td>0.84</td><td>899</td><td>0.143</td><td>0.00306</td><td>❌</td></tr>
-<tr><td>20</td><td>xyz:DELL</td><td>187</td><td>+7.9</td><td>66.9</td><td>25.2</td><td>6.0</td><td>26.4</td><td>1.53</td><td>459</td><td>0.065</td><td>0.00357</td><td>❌</td></tr>
-<tr><td>21</td><td>xyz:SNDK</td><td>139</td><td>+5.0</td><td>9.2</td><td>7.6</td><td>6.0</td><td>8.0</td><td>0.15</td><td>15677</td><td>0.326</td><td>0.00027</td><td>✅</td></tr>
-<tr><td>22</td><td>xyz:BABA</td><td>177</td><td>+13.1</td><td>33.7</td><td>14.1</td><td>6.0</td><td>14.8</td><td>1.27</td><td>510</td><td>0.221</td><td>0.00173</td><td>❌</td></tr>
-<tr><td>23</td><td>xyz:TSM</td><td>168</td><td>+5.7</td><td>37.1</td><td>15.4</td><td>6.0</td><td>16.0</td><td>1.32</td><td>421</td><td>0.147</td><td>0.00198</td><td>❌</td></tr>
-<tr><td>24</td><td>xyz:TSLA</td><td>112</td><td>+4.5</td><td>10.5</td><td>8.8</td><td>6.0</td><td>9.7</td><td>0.08</td><td>19734</td><td>0.019</td><td>0.00042</td><td>✅</td></tr>
-<tr><td>25</td><td>xyz:HOOD</td><td>108</td><td>+3.1</td><td>15.2</td><td>13.5</td><td>6.0</td><td>14.1</td><td>0.08</td><td>5411</td><td>0.154</td><td>0.00085</td><td>✅</td></tr>
-<tr><td>26</td><td>xyz:ORCL</td><td>165</td><td>+7.2</td><td>35.0</td><td>15.4</td><td>6.0</td><td>16.0</td><td>1.19</td><td>286</td><td>0.029</td><td>0.00207</td><td>❌</td></tr>
-<tr><td>27</td><td>xyz:MSTR</td><td>122</td><td>+1.6</td><td>14.3</td><td>12.8</td><td>6.0</td><td>13.4</td><td>0.07</td><td>8306</td><td>0.19</td><td>0.00086</td><td>✅</td></tr>
-<tr><td>28</td><td>xyz:NVDA</td><td>110</td><td>+5.5</td><td>10.5</td><td>9.0</td><td>6.0</td><td>9.8</td><td>0.06</td><td>39461</td><td>0.149</td><td>0.00031</td><td>✅</td></tr>
-<tr><td>29</td><td>para:UNITREE</td><td>220</td><td>+8.0</td><td>65.0</td><td>17.6</td><td>6.0</td><td>19.2</td><td>2.39</td><td>112</td><td>0.135</td><td>0.00420</td><td>❌</td></tr>
-<tr><td>30</td><td>xyz:CRCL</td><td>121</td><td>+4.7</td><td>12.3</td><td>10.9</td><td>6.0</td><td>11.4</td><td>0.08</td><td>2752</td><td>0.185</td><td>0.00043</td><td>✅</td></tr>
-<tr><td>31</td><td>xyz:INTC</td><td>137</td><td>+4.5</td><td>12.2</td><td>11.4</td><td>6.0</td><td>11.8</td><td>0.03</td><td>12194</td><td>0.172</td><td>0.00054</td><td>✅</td></tr>
-<tr><td>32</td><td>xyz:MRNA</td><td>228</td><td>+6.4</td><td>33.6</td><td>23.4</td><td>6.0</td><td>24.4</td><td>0.38</td><td>456</td><td>0.277</td><td>0.00183</td><td>❌</td></tr>
-<tr><td>33</td><td>xyz:BB</td><td>211</td><td>+16.6</td><td>66.7</td><td>48.9</td><td>6.0</td><td>52.3</td><td>0.28</td><td>553</td><td>0.272</td><td>0.00576</td><td>❌</td></tr>
-<tr><td>34</td><td>xyz:NBIS</td><td>189</td><td>+5.4</td><td>18.3</td><td>11.5</td><td>6.0</td><td>12.0</td><td>0.52</td><td>202</td><td>0.126</td><td>0.00087</td><td>❌</td></tr>
-<tr><td>35</td><td>xyz:SHEIN</td><td>230</td><td>+12.6</td><td>158.9</td><td>58.1</td><td>6.0</td><td>62.7</td><td>1.53</td><td>41</td><td>0.171</td><td>0.00737</td><td>❌</td></tr>
-<tr><td>36</td><td>xyz:LITE</td><td>178</td><td>+12.2</td><td>33.7</td><td>34.6</td><td>6.0</td><td>36.4</td><td>-0.07</td><td>33</td><td>0.121</td><td>0.00174</td><td>❌</td></tr>
-<tr><td>37</td><td>io:PRL</td><td>4097</td><td>-43.3</td><td>42.8</td><td>104.1</td><td>6.0</td><td>116.7</td><td>-0.63</td><td>2</td><td>0.215</td><td>0.00787</td><td>❌</td></tr>
-<tr><td>38</td><td>io:CRCL</td><td>121</td><td>+3.1</td><td>25.2</td><td>9.2</td><td>6.0</td><td>10.2</td><td>1.48</td><td>1</td><td>0.457</td><td>0.00198</td><td>❌</td></tr>
-<tr><td>39</td><td>xyz:IREN</td><td>7829</td><td>+46.8</td><td>205.5</td><td>69.0</td><td>6.0</td><td>75.7</td><td>1.71</td><td>0</td><td>0.304</td><td>0.00984</td><td>❌</td></tr>
-<tr><td>40</td><td>xyz:DRAM</td><td>195</td><td>+4.8</td><td>13.5</td><td>13.2</td><td>6.0</td><td>13.7</td><td>-0.02</td><td>1470</td><td>0.165</td><td>0.00056</td><td>❌</td></tr>
-<tr><td>41</td><td>io:AAPL</td><td>113</td><td>-2.6</td><td>16.7</td><td>16.4</td><td>6.0</td><td>17.6</td><td>-0.06</td><td>772</td><td>0.247</td><td>0.00231</td><td>❌</td></tr>
-<tr><td>42</td><td>xyz:AMZN</td><td>114</td><td>+3.6</td><td>9.5</td><td>9.0</td><td>6.0</td><td>9.8</td><td>-0.03</td><td>6502</td><td>0.215</td><td>0.00040</td><td>❌</td></tr>
-<tr><td>43</td><td>io:NBIS</td><td>189</td><td>+1.5</td><td>16.6</td><td>23.3</td><td>6.0</td><td>24.4</td><td>-0.32</td><td>692</td><td>0.359</td><td>0.00098</td><td>❌</td></tr>
-<tr><td>44</td><td>io:SNDK</td><td>139</td><td>+3.1</td><td>9.7</td><td>9.7</td><td>6.0</td><td>10.4</td><td>-0.07</td><td>4190</td><td>0.572</td><td>0.00043</td><td>❌</td></tr>
-<tr><td>45</td><td>xyz:SPCX</td><td>194</td><td>+3.9</td><td>9.6</td><td>9.9</td><td>6.0</td><td>10.6</td><td>-0.09</td><td>11988</td><td>0.323</td><td>0.00039</td><td>❌</td></tr>
-<tr><td>46</td><td>xyz:GOOGL</td><td>116</td><td>+4.8</td><td>10.3</td><td>11.0</td><td>6.0</td><td>11.9</td><td>-0.13</td><td>29420</td><td>0.264</td><td>0.00033</td><td>❌</td></tr>
-<tr><td>47</td><td>xyz:AMD</td><td>138</td><td>+4.2</td><td>12.0</td><td>13.7</td><td>6.0</td><td>14.4</td><td>-0.16</td><td>11053</td><td>0.094</td><td>0.00053</td><td>❌</td></tr>
-<tr><td>48</td><td>xyz:MU</td><td>164</td><td>+3.9</td><td>9.7</td><td>11.3</td><td>6.0</td><td>11.9</td><td>-0.18</td><td>17738</td><td>0.065</td><td>0.00038</td><td>❌</td></tr>
-<tr><td>49</td><td>xyz:AAPL</td><td>113</td><td>+1.7</td><td>7.9</td><td>8.9</td><td>6.0</td><td>9.8</td><td>-0.19</td><td>20350</td><td>0.084</td><td>0.00034</td><td>❌</td></tr>
-<tr><td>50</td><td>xyz:META</td><td>117</td><td>+2.3</td><td>7.5</td><td>8.7</td><td>6.0</td><td>9.3</td><td>-0.20</td><td>32672</td><td>0.11</td><td>0.00036</td><td>❌</td></tr>
-<tr><td>51</td><td>io:DRAM</td><td>195</td><td>+3.8</td><td>13.7</td><td>21.3</td><td>6.0</td><td>22.2</td><td>-0.38</td><td>2674</td><td>0.055</td><td>0.00064</td><td>❌</td></tr>
-<tr><td>52</td><td>io:NVDA</td><td>110</td><td>+3.0</td><td>13.2</td><td>19.0</td><td>6.0</td><td>20.4</td><td>-0.35</td><td>6597</td><td>0.471</td><td>0.00091</td><td>❌</td></tr>
-<tr><td>53</td><td>xyz:SKHY</td><td>216</td><td>-2.0</td><td>9.4</td><td>15.8</td><td>6.0</td><td>16.4</td><td>-0.43</td><td>7761</td><td>0.005</td><td>0.00078</td><td>❌</td></tr>
-<tr><td>54</td><td>xyz:BRENTOIL</td><td>159</td><td>-2.0</td><td>4.7</td><td>10.8</td><td>6.0</td><td>11.4</td><td>-0.59</td><td>31646</td><td>0.234</td><td>0.00040</td><td>❌</td></tr>
-<tr><td>55</td><td>xyz:NATGAS</td><td>158</td><td>+6.6</td><td>24.8</td><td>55.4</td><td>6.0</td><td>57.9</td><td>-0.57</td><td>9331</td><td>0.019</td><td>0.00118</td><td>❌</td></tr>
+<tr><td>1</td><td>xyz:RKLB</td><td>186</td><td>+5.0</td><td>90.6</td><td>16.7</td><td>6.0</td><td>17.5</td><td>4.18</td><td>16612</td><td>0.005</td><td>0.00517</td><td>❌</td></tr>
+<tr><td>2</td><td>io:ANTH</td><td>193</td><td>-15.3</td><td>266.6</td><td>12.3</td><td>6.0</td><td>19.4</td><td>12.72</td><td>1181</td><td>0.031</td><td>0.03184</td><td>❌</td></tr>
+<tr><td>3</td><td>xyz:UNITREE</td><td>220</td><td>+9.6</td><td>51.0</td><td>10.9</td><td>6.0</td><td>11.8</td><td>3.32</td><td>2661</td><td>0.162</td><td>0.00346</td><td>❌</td></tr>
+<tr><td>4</td><td>xyz:EWY</td><td>166</td><td>+4.1</td><td>32.2</td><td>12.3</td><td>6.0</td><td>12.8</td><td>1.52</td><td>16670</td><td>0.088</td><td>0.00158</td><td>✅</td></tr>
+<tr><td>5</td><td>xyz:TSM</td><td>168</td><td>+5.7</td><td>37.1</td><td>13.8</td><td>6.0</td><td>14.3</td><td>1.59</td><td>9435</td><td>0.147</td><td>0.00198</td><td>✅</td></tr>
+<tr><td>6</td><td>xyz:KIOXIA</td><td>225</td><td>-6.4</td><td>287.2</td><td>29.2</td><td>6.0</td><td>32.3</td><td>7.89</td><td>1000</td><td>0.17</td><td>0.01489</td><td>❌</td></tr>
+<tr><td>7</td><td>io:OAI</td><td>192</td><td>+356.4</td><td>472.0</td><td>22.6</td><td>6.0</td><td>28.6</td><td>15.53</td><td>527</td><td>0.27</td><td>0.00763</td><td>❌</td></tr>
+<tr><td>8</td><td>xyz:KORU</td><td>226</td><td>+1.1</td><td>150.2</td><td>51.0</td><td>6.0</td><td>55.5</td><td>1.71</td><td>4118</td><td>0.116</td><td>0.01068</td><td>❌</td></tr>
+<tr><td>9</td><td>xyz:BABA</td><td>177</td><td>+13.1</td><td>33.7</td><td>14.8</td><td>6.0</td><td>15.6</td><td>1.15</td><td>5183</td><td>0.221</td><td>0.00173</td><td>✅</td></tr>
+<tr><td>10</td><td>xyz:MRVL</td><td>174</td><td>+3.6</td><td>32.4</td><td>13.2</td><td>6.0</td><td>13.8</td><td>1.35</td><td>23211</td><td>0.442</td><td>0.00206</td><td>✅</td></tr>
+<tr><td>11</td><td>xyz:ORCL</td><td>165</td><td>+7.3</td><td>36.5</td><td>18.7</td><td>6.0</td><td>19.5</td><td>0.87</td><td>6213</td><td>0.029</td><td>0.00208</td><td>✅</td></tr>
+<tr><td>12</td><td>xyz:CBRS</td><td>175</td><td>+6.7</td><td>28.8</td><td>15.6</td><td>6.0</td><td>16.2</td><td>0.78</td><td>5340</td><td>0.016</td><td>0.00148</td><td>✅</td></tr>
+<tr><td>13</td><td>xyz:ZHIPU</td><td>205</td><td>-2.3</td><td>101.6</td><td>30.7</td><td>6.0</td><td>32.4</td><td>2.14</td><td>1792</td><td>0.066</td><td>0.00694</td><td>❌</td></tr>
+<tr><td>14</td><td>para:UNITREE</td><td>220</td><td>+8.0</td><td>65.0</td><td>20.4</td><td>6.0</td><td>22.3</td><td>1.91</td><td>1739</td><td>0.135</td><td>0.00421</td><td>❌</td></tr>
+<tr><td>15</td><td>xyz:IBM</td><td>188</td><td>+3.0</td><td>19.1</td><td>11.7</td><td>6.0</td><td>12.2</td><td>0.56</td><td>9230</td><td>0.017</td><td>0.00118</td><td>✅</td></tr>
+<tr><td>16</td><td>xyz:SOXL</td><td>197</td><td>+7.0</td><td>25.4</td><td>15.8</td><td>6.0</td><td>16.4</td><td>0.55</td><td>13137</td><td>0.107</td><td>0.00116</td><td>✅</td></tr>
+<tr><td>17</td><td>xyz:MRNA</td><td>228</td><td>+6.4</td><td>33.6</td><td>15.4</td><td>6.0</td><td>16.1</td><td>1.08</td><td>1468</td><td>0.279</td><td>0.00182</td><td>✅</td></tr>
+<tr><td>18</td><td>xyz:CRWV</td><td>167</td><td>+3.9</td><td>49.2</td><td>23.7</td><td>6.0</td><td>24.8</td><td>0.99</td><td>1438</td><td>0.143</td><td>0.00306</td><td>✅</td></tr>
+<tr><td>19</td><td>io:CRCL</td><td>121</td><td>+3.0</td><td>25.2</td><td>16.4</td><td>6.0</td><td>18.0</td><td>0.40</td><td>4233</td><td>0.457</td><td>0.00198</td><td>✅</td></tr>
+<tr><td>20</td><td>xyz:STRC</td><td>156</td><td>+0.2</td><td>17.8</td><td>12.7</td><td>6.0</td><td>13.6</td><td>0.31</td><td>10270</td><td>0.359</td><td>0.00105</td><td>❌</td></tr>
+<tr><td>21</td><td>xyz:CXMT</td><td>217</td><td>-5.3</td><td>100.1</td><td>55.2</td><td>6.0</td><td>59.1</td><td>0.69</td><td>1786</td><td>0.146</td><td>0.00764</td><td>❌</td></tr>
+<tr><td>22</td><td>xyz:MSFT</td><td>115</td><td>+6.4</td><td>12.4</td><td>9.6</td><td>6.0</td><td>10.1</td><td>0.22</td><td>11669</td><td>0.119</td><td>0.00038</td><td>✅</td></tr>
+<tr><td>23</td><td>xyz:NBIS</td><td>189</td><td>+5.4</td><td>18.3</td><td>13.2</td><td>6.0</td><td>13.8</td><td>0.33</td><td>2829</td><td>0.126</td><td>0.00087</td><td>✅</td></tr>
+<tr><td>24</td><td>xyz:TSLA</td><td>112</td><td>+4.5</td><td>10.5</td><td>8.2</td><td>6.0</td><td>9.1</td><td>0.16</td><td>27119</td><td>0.019</td><td>0.00042</td><td>✅</td></tr>
+<tr><td>25</td><td>io:EWY</td><td>166</td><td>+0.7</td><td>29.0</td><td>22.1</td><td>6.0</td><td>23.0</td><td>0.26</td><td>3483</td><td>0.191</td><td>0.00164</td><td>✅</td></tr>
+<tr><td>26</td><td>xyz:DELL</td><td>187</td><td>+8.0</td><td>67.3</td><td>20.3</td><td>6.0</td><td>21.3</td><td>2.15</td><td>237</td><td>0.065</td><td>0.00357</td><td>❌</td></tr>
+<tr><td>27</td><td>xyz:COIN</td><td>109</td><td>+2.7</td><td>12.8</td><td>11.3</td><td>6.0</td><td>11.9</td><td>0.07</td><td>6869</td><td>0.158</td><td>0.00063</td><td>✅</td></tr>
+<tr><td>28</td><td>xyz:MU</td><td>164</td><td>+3.8</td><td>9.7</td><td>8.7</td><td>6.0</td><td>9.2</td><td>0.05</td><td>13345</td><td>0.065</td><td>0.00038</td><td>✅</td></tr>
+<tr><td>29</td><td>xyz:HOOD</td><td>108</td><td>+3.1</td><td>15.2</td><td>14.1</td><td>6.0</td><td>14.6</td><td>0.04</td><td>11858</td><td>0.154</td><td>0.00085</td><td>✅</td></tr>
+<tr><td>30</td><td>xyz:PLTR</td><td>111</td><td>+2.8</td><td>13.2</td><td>12.1</td><td>6.0</td><td>12.8</td><td>0.03</td><td>5404</td><td>0.098</td><td>0.00070</td><td>✅</td></tr>
+<tr><td>31</td><td>xyz:SHEIN</td><td>230</td><td>+12.7</td><td>158.9</td><td>67.8</td><td>6.0</td><td>73.1</td><td>1.17</td><td>52</td><td>0.171</td><td>0.00737</td><td>❌</td></tr>
+<tr><td>32</td><td>xyz:BB</td><td>211</td><td>+16.5</td><td>66.7</td><td>55.4</td><td>6.0</td><td>59.1</td><td>0.13</td><td>80</td><td>0.271</td><td>0.00576</td><td>❌</td></tr>
+<tr><td>33</td><td>xyz:LITE</td><td>178</td><td>+12.3</td><td>33.7</td><td>31.7</td><td>6.0</td><td>33.3</td><td>0.01</td><td>123</td><td>0.122</td><td>0.00173</td><td>❌</td></tr>
+<tr><td>34</td><td>xyz:IREN</td><td>7829</td><td>+46.6</td><td>205.5</td><td>72.6</td><td>6.0</td><td>79.7</td><td>1.58</td><td>0</td><td>0.304</td><td>0.00984</td><td>❌</td></tr>
+<tr><td>35</td><td>io:PRL</td><td>4097</td><td>-43.2</td><td>45.0</td><td>196.6</td><td>6.0</td><td>220.2</td><td>-0.80</td><td>5</td><td>0.215</td><td>0.00788</td><td>❌</td></tr>
+<tr><td>36</td><td>io:NBIS</td><td>189</td><td>+1.5</td><td>16.2</td><td>30.5</td><td>6.0</td><td>31.9</td><td>-0.49</td><td>91</td><td>0.363</td><td>0.00097</td><td>❌</td></tr>
+<tr><td>37</td><td>xyz:MSTR</td><td>122</td><td>+1.6</td><td>14.3</td><td>13.8</td><td>6.0</td><td>14.5</td><td>-0.01</td><td>5095</td><td>0.19</td><td>0.00086</td><td>❌</td></tr>
+<tr><td>38</td><td>io:AAPL</td><td>113</td><td>-2.6</td><td>16.7</td><td>15.8</td><td>6.0</td><td>17.0</td><td>-0.02</td><td>12244</td><td>0.247</td><td>0.00231</td><td>❌</td></tr>
+<tr><td>39</td><td>xyz:NATGAS</td><td>158</td><td>+6.6</td><td>24.8</td><td>90.9</td><td>6.0</td><td>94.9</td><td>-0.74</td><td>107</td><td>0.019</td><td>0.00118</td><td>❌</td></tr>
+<tr><td>40</td><td>xyz:SNDK</td><td>139</td><td>+5.0</td><td>9.2</td><td>16.7</td><td>6.0</td><td>17.6</td><td>-0.47</td><td>442</td><td>0.314</td><td>0.00028</td><td>❌</td></tr>
+<tr><td>41</td><td>xyz:DRAM</td><td>195</td><td>+4.8</td><td>13.5</td><td>13.8</td><td>6.0</td><td>14.4</td><td>-0.06</td><td>17365</td><td>0.165</td><td>0.00056</td><td>❌</td></tr>
+<tr><td>42</td><td>xyz:CRCL</td><td>121</td><td>+4.7</td><td>12.5</td><td>13.0</td><td>6.0</td><td>13.6</td><td>-0.08</td><td>17063</td><td>0.184</td><td>0.00043</td><td>❌</td></tr>
+<tr><td>43</td><td>xyz:GOOGL</td><td>116</td><td>+4.8</td><td>10.3</td><td>10.6</td><td>6.0</td><td>11.4</td><td>-0.10</td><td>33188</td><td>0.266</td><td>0.00032</td><td>❌</td></tr>
+<tr><td>44</td><td>xyz:AMZN</td><td>114</td><td>+3.6</td><td>9.5</td><td>9.7</td><td>6.0</td><td>10.5</td><td>-0.09</td><td>13177</td><td>0.214</td><td>0.00040</td><td>❌</td></tr>
+<tr><td>45</td><td>xyz:NVDA</td><td>110</td><td>+5.5</td><td>10.5</td><td>10.7</td><td>6.0</td><td>11.7</td><td>-0.11</td><td>41885</td><td>0.149</td><td>0.00031</td><td>❌</td></tr>
+<tr><td>46</td><td>xyz:AMD</td><td>138</td><td>+4.2</td><td>12.0</td><td>13.0</td><td>6.0</td><td>13.6</td><td>-0.11</td><td>12425</td><td>0.094</td><td>0.00053</td><td>❌</td></tr>
+<tr><td>47</td><td>xyz:SPCX</td><td>194</td><td>+3.9</td><td>9.6</td><td>10.7</td><td>6.0</td><td>11.4</td><td>-0.16</td><td>34968</td><td>0.323</td><td>0.00039</td><td>❌</td></tr>
+<tr><td>48</td><td>xyz:INTC</td><td>137</td><td>+4.6</td><td>12.3</td><td>15.5</td><td>6.0</td><td>16.1</td><td>-0.24</td><td>3069</td><td>0.18</td><td>0.00052</td><td>❌</td></tr>
+<tr><td>49</td><td>io:SNDK</td><td>139</td><td>+3.0</td><td>9.7</td><td>13.2</td><td>6.0</td><td>14.3</td><td>-0.32</td><td>17124</td><td>0.593</td><td>0.00042</td><td>❌</td></tr>
+<tr><td>50</td><td>xyz:AAPL</td><td>113</td><td>+1.7</td><td>7.9</td><td>9.3</td><td>6.0</td><td>10.3</td><td>-0.23</td><td>31329</td><td>0.085</td><td>0.00034</td><td>❌</td></tr>
+<tr><td>51</td><td>xyz:SKHY</td><td>216</td><td>-1.9</td><td>9.4</td><td>11.8</td><td>6.0</td><td>12.3</td><td>-0.23</td><td>8868</td><td>0.005</td><td>0.00080</td><td>❌</td></tr>
+<tr><td>52</td><td>io:NVDA</td><td>110</td><td>+2.9</td><td>13.1</td><td>18.6</td><td>6.0</td><td>20.0</td><td>-0.34</td><td>13087</td><td>0.47</td><td>0.00092</td><td>❌</td></tr>
+<tr><td>53</td><td>xyz:META</td><td>117</td><td>+2.3</td><td>7.5</td><td>10.0</td><td>6.0</td><td>10.9</td><td>-0.31</td><td>32667</td><td>0.11</td><td>0.00036</td><td>❌</td></tr>
+<tr><td>54</td><td>io:DRAM</td><td>195</td><td>+3.8</td><td>13.7</td><td>21.0</td><td>6.0</td><td>21.9</td><td>-0.38</td><td>15428</td><td>0.056</td><td>0.00064</td><td>❌</td></tr>
+<tr><td>55</td><td>xyz:BRENTOIL</td><td>159</td><td>-2.0</td><td>4.7</td><td>12.1</td><td>6.0</td><td>12.9</td><td>-0.64</td><td>17075</td><td>0.234</td><td>0.00040</td><td>❌</td></tr>
 </tbody></table>
 <h2>每个标的的最佳腿组合（费率优先 → 再看覆盖倍数）</h2>
 <table><thead><tr><th>标的</th><th>最佳对</th><th>b*</th><th>其中费</th><th>覆盖</th><th>cap($)</th><th>会话分裂</th></tr></thead><tbody>
-<tr><td>AAPL</td><td>io:AAPL</td><td>113</td><td>16.4</td><td>6.0</td><td>-0.06</td><td>772</td><td>0.247</td></tr>
-<tr><td>AMD</td><td>xyz:AMD</td><td>138</td><td>13.7</td><td>6.0</td><td>-0.16</td><td>11053</td><td>0.094</td></tr>
-<tr><td>AMZN</td><td>xyz:AMZN</td><td>114</td><td>9.0</td><td>6.0</td><td>-0.03</td><td>6502</td><td>0.215</td></tr>
-<tr><td>ANTHROPIC</td><td>io:ANTH</td><td>193</td><td>9.7</td><td>6.0</td><td>16.44</td><td>4176</td><td>0.031</td></tr>
-<tr><td>BABA</td><td>xyz:BABA</td><td>177</td><td>14.1</td><td>6.0</td><td>1.27</td><td>510</td><td>0.221</td></tr>
-<tr><td>BB</td><td>xyz:BB</td><td>211</td><td>48.9</td><td>6.0</td><td>0.28</td><td>553</td><td>0.272</td></tr>
-<tr><td>BRENTOIL</td><td>xyz:BRENTOIL</td><td>159</td><td>10.8</td><td>6.0</td><td>-0.59</td><td>31646</td><td>0.234</td></tr>
-<tr><td>CBRS</td><td>xyz:CBRS</td><td>175</td><td>15.8</td><td>6.0</td><td>0.77</td><td>4493</td><td>0.015</td></tr>
-<tr><td>COIN</td><td>xyz:COIN</td><td>109</td><td>9.1</td><td>6.0</td><td>0.34</td><td>11514</td><td>0.158</td></tr>
-<tr><td>CRCL</td><td>io:CRCL</td><td>121</td><td>9.2</td><td>6.0</td><td>1.48</td><td>1</td><td>0.457</td></tr>
-<tr><td>CRWV</td><td>xyz:CRWV</td><td>167</td><td>25.6</td><td>6.0</td><td>0.84</td><td>899</td><td>0.143</td></tr>
-<tr><td>CXMT</td><td>xyz:CXMT</td><td>217</td><td>39.7</td><td>6.0</td><td>1.35</td><td>794</td><td>0.146</td></tr>
-<tr><td>DELL</td><td>xyz:DELL</td><td>187</td><td>25.2</td><td>6.0</td><td>1.53</td><td>459</td><td>0.065</td></tr>
-<tr><td>DRAM</td><td>xyz:DRAM</td><td>195</td><td>13.2</td><td>6.0</td><td>-0.02</td><td>1470</td><td>0.165</td></tr>
-<tr><td>EWY</td><td>xyz:EWY</td><td>166</td><td>14.6</td><td>6.0</td><td>1.12</td><td>4762</td><td>0.088</td></tr>
-<tr><td>GOOGL</td><td>xyz:GOOGL</td><td>116</td><td>11.0</td><td>6.0</td><td>-0.13</td><td>29420</td><td>0.264</td></tr>
-<tr><td>HOOD</td><td>xyz:HOOD</td><td>108</td><td>13.5</td><td>6.0</td><td>0.08</td><td>5411</td><td>0.154</td></tr>
-<tr><td>IBM</td><td>xyz:IBM</td><td>188</td><td>12.4</td><td>6.0</td><td>0.47</td><td>18362</td><td>0.017</td></tr>
-<tr><td>INTC</td><td>xyz:INTC</td><td>137</td><td>11.4</td><td>6.0</td><td>0.03</td><td>12194</td><td>0.172</td></tr>
-<tr><td>IREN</td><td>xyz:IREN</td><td>7829</td><td>69.0</td><td>6.0</td><td>1.71</td><td>0</td><td>0.304</td></tr>
-<tr><td>KIOXIA</td><td>xyz:KIOXIA</td><td>225</td><td>27.0</td><td>6.0</td><td>8.60</td><td>242</td><td>0.17</td></tr>
-<tr><td>KORU</td><td>xyz:KORU</td><td>226</td><td>41.1</td><td>6.0</td><td>2.36</td><td>3999</td><td>0.115</td></tr>
-<tr><td>LITE</td><td>xyz:LITE</td><td>178</td><td>34.6</td><td>6.0</td><td>-0.07</td><td>33</td><td>0.121</td></tr>
-<tr><td>META</td><td>xyz:META</td><td>117</td><td>8.7</td><td>6.0</td><td>-0.20</td><td>32672</td><td>0.11</td></tr>
-<tr><td>MRNA</td><td>xyz:MRNA</td><td>228</td><td>23.4</td><td>6.0</td><td>0.38</td><td>456</td><td>0.277</td></tr>
-<tr><td>MRVL</td><td>xyz:MRVL</td><td>174</td><td>12.2</td><td>6.0</td><td>1.54</td><td>17514</td><td>0.442</td></tr>
-<tr><td>MSFT</td><td>xyz:MSFT</td><td>115</td><td>8.8</td><td>6.0</td><td>0.34</td><td>8422</td><td>0.12</td></tr>
-<tr><td>MSTR</td><td>xyz:MSTR</td><td>122</td><td>12.8</td><td>6.0</td><td>0.07</td><td>8306</td><td>0.19</td></tr>
-<tr><td>MU</td><td>xyz:MU</td><td>164</td><td>11.3</td><td>6.0</td><td>-0.18</td><td>17738</td><td>0.065</td></tr>
-<tr><td>NATGAS</td><td>xyz:NATGAS</td><td>158</td><td>55.4</td><td>6.0</td><td>-0.57</td><td>9331</td><td>0.019</td></tr>
-<tr><td>NBIS</td><td>xyz:NBIS</td><td>189</td><td>11.5</td><td>6.0</td><td>0.52</td><td>202</td><td>0.126</td></tr>
-<tr><td>NVDA</td><td>xyz:NVDA</td><td>110</td><td>9.0</td><td>6.0</td><td>0.06</td><td>39461</td><td>0.149</td></tr>
-<tr><td>OPENAI</td><td>io:OAI</td><td>192</td><td>15.5</td><td>6.0</td><td>23.05</td><td>667</td><td>0.27</td></tr>
-<tr><td>ORCL</td><td>xyz:ORCL</td><td>165</td><td>15.4</td><td>6.0</td><td>1.19</td><td>286</td><td>0.029</td></tr>
-<tr><td>PLTR</td><td>xyz:PLTR</td><td>111</td><td>10.4</td><td>6.0</td><td>0.20</td><td>4738</td><td>0.098</td></tr>
-<tr><td>PRL</td><td>io:PRL</td><td>4097</td><td>104.1</td><td>6.0</td><td>-0.63</td><td>2</td><td>0.215</td></tr>
-<tr><td>RKLB</td><td>xyz:RKLB</td><td>186</td><td>13.9</td><td>6.0</td><td>5.20</td><td>820</td><td>0.005</td></tr>
-<tr><td>SHEIN</td><td>xyz:SHEIN</td><td>230</td><td>58.1</td><td>6.0</td><td>1.53</td><td>41</td><td>0.171</td></tr>
-<tr><td>SKHYNIX</td><td>xyz:SKHY</td><td>216</td><td>15.8</td><td>6.0</td><td>-0.43</td><td>7761</td><td>0.005</td></tr>
-<tr><td>SNDK</td><td>xyz:SNDK</td><td>139</td><td>7.6</td><td>6.0</td><td>0.15</td><td>15677</td><td>0.326</td></tr>
-<tr><td>SOXL</td><td>xyz:SOXL</td><td>197</td><td>14.5</td><td>6.0</td><td>0.69</td><td>35610</td><td>0.107</td></tr>
-<tr><td>SPCX</td><td>xyz:SPCX</td><td>194</td><td>9.9</td><td>6.0</td><td>-0.09</td><td>11988</td><td>0.323</td></tr>
-<tr><td>STRC</td><td>xyz:STRC</td><td>156</td><td>13.0</td><td>6.0</td><td>0.28</td><td>7532</td><td>0.359</td></tr>
-<tr><td>TSLA</td><td>xyz:TSLA</td><td>112</td><td>8.8</td><td>6.0</td><td>0.08</td><td>19734</td><td>0.019</td></tr>
-<tr><td>TSM</td><td>xyz:TSM</td><td>168</td><td>15.4</td><td>6.0</td><td>1.32</td><td>421</td><td>0.147</td></tr>
-<tr><td>UNITREE</td><td>xyz:UNITREE</td><td>220</td><td>12.6</td><td>6.0</td><td>2.72</td><td>3588</td><td>0.162</td></tr>
-<tr><td>ZHIPU</td><td>xyz:ZHIPU</td><td>205</td><td>35.3</td><td>6.0</td><td>1.73</td><td>429</td><td>0.066</td></tr>
+<tr><td>AAPL</td><td>io:AAPL</td><td>113</td><td>15.8</td><td>6.0</td><td>-0.02</td><td>12244</td><td>0.247</td></tr>
+<tr><td>AMD</td><td>xyz:AMD</td><td>138</td><td>13.0</td><td>6.0</td><td>-0.11</td><td>12425</td><td>0.094</td></tr>
+<tr><td>AMZN</td><td>xyz:AMZN</td><td>114</td><td>9.7</td><td>6.0</td><td>-0.09</td><td>13177</td><td>0.214</td></tr>
+<tr><td>ANTHROPIC</td><td>io:ANTH</td><td>193</td><td>12.3</td><td>6.0</td><td>12.72</td><td>1181</td><td>0.031</td></tr>
+<tr><td>BABA</td><td>xyz:BABA</td><td>177</td><td>14.8</td><td>6.0</td><td>1.15</td><td>5183</td><td>0.221</td></tr>
+<tr><td>BB</td><td>xyz:BB</td><td>211</td><td>55.4</td><td>6.0</td><td>0.13</td><td>80</td><td>0.271</td></tr>
+<tr><td>BRENTOIL</td><td>xyz:BRENTOIL</td><td>159</td><td>12.1</td><td>6.0</td><td>-0.64</td><td>17075</td><td>0.234</td></tr>
+<tr><td>CBRS</td><td>xyz:CBRS</td><td>175</td><td>15.6</td><td>6.0</td><td>0.78</td><td>5340</td><td>0.016</td></tr>
+<tr><td>COIN</td><td>xyz:COIN</td><td>109</td><td>11.3</td><td>6.0</td><td>0.07</td><td>6869</td><td>0.158</td></tr>
+<tr><td>CRCL</td><td>io:CRCL</td><td>121</td><td>16.4</td><td>6.0</td><td>0.40</td><td>4233</td><td>0.457</td></tr>
+<tr><td>CRWV</td><td>xyz:CRWV</td><td>167</td><td>23.7</td><td>6.0</td><td>0.99</td><td>1438</td><td>0.143</td></tr>
+<tr><td>CXMT</td><td>xyz:CXMT</td><td>217</td><td>55.2</td><td>6.0</td><td>0.69</td><td>1786</td><td>0.146</td></tr>
+<tr><td>DELL</td><td>xyz:DELL</td><td>187</td><td>20.3</td><td>6.0</td><td>2.15</td><td>237</td><td>0.065</td></tr>
+<tr><td>DRAM</td><td>xyz:DRAM</td><td>195</td><td>13.8</td><td>6.0</td><td>-0.06</td><td>17365</td><td>0.165</td></tr>
+<tr><td>EWY</td><td>xyz:EWY</td><td>166</td><td>12.3</td><td>6.0</td><td>1.52</td><td>16670</td><td>0.088</td></tr>
+<tr><td>GOOGL</td><td>xyz:GOOGL</td><td>116</td><td>10.6</td><td>6.0</td><td>-0.10</td><td>33188</td><td>0.266</td></tr>
+<tr><td>HOOD</td><td>xyz:HOOD</td><td>108</td><td>14.1</td><td>6.0</td><td>0.04</td><td>11858</td><td>0.154</td></tr>
+<tr><td>IBM</td><td>xyz:IBM</td><td>188</td><td>11.7</td><td>6.0</td><td>0.56</td><td>9230</td><td>0.017</td></tr>
+<tr><td>INTC</td><td>xyz:INTC</td><td>137</td><td>15.5</td><td>6.0</td><td>-0.24</td><td>3069</td><td>0.18</td></tr>
+<tr><td>IREN</td><td>xyz:IREN</td><td>7829</td><td>72.6</td><td>6.0</td><td>1.58</td><td>0</td><td>0.304</td></tr>
+<tr><td>KIOXIA</td><td>xyz:KIOXIA</td><td>225</td><td>29.2</td><td>6.0</td><td>7.89</td><td>1000</td><td>0.17</td></tr>
+<tr><td>KORU</td><td>xyz:KORU</td><td>226</td><td>51.0</td><td>6.0</td><td>1.71</td><td>4118</td><td>0.116</td></tr>
+<tr><td>LITE</td><td>xyz:LITE</td><td>178</td><td>31.7</td><td>6.0</td><td>0.01</td><td>123</td><td>0.122</td></tr>
+<tr><td>META</td><td>xyz:META</td><td>117</td><td>10.0</td><td>6.0</td><td>-0.31</td><td>32667</td><td>0.11</td></tr>
+<tr><td>MRNA</td><td>xyz:MRNA</td><td>228</td><td>15.4</td><td>6.0</td><td>1.08</td><td>1468</td><td>0.279</td></tr>
+<tr><td>MRVL</td><td>xyz:MRVL</td><td>174</td><td>13.2</td><td>6.0</td><td>1.35</td><td>23211</td><td>0.442</td></tr>
+<tr><td>MSFT</td><td>xyz:MSFT</td><td>115</td><td>9.6</td><td>6.0</td><td>0.22</td><td>11669</td><td>0.119</td></tr>
+<tr><td>MSTR</td><td>xyz:MSTR</td><td>122</td><td>13.8</td><td>6.0</td><td>-0.01</td><td>5095</td><td>0.19</td></tr>
+<tr><td>MU</td><td>xyz:MU</td><td>164</td><td>8.7</td><td>6.0</td><td>0.05</td><td>13345</td><td>0.065</td></tr>
+<tr><td>NATGAS</td><td>xyz:NATGAS</td><td>158</td><td>90.9</td><td>6.0</td><td>-0.74</td><td>107</td><td>0.019</td></tr>
+<tr><td>NBIS</td><td>xyz:NBIS</td><td>189</td><td>13.2</td><td>6.0</td><td>0.33</td><td>2829</td><td>0.126</td></tr>
+<tr><td>NVDA</td><td>xyz:NVDA</td><td>110</td><td>10.7</td><td>6.0</td><td>-0.11</td><td>41885</td><td>0.149</td></tr>
+<tr><td>OPENAI</td><td>io:OAI</td><td>192</td><td>22.6</td><td>6.0</td><td>15.53</td><td>527</td><td>0.27</td></tr>
+<tr><td>ORCL</td><td>xyz:ORCL</td><td>165</td><td>18.7</td><td>6.0</td><td>0.87</td><td>6213</td><td>0.029</td></tr>
+<tr><td>PLTR</td><td>xyz:PLTR</td><td>111</td><td>12.1</td><td>6.0</td><td>0.03</td><td>5404</td><td>0.098</td></tr>
+<tr><td>PRL</td><td>io:PRL</td><td>4097</td><td>196.6</td><td>6.0</td><td>-0.80</td><td>5</td><td>0.215</td></tr>
+<tr><td>RKLB</td><td>xyz:RKLB</td><td>186</td><td>16.7</td><td>6.0</td><td>4.18</td><td>16612</td><td>0.005</td></tr>
+<tr><td>SHEIN</td><td>xyz:SHEIN</td><td>230</td><td>67.8</td><td>6.0</td><td>1.17</td><td>52</td><td>0.171</td></tr>
+<tr><td>SKHYNIX</td><td>xyz:SKHY</td><td>216</td><td>11.8</td><td>6.0</td><td>-0.23</td><td>8868</td><td>0.005</td></tr>
+<tr><td>SNDK</td><td>io:SNDK</td><td>139</td><td>13.2</td><td>6.0</td><td>-0.32</td><td>17124</td><td>0.593</td></tr>
+<tr><td>SOXL</td><td>xyz:SOXL</td><td>197</td><td>15.8</td><td>6.0</td><td>0.55</td><td>13137</td><td>0.107</td></tr>
+<tr><td>SPCX</td><td>xyz:SPCX</td><td>194</td><td>10.7</td><td>6.0</td><td>-0.16</td><td>34968</td><td>0.323</td></tr>
+<tr><td>STRC</td><td>xyz:STRC</td><td>156</td><td>12.7</td><td>6.0</td><td>0.31</td><td>10270</td><td>0.359</td></tr>
+<tr><td>TSLA</td><td>xyz:TSLA</td><td>112</td><td>8.2</td><td>6.0</td><td>0.16</td><td>27119</td><td>0.019</td></tr>
+<tr><td>TSM</td><td>xyz:TSM</td><td>168</td><td>13.8</td><td>6.0</td><td>1.59</td><td>9435</td><td>0.147</td></tr>
+<tr><td>UNITREE</td><td>xyz:UNITREE</td><td>220</td><td>10.9</td><td>6.0</td><td>3.32</td><td>2661</td><td>0.162</td></tr>
+<tr><td>ZHIPU</td><td>xyz:ZHIPU</td><td>205</td><td>30.7</td><td>6.0</td><td>2.14</td><td>1792</td><td>0.066</td></tr>
 </tbody></table>
 <h3>会话 rth top10（p95）</h3>
 <table><thead><tr><th>pair</th><th>n</th><th>mean</th><th>p95</th><th>sd</th></tr></thead><tbody>
@@ -21302,16 +21302,16 @@ k = 1 + 1/√ESS,  ESS = n(1−ρ)/(1+ρ)
 </tbody></table>
 <h3>会话 pre top10（p95）</h3>
 <table><thead><tr><th>pair</th><th>n</th><th>mean</th><th>p95</th><th>sd</th></tr></thead><tbody>
-<tr><td>para:ANTH</td><td>193</td><td>75</td><td>+150211.2</td><td>165021.7</td><td>10249.2</td></tr>
-<tr><td>xyz:ANT</td><td>193</td><td>78</td><td>+149742.2</td><td>163974.8</td><td>10026.9</td></tr>
-<tr><td>xyz:QNT</td><td>190</td><td>132</td><td>+44253.8</td><td>52341.9</td><td>5823.0</td></tr>
-<tr><td>io:OAI</td><td>192</td><td>132</td><td>+343.0</td><td>470.5</td><td>76.3</td></tr>
-<tr><td>io:ANTH</td><td>193</td><td>132</td><td>-38.2</td><td>259.5</td><td>375.2</td></tr>
-<tr><td>xyz:IREN</td><td>7829</td><td>33</td><td>+57.3</td><td>250.0</td><td>149.4</td></tr>
-<tr><td>xyz:SHEIN</td><td>230</td><td>132</td><td>+17.8</td><td>201.0</td><td>79.0</td></tr>
-<tr><td>xyz:CXMT</td><td>217</td><td>132</td><td>+2.0</td><td>124.0</td><td>75.9</td></tr>
-<tr><td>xyz:KORU</td><td>226</td><td>36</td><td>-7.6</td><td>120.6</td><td>85.2</td></tr>
-<tr><td>xyz:RKLB</td><td>186</td><td>132</td><td>+14.8</td><td>111.5</td><td>54.2</td></tr>
+<tr><td>para:ANTH</td><td>193</td><td>75</td><td>+150191.7</td><td>165021.7</td><td>10217.8</td></tr>
+<tr><td>xyz:ANT</td><td>193</td><td>78</td><td>+149735.8</td><td>163940.9</td><td>10017.9</td></tr>
+<tr><td>xyz:QNT</td><td>190</td><td>132</td><td>+44256.5</td><td>52341.9</td><td>5817.3</td></tr>
+<tr><td>io:OAI</td><td>192</td><td>132</td><td>+342.7</td><td>470.5</td><td>76.2</td></tr>
+<tr><td>io:ANTH</td><td>193</td><td>132</td><td>-38.3</td><td>259.5</td><td>375.2</td></tr>
+<tr><td>xyz:IREN</td><td>7829</td><td>33</td><td>+56.0</td><td>250.0</td><td>149.2</td></tr>
+<tr><td>xyz:SHEIN</td><td>230</td><td>132</td><td>+18.0</td><td>201.0</td><td>79.0</td></tr>
+<tr><td>xyz:CXMT</td><td>217</td><td>132</td><td>+2.3</td><td>124.0</td><td>75.6</td></tr>
+<tr><td>xyz:KORU</td><td>226</td><td>36</td><td>-5.1</td><td>120.6</td><td>83.7</td></tr>
+<tr><td>xyz:RKLB</td><td>186</td><td>132</td><td>+15.1</td><td>111.5</td><td>54.0</td></tr>
 </tbody></table>
 <h3>会话 post top10（p95）</h3>
 <table><thead><tr><th>pair</th><th>n</th><th>mean</th><th>p95</th><th>sd</th></tr></thead><tbody>
@@ -21340,117 +21340,117 @@ k = 1 + 1/√ESS,  ESS = n(1−ρ)/(1+ρ)
 <tr><td>xyz:SHEIN</td><td>230</td><td>369</td><td>+6.6</td><td>113.6</td><td>69.4</td></tr>
 </tbody></table><details><summary>原文（逐字，raw）</summary><div><pre><code># 三场所价差矩阵（2026-11-12 实测）
 
-生成：2026-11-12T14:41:54.577405+00:00；HL / Lighter / OKX，30 天 1h，会话分层。
+生成：2026-11-12T14:50:55.449517+00:00；HL / Lighter / OKX，30 天 1h，会话分层。
 
 | # | pair | 30d mean | p95 | b* | 其中费 | k·b* | 覆盖 | cap($) | 会话分裂 | CV | 可交易 |
 |---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|:--:|
-| 1 | io:ANTH|193 | -15.3 | 266.6 | 9.7 | 6.0 | 15.3 | 16.44 | 4176 | 0.031 | 0.03184 | ❌ |
-| 2 | io:OAI|192 | +356.4 | 472.0 | 15.5 | 6.0 | 19.6 | 23.05 | 667 | 0.27 | 0.00763 | ❌ |
-| 3 | xyz:KORU|226 | +0.6 | 150.2 | 41.1 | 6.0 | 44.7 | 2.36 | 3999 | 0.115 | 0.01071 | ❌ |
-| 4 | xyz:UNITREE|220 | +9.5 | 51.0 | 12.6 | 6.0 | 13.7 | 2.72 | 3588 | 0.162 | 0.00346 | ✅ |
-| 5 | xyz:MRVL|174 | +3.6 | 32.4 | 12.2 | 6.0 | 12.7 | 1.54 | 17514 | 0.442 | 0.00206 | ✅ |
-| 6 | xyz:EWY|166 | +4.1 | 32.2 | 14.6 | 6.0 | 15.2 | 1.12 | 4762 | 0.088 | 0.00158 | ✅ |
-| 7 | xyz:RKLB|186 | +5.0 | 90.6 | 13.9 | 6.0 | 14.6 | 5.20 | 820 | 0.005 | 0.00517 | ❌ |
-| 8 | xyz:CBRS|175 | +6.8 | 29.0 | 15.8 | 6.0 | 16.4 | 0.77 | 4493 | 0.015 | 0.00150 | ✅ |
-| 9 | xyz:SOXL|197 | +7.0 | 25.4 | 14.5 | 6.0 | 15.1 | 0.69 | 35610 | 0.107 | 0.00116 | ✅ |
-| 10 | xyz:IBM|188 | +3.1 | 19.1 | 12.4 | 6.0 | 13.0 | 0.47 | 18362 | 0.017 | 0.00117 | ✅ |
-| 11 | xyz:KIOXIA|225 | -6.5 | 287.2 | 27.0 | 6.0 | 29.9 | 8.60 | 242 | 0.17 | 0.01491 | ❌ |
-| 12 | xyz:MSFT|115 | +6.4 | 12.4 | 8.8 | 6.0 | 9.3 | 0.34 | 8422 | 0.12 | 0.00038 | ✅ |
-| 13 | io:EWY|166 | +0.7 | 29.0 | 19.6 | 6.0 | 20.4 | 0.42 | 4155 | 0.191 | 0.00164 | ✅ |
-| 14 | xyz:COIN|109 | +2.6 | 12.8 | 9.1 | 6.0 | 9.5 | 0.34 | 11514 | 0.158 | 0.00063 | ✅ |
-| 15 | xyz:STRC|156 | +0.2 | 17.8 | 13.0 | 6.0 | 13.9 | 0.28 | 7532 | 0.359 | 0.00105 | ✅ |
-| 16 | xyz:CXMT|217 | -5.3 | 100.1 | 39.7 | 6.0 | 42.5 | 1.35 | 794 | 0.146 | 0.00764 | ❌ |
-| 17 | xyz:PLTR|111 | +2.8 | 13.2 | 10.4 | 6.0 | 11.0 | 0.20 | 4738 | 0.098 | 0.00070 | ✅ |
-| 18 | xyz:ZHIPU|205 | -2.2 | 101.6 | 35.3 | 6.0 | 37.2 | 1.73 | 429 | 0.066 | 0.00694 | ❌ |
-| 19 | xyz:CRWV|167 | +3.9 | 49.2 | 25.6 | 6.0 | 26.8 | 0.84 | 899 | 0.143 | 0.00306 | ❌ |
-| 20 | xyz:DELL|187 | +7.9 | 66.9 | 25.2 | 6.0 | 26.4 | 1.53 | 459 | 0.065 | 0.00357 | ❌ |
-| 21 | xyz:SNDK|139 | +5.0 | 9.2 | 7.6 | 6.0 | 8.0 | 0.15 | 15677 | 0.326 | 0.00027 | ✅ |
-| 22 | xyz:BABA|177 | +13.1 | 33.7 | 14.1 | 6.0 | 14.8 | 1.27 | 510 | 0.221 | 0.00173 | ❌ |
-| 23 | xyz:TSM|168 | +5.7 | 37.1 | 15.4 | 6.0 | 16.0 | 1.32 | 421 | 0.147 | 0.00198 | ❌ |
-| 24 | xyz:TSLA|112 | +4.5 | 10.5 | 8.8 | 6.0 | 9.7 | 0.08 | 19734 | 0.019 | 0.00042 | ✅ |
-| 25 | xyz:HOOD|108 | +3.1 | 15.2 | 13.5 | 6.0 | 14.1 | 0.08 | 5411 | 0.154 | 0.00085 | ✅ |
-| 26 | xyz:ORCL|165 | +7.2 | 35.0 | 15.4 | 6.0 | 16.0 | 1.19 | 286 | 0.029 | 0.00207 | ❌ |
-| 27 | xyz:MSTR|122 | +1.6 | 14.3 | 12.8 | 6.0 | 13.4 | 0.07 | 8306 | 0.19 | 0.00086 | ✅ |
-| 28 | xyz:NVDA|110 | +5.5 | 10.5 | 9.0 | 6.0 | 9.8 | 0.06 | 39461 | 0.149 | 0.00031 | ✅ |
-| 29 | para:UNITREE|220 | +8.0 | 65.0 | 17.6 | 6.0 | 19.2 | 2.39 | 112 | 0.135 | 0.00420 | ❌ |
-| 30 | xyz:CRCL|121 | +4.7 | 12.3 | 10.9 | 6.0 | 11.4 | 0.08 | 2752 | 0.185 | 0.00043 | ✅ |
-| 31 | xyz:INTC|137 | +4.5 | 12.2 | 11.4 | 6.0 | 11.8 | 0.03 | 12194 | 0.172 | 0.00054 | ✅ |
-| 32 | xyz:MRNA|228 | +6.4 | 33.6 | 23.4 | 6.0 | 24.4 | 0.38 | 456 | 0.277 | 0.00183 | ❌ |
-| 33 | xyz:BB|211 | +16.6 | 66.7 | 48.9 | 6.0 | 52.3 | 0.28 | 553 | 0.272 | 0.00576 | ❌ |
-| 34 | xyz:NBIS|189 | +5.4 | 18.3 | 11.5 | 6.0 | 12.0 | 0.52 | 202 | 0.126 | 0.00087 | ❌ |
-| 35 | xyz:SHEIN|230 | +12.6 | 158.9 | 58.1 | 6.0 | 62.7 | 1.53 | 41 | 0.171 | 0.00737 | ❌ |
-| 36 | xyz:LITE|178 | +12.2 | 33.7 | 34.6 | 6.0 | 36.4 | -0.07 | 33 | 0.121 | 0.00174 | ❌ |
-| 37 | io:PRL|4097 | -43.3 | 42.8 | 104.1 | 6.0 | 116.7 | -0.63 | 2 | 0.215 | 0.00787 | ❌ |
-| 38 | io:CRCL|121 | +3.1 | 25.2 | 9.2 | 6.0 | 10.2 | 1.48 | 1 | 0.457 | 0.00198 | ❌ |
-| 39 | xyz:IREN|7829 | +46.8 | 205.5 | 69.0 | 6.0 | 75.7 | 1.71 | 0 | 0.304 | 0.00984 | ❌ |
-| 40 | xyz:DRAM|195 | +4.8 | 13.5 | 13.2 | 6.0 | 13.7 | -0.02 | 1470 | 0.165 | 0.00056 | ❌ |
-| 41 | io:AAPL|113 | -2.6 | 16.7 | 16.4 | 6.0 | 17.6 | -0.06 | 772 | 0.247 | 0.00231 | ❌ |
-| 42 | xyz:AMZN|114 | +3.6 | 9.5 | 9.0 | 6.0 | 9.8 | -0.03 | 6502 | 0.215 | 0.00040 | ❌ |
-| 43 | io:NBIS|189 | +1.5 | 16.6 | 23.3 | 6.0 | 24.4 | -0.32 | 692 | 0.359 | 0.00098 | ❌ |
-| 44 | io:SNDK|139 | +3.1 | 9.7 | 9.7 | 6.0 | 10.4 | -0.07 | 4190 | 0.572 | 0.00043 | ❌ |
-| 45 | xyz:SPCX|194 | +3.9 | 9.6 | 9.9 | 6.0 | 10.6 | -0.09 | 11988 | 0.323 | 0.00039 | ❌ |
-| 46 | xyz:GOOGL|116 | +4.8 | 10.3 | 11.0 | 6.0 | 11.9 | -0.13 | 29420 | 0.264 | 0.00033 | ❌ |
-| 47 | xyz:AMD|138 | +4.2 | 12.0 | 13.7 | 6.0 | 14.4 | -0.16 | 11053 | 0.094 | 0.00053 | ❌ |
-| 48 | xyz:MU|164 | +3.9 | 9.7 | 11.3 | 6.0 | 11.9 | -0.18 | 17738 | 0.065 | 0.00038 | ❌ |
-| 49 | xyz:AAPL|113 | +1.7 | 7.9 | 8.9 | 6.0 | 9.8 | -0.19 | 20350 | 0.084 | 0.00034 | ❌ |
-| 50 | xyz:META|117 | +2.3 | 7.5 | 8.7 | 6.0 | 9.3 | -0.20 | 32672 | 0.11 | 0.00036 | ❌ |
-| 51 | io:DRAM|195 | +3.8 | 13.7 | 21.3 | 6.0 | 22.2 | -0.38 | 2674 | 0.055 | 0.00064 | ❌ |
-| 52 | io:NVDA|110 | +3.0 | 13.2 | 19.0 | 6.0 | 20.4 | -0.35 | 6597 | 0.471 | 0.00091 | ❌ |
-| 53 | xyz:SKHY|216 | -2.0 | 9.4 | 15.8 | 6.0 | 16.4 | -0.43 | 7761 | 0.005 | 0.00078 | ❌ |
-| 54 | xyz:BRENTOIL|159 | -2.0 | 4.7 | 10.8 | 6.0 | 11.4 | -0.59 | 31646 | 0.234 | 0.00040 | ❌ |
-| 55 | xyz:NATGAS|158 | +6.6 | 24.8 | 55.4 | 6.0 | 57.9 | -0.57 | 9331 | 0.019 | 0.00118 | ❌ |
+| 1 | xyz:RKLB|186 | +5.0 | 90.6 | 16.7 | 6.0 | 17.5 | 4.18 | 16612 | 0.005 | 0.00517 | ❌ |
+| 2 | io:ANTH|193 | -15.3 | 266.6 | 12.3 | 6.0 | 19.4 | 12.72 | 1181 | 0.031 | 0.03184 | ❌ |
+| 3 | xyz:UNITREE|220 | +9.6 | 51.0 | 10.9 | 6.0 | 11.8 | 3.32 | 2661 | 0.162 | 0.00346 | ❌ |
+| 4 | xyz:EWY|166 | +4.1 | 32.2 | 12.3 | 6.0 | 12.8 | 1.52 | 16670 | 0.088 | 0.00158 | ✅ |
+| 5 | xyz:TSM|168 | +5.7 | 37.1 | 13.8 | 6.0 | 14.3 | 1.59 | 9435 | 0.147 | 0.00198 | ✅ |
+| 6 | xyz:KIOXIA|225 | -6.4 | 287.2 | 29.2 | 6.0 | 32.3 | 7.89 | 1000 | 0.17 | 0.01489 | ❌ |
+| 7 | io:OAI|192 | +356.4 | 472.0 | 22.6 | 6.0 | 28.6 | 15.53 | 527 | 0.27 | 0.00763 | ❌ |
+| 8 | xyz:KORU|226 | +1.1 | 150.2 | 51.0 | 6.0 | 55.5 | 1.71 | 4118 | 0.116 | 0.01068 | ❌ |
+| 9 | xyz:BABA|177 | +13.1 | 33.7 | 14.8 | 6.0 | 15.6 | 1.15 | 5183 | 0.221 | 0.00173 | ✅ |
+| 10 | xyz:MRVL|174 | +3.6 | 32.4 | 13.2 | 6.0 | 13.8 | 1.35 | 23211 | 0.442 | 0.00206 | ✅ |
+| 11 | xyz:ORCL|165 | +7.3 | 36.5 | 18.7 | 6.0 | 19.5 | 0.87 | 6213 | 0.029 | 0.00208 | ✅ |
+| 12 | xyz:CBRS|175 | +6.7 | 28.8 | 15.6 | 6.0 | 16.2 | 0.78 | 5340 | 0.016 | 0.00148 | ✅ |
+| 13 | xyz:ZHIPU|205 | -2.3 | 101.6 | 30.7 | 6.0 | 32.4 | 2.14 | 1792 | 0.066 | 0.00694 | ❌ |
+| 14 | para:UNITREE|220 | +8.0 | 65.0 | 20.4 | 6.0 | 22.3 | 1.91 | 1739 | 0.135 | 0.00421 | ❌ |
+| 15 | xyz:IBM|188 | +3.0 | 19.1 | 11.7 | 6.0 | 12.2 | 0.56 | 9230 | 0.017 | 0.00118 | ✅ |
+| 16 | xyz:SOXL|197 | +7.0 | 25.4 | 15.8 | 6.0 | 16.4 | 0.55 | 13137 | 0.107 | 0.00116 | ✅ |
+| 17 | xyz:MRNA|228 | +6.4 | 33.6 | 15.4 | 6.0 | 16.1 | 1.08 | 1468 | 0.279 | 0.00182 | ✅ |
+| 18 | xyz:CRWV|167 | +3.9 | 49.2 | 23.7 | 6.0 | 24.8 | 0.99 | 1438 | 0.143 | 0.00306 | ✅ |
+| 19 | io:CRCL|121 | +3.0 | 25.2 | 16.4 | 6.0 | 18.0 | 0.40 | 4233 | 0.457 | 0.00198 | ✅ |
+| 20 | xyz:STRC|156 | +0.2 | 17.8 | 12.7 | 6.0 | 13.6 | 0.31 | 10270 | 0.359 | 0.00105 | ❌ |
+| 21 | xyz:CXMT|217 | -5.3 | 100.1 | 55.2 | 6.0 | 59.1 | 0.69 | 1786 | 0.146 | 0.00764 | ❌ |
+| 22 | xyz:MSFT|115 | +6.4 | 12.4 | 9.6 | 6.0 | 10.1 | 0.22 | 11669 | 0.119 | 0.00038 | ✅ |
+| 23 | xyz:NBIS|189 | +5.4 | 18.3 | 13.2 | 6.0 | 13.8 | 0.33 | 2829 | 0.126 | 0.00087 | ✅ |
+| 24 | xyz:TSLA|112 | +4.5 | 10.5 | 8.2 | 6.0 | 9.1 | 0.16 | 27119 | 0.019 | 0.00042 | ✅ |
+| 25 | io:EWY|166 | +0.7 | 29.0 | 22.1 | 6.0 | 23.0 | 0.26 | 3483 | 0.191 | 0.00164 | ✅ |
+| 26 | xyz:DELL|187 | +8.0 | 67.3 | 20.3 | 6.0 | 21.3 | 2.15 | 237 | 0.065 | 0.00357 | ❌ |
+| 27 | xyz:COIN|109 | +2.7 | 12.8 | 11.3 | 6.0 | 11.9 | 0.07 | 6869 | 0.158 | 0.00063 | ✅ |
+| 28 | xyz:MU|164 | +3.8 | 9.7 | 8.7 | 6.0 | 9.2 | 0.05 | 13345 | 0.065 | 0.00038 | ✅ |
+| 29 | xyz:HOOD|108 | +3.1 | 15.2 | 14.1 | 6.0 | 14.6 | 0.04 | 11858 | 0.154 | 0.00085 | ✅ |
+| 30 | xyz:PLTR|111 | +2.8 | 13.2 | 12.1 | 6.0 | 12.8 | 0.03 | 5404 | 0.098 | 0.00070 | ✅ |
+| 31 | xyz:SHEIN|230 | +12.7 | 158.9 | 67.8 | 6.0 | 73.1 | 1.17 | 52 | 0.171 | 0.00737 | ❌ |
+| 32 | xyz:BB|211 | +16.5 | 66.7 | 55.4 | 6.0 | 59.1 | 0.13 | 80 | 0.271 | 0.00576 | ❌ |
+| 33 | xyz:LITE|178 | +12.3 | 33.7 | 31.7 | 6.0 | 33.3 | 0.01 | 123 | 0.122 | 0.00173 | ❌ |
+| 34 | xyz:IREN|7829 | +46.6 | 205.5 | 72.6 | 6.0 | 79.7 | 1.58 | 0 | 0.304 | 0.00984 | ❌ |
+| 35 | io:PRL|4097 | -43.2 | 45.0 | 196.6 | 6.0 | 220.2 | -0.80 | 5 | 0.215 | 0.00788 | ❌ |
+| 36 | io:NBIS|189 | +1.5 | 16.2 | 30.5 | 6.0 | 31.9 | -0.49 | 91 | 0.363 | 0.00097 | ❌ |
+| 37 | xyz:MSTR|122 | +1.6 | 14.3 | 13.8 | 6.0 | 14.5 | -0.01 | 5095 | 0.19 | 0.00086 | ❌ |
+| 38 | io:AAPL|113 | -2.6 | 16.7 | 15.8 | 6.0 | 17.0 | -0.02 | 12244 | 0.247 | 0.00231 | ❌ |
+| 39 | xyz:NATGAS|158 | +6.6 | 24.8 | 90.9 | 6.0 | 94.9 | -0.74 | 107 | 0.019 | 0.00118 | ❌ |
+| 40 | xyz:SNDK|139 | +5.0 | 9.2 | 16.7 | 6.0 | 17.6 | -0.47 | 442 | 0.314 | 0.00028 | ❌ |
+| 41 | xyz:DRAM|195 | +4.8 | 13.5 | 13.8 | 6.0 | 14.4 | -0.06 | 17365 | 0.165 | 0.00056 | ❌ |
+| 42 | xyz:CRCL|121 | +4.7 | 12.5 | 13.0 | 6.0 | 13.6 | -0.08 | 17063 | 0.184 | 0.00043 | ❌ |
+| 43 | xyz:GOOGL|116 | +4.8 | 10.3 | 10.6 | 6.0 | 11.4 | -0.10 | 33188 | 0.266 | 0.00032 | ❌ |
+| 44 | xyz:AMZN|114 | +3.6 | 9.5 | 9.7 | 6.0 | 10.5 | -0.09 | 13177 | 0.214 | 0.00040 | ❌ |
+| 45 | xyz:NVDA|110 | +5.5 | 10.5 | 10.7 | 6.0 | 11.7 | -0.11 | 41885 | 0.149 | 0.00031 | ❌ |
+| 46 | xyz:AMD|138 | +4.2 | 12.0 | 13.0 | 6.0 | 13.6 | -0.11 | 12425 | 0.094 | 0.00053 | ❌ |
+| 47 | xyz:SPCX|194 | +3.9 | 9.6 | 10.7 | 6.0 | 11.4 | -0.16 | 34968 | 0.323 | 0.00039 | ❌ |
+| 48 | xyz:INTC|137 | +4.6 | 12.3 | 15.5 | 6.0 | 16.1 | -0.24 | 3069 | 0.18 | 0.00052 | ❌ |
+| 49 | io:SNDK|139 | +3.0 | 9.7 | 13.2 | 6.0 | 14.3 | -0.32 | 17124 | 0.593 | 0.00042 | ❌ |
+| 50 | xyz:AAPL|113 | +1.7 | 7.9 | 9.3 | 6.0 | 10.3 | -0.23 | 31329 | 0.085 | 0.00034 | ❌ |
+| 51 | xyz:SKHY|216 | -1.9 | 9.4 | 11.8 | 6.0 | 12.3 | -0.23 | 8868 | 0.005 | 0.00080 | ❌ |
+| 52 | io:NVDA|110 | +2.9 | 13.1 | 18.6 | 6.0 | 20.0 | -0.34 | 13087 | 0.47 | 0.00092 | ❌ |
+| 53 | xyz:META|117 | +2.3 | 7.5 | 10.0 | 6.0 | 10.9 | -0.31 | 32667 | 0.11 | 0.00036 | ❌ |
+| 54 | io:DRAM|195 | +3.8 | 13.7 | 21.0 | 6.0 | 21.9 | -0.38 | 15428 | 0.056 | 0.00064 | ❌ |
+| 55 | xyz:BRENTOIL|159 | -2.0 | 4.7 | 12.1 | 6.0 | 12.9 | -0.64 | 17075 | 0.234 | 0.00040 | ❌ |
 
 ## 每个标的的最佳腿组合（费率优先 → 再看覆盖倍数）
 
 | 标的 | 最佳对 | b* | 其中费 | 覆盖 | cap($) | 会话分裂 |
 |---|---|---:|---:|---:|---:|---:|
-| AAPL | io:AAPL|113 | 16.4 | 6.0 | -0.06 | 772 | 0.247 |
-| AMD | xyz:AMD|138 | 13.7 | 6.0 | -0.16 | 11053 | 0.094 |
-| AMZN | xyz:AMZN|114 | 9.0 | 6.0 | -0.03 | 6502 | 0.215 |
-| ANTHROPIC | io:ANTH|193 | 9.7 | 6.0 | 16.44 | 4176 | 0.031 |
-| BABA | xyz:BABA|177 | 14.1 | 6.0 | 1.27 | 510 | 0.221 |
-| BB | xyz:BB|211 | 48.9 | 6.0 | 0.28 | 553 | 0.272 |
-| BRENTOIL | xyz:BRENTOIL|159 | 10.8 | 6.0 | -0.59 | 31646 | 0.234 |
-| CBRS | xyz:CBRS|175 | 15.8 | 6.0 | 0.77 | 4493 | 0.015 |
-| COIN | xyz:COIN|109 | 9.1 | 6.0 | 0.34 | 11514 | 0.158 |
-| CRCL | io:CRCL|121 | 9.2 | 6.0 | 1.48 | 1 | 0.457 |
-| CRWV | xyz:CRWV|167 | 25.6 | 6.0 | 0.84 | 899 | 0.143 |
-| CXMT | xyz:CXMT|217 | 39.7 | 6.0 | 1.35 | 794 | 0.146 |
-| DELL | xyz:DELL|187 | 25.2 | 6.0 | 1.53 | 459 | 0.065 |
-| DRAM | xyz:DRAM|195 | 13.2 | 6.0 | -0.02 | 1470 | 0.165 |
-| EWY | xyz:EWY|166 | 14.6 | 6.0 | 1.12 | 4762 | 0.088 |
-| GOOGL | xyz:GOOGL|116 | 11.0 | 6.0 | -0.13 | 29420 | 0.264 |
-| HOOD | xyz:HOOD|108 | 13.5 | 6.0 | 0.08 | 5411 | 0.154 |
-| IBM | xyz:IBM|188 | 12.4 | 6.0 | 0.47 | 18362 | 0.017 |
-| INTC | xyz:INTC|137 | 11.4 | 6.0 | 0.03 | 12194 | 0.172 |
-| IREN | xyz:IREN|7829 | 69.0 | 6.0 | 1.71 | 0 | 0.304 |
-| KIOXIA | xyz:KIOXIA|225 | 27.0 | 6.0 | 8.60 | 242 | 0.17 |
-| KORU | xyz:KORU|226 | 41.1 | 6.0 | 2.36 | 3999 | 0.115 |
-| LITE | xyz:LITE|178 | 34.6 | 6.0 | -0.07 | 33 | 0.121 |
-| META | xyz:META|117 | 8.7 | 6.0 | -0.20 | 32672 | 0.11 |
-| MRNA | xyz:MRNA|228 | 23.4 | 6.0 | 0.38 | 456 | 0.277 |
-| MRVL | xyz:MRVL|174 | 12.2 | 6.0 | 1.54 | 17514 | 0.442 |
-| MSFT | xyz:MSFT|115 | 8.8 | 6.0 | 0.34 | 8422 | 0.12 |
-| MSTR | xyz:MSTR|122 | 12.8 | 6.0 | 0.07 | 8306 | 0.19 |
-| MU | xyz:MU|164 | 11.3 | 6.0 | -0.18 | 17738 | 0.065 |
-| NATGAS | xyz:NATGAS|158 | 55.4 | 6.0 | -0.57 | 9331 | 0.019 |
-| NBIS | xyz:NBIS|189 | 11.5 | 6.0 | 0.52 | 202 | 0.126 |
-| NVDA | xyz:NVDA|110 | 9.0 | 6.0 | 0.06 | 39461 | 0.149 |
-| OPENAI | io:OAI|192 | 15.5 | 6.0 | 23.05 | 667 | 0.27 |
-| ORCL | xyz:ORCL|165 | 15.4 | 6.0 | 1.19 | 286 | 0.029 |
-| PLTR | xyz:PLTR|111 | 10.4 | 6.0 | 0.20 | 4738 | 0.098 |
-| PRL | io:PRL|4097 | 104.1 | 6.0 | -0.63 | 2 | 0.215 |
-| RKLB | xyz:RKLB|186 | 13.9 | 6.0 | 5.20 | 820 | 0.005 |
-| SHEIN | xyz:SHEIN|230 | 58.1 | 6.0 | 1.53 | 41 | 0.171 |
-| SKHYNIX | xyz:SKHY|216 | 15.8 | 6.0 | -0.43 | 7761 | 0.005 |
-| SNDK | xyz:SNDK|139 | 7.6 | 6.0 | 0.15 | 15677 | 0.326 |
-| SOXL | xyz:SOXL|197 | 14.5 | 6.0 | 0.69 | 35610 | 0.107 |
-| SPCX | xyz:SPCX|194 | 9.9 | 6.0 | -0.09 | 11988 | 0.323 |
-| STRC | xyz:STRC|156 | 13.0 | 6.0 | 0.28 | 7532 | 0.359 |
-| TSLA | xyz:TSLA|112 | 8.8 | 6.0 | 0.08 | 19734 | 0.019 |
-| TSM | xyz:TSM|168 | 15.4 | 6.0 | 1.32 | 421 | 0.147 |
-| UNITREE | xyz:UNITREE|220 | 12.6 | 6.0 | 2.72 | 3588 | 0.162 |
-| ZHIPU | xyz:ZHIPU|205 | 35.3 | 6.0 | 1.73 | 429 | 0.066 |
+| AAPL | io:AAPL|113 | 15.8 | 6.0 | -0.02 | 12244 | 0.247 |
+| AMD | xyz:AMD|138 | 13.0 | 6.0 | -0.11 | 12425 | 0.094 |
+| AMZN | xyz:AMZN|114 | 9.7 | 6.0 | -0.09 | 13177 | 0.214 |
+| ANTHROPIC | io:ANTH|193 | 12.3 | 6.0 | 12.72 | 1181 | 0.031 |
+| BABA | xyz:BABA|177 | 14.8 | 6.0 | 1.15 | 5183 | 0.221 |
+| BB | xyz:BB|211 | 55.4 | 6.0 | 0.13 | 80 | 0.271 |
+| BRENTOIL | xyz:BRENTOIL|159 | 12.1 | 6.0 | -0.64 | 17075 | 0.234 |
+| CBRS | xyz:CBRS|175 | 15.6 | 6.0 | 0.78 | 5340 | 0.016 |
+| COIN | xyz:COIN|109 | 11.3 | 6.0 | 0.07 | 6869 | 0.158 |
+| CRCL | io:CRCL|121 | 16.4 | 6.0 | 0.40 | 4233 | 0.457 |
+| CRWV | xyz:CRWV|167 | 23.7 | 6.0 | 0.99 | 1438 | 0.143 |
+| CXMT | xyz:CXMT|217 | 55.2 | 6.0 | 0.69 | 1786 | 0.146 |
+| DELL | xyz:DELL|187 | 20.3 | 6.0 | 2.15 | 237 | 0.065 |
+| DRAM | xyz:DRAM|195 | 13.8 | 6.0 | -0.06 | 17365 | 0.165 |
+| EWY | xyz:EWY|166 | 12.3 | 6.0 | 1.52 | 16670 | 0.088 |
+| GOOGL | xyz:GOOGL|116 | 10.6 | 6.0 | -0.10 | 33188 | 0.266 |
+| HOOD | xyz:HOOD|108 | 14.1 | 6.0 | 0.04 | 11858 | 0.154 |
+| IBM | xyz:IBM|188 | 11.7 | 6.0 | 0.56 | 9230 | 0.017 |
+| INTC | xyz:INTC|137 | 15.5 | 6.0 | -0.24 | 3069 | 0.18 |
+| IREN | xyz:IREN|7829 | 72.6 | 6.0 | 1.58 | 0 | 0.304 |
+| KIOXIA | xyz:KIOXIA|225 | 29.2 | 6.0 | 7.89 | 1000 | 0.17 |
+| KORU | xyz:KORU|226 | 51.0 | 6.0 | 1.71 | 4118 | 0.116 |
+| LITE | xyz:LITE|178 | 31.7 | 6.0 | 0.01 | 123 | 0.122 |
+| META | xyz:META|117 | 10.0 | 6.0 | -0.31 | 32667 | 0.11 |
+| MRNA | xyz:MRNA|228 | 15.4 | 6.0 | 1.08 | 1468 | 0.279 |
+| MRVL | xyz:MRVL|174 | 13.2 | 6.0 | 1.35 | 23211 | 0.442 |
+| MSFT | xyz:MSFT|115 | 9.6 | 6.0 | 0.22 | 11669 | 0.119 |
+| MSTR | xyz:MSTR|122 | 13.8 | 6.0 | -0.01 | 5095 | 0.19 |
+| MU | xyz:MU|164 | 8.7 | 6.0 | 0.05 | 13345 | 0.065 |
+| NATGAS | xyz:NATGAS|158 | 90.9 | 6.0 | -0.74 | 107 | 0.019 |
+| NBIS | xyz:NBIS|189 | 13.2 | 6.0 | 0.33 | 2829 | 0.126 |
+| NVDA | xyz:NVDA|110 | 10.7 | 6.0 | -0.11 | 41885 | 0.149 |
+| OPENAI | io:OAI|192 | 22.6 | 6.0 | 15.53 | 527 | 0.27 |
+| ORCL | xyz:ORCL|165 | 18.7 | 6.0 | 0.87 | 6213 | 0.029 |
+| PLTR | xyz:PLTR|111 | 12.1 | 6.0 | 0.03 | 5404 | 0.098 |
+| PRL | io:PRL|4097 | 196.6 | 6.0 | -0.80 | 5 | 0.215 |
+| RKLB | xyz:RKLB|186 | 16.7 | 6.0 | 4.18 | 16612 | 0.005 |
+| SHEIN | xyz:SHEIN|230 | 67.8 | 6.0 | 1.17 | 52 | 0.171 |
+| SKHYNIX | xyz:SKHY|216 | 11.8 | 6.0 | -0.23 | 8868 | 0.005 |
+| SNDK | io:SNDK|139 | 13.2 | 6.0 | -0.32 | 17124 | 0.593 |
+| SOXL | xyz:SOXL|197 | 15.8 | 6.0 | 0.55 | 13137 | 0.107 |
+| SPCX | xyz:SPCX|194 | 10.7 | 6.0 | -0.16 | 34968 | 0.323 |
+| STRC | xyz:STRC|156 | 12.7 | 6.0 | 0.31 | 10270 | 0.359 |
+| TSLA | xyz:TSLA|112 | 8.2 | 6.0 | 0.16 | 27119 | 0.019 |
+| TSM | xyz:TSM|168 | 13.8 | 6.0 | 1.59 | 9435 | 0.147 |
+| UNITREE | xyz:UNITREE|220 | 10.9 | 6.0 | 3.32 | 2661 | 0.162 |
+| ZHIPU | xyz:ZHIPU|205 | 30.7 | 6.0 | 2.14 | 1792 | 0.066 |
 
 ### 会话 rth top10（p95）
 
@@ -21471,16 +21471,16 @@ k = 1 + 1/√ESS,  ESS = n(1−ρ)/(1+ρ)
 
 | pair | n | mean | p95 | sd |
 |---|---:|---:|---:|---:|
-| para:ANTH|193 | 75 | +150211.2 | 165021.7 | 10249.2 |
-| xyz:ANT|193 | 78 | +149742.2 | 163974.8 | 10026.9 |
-| xyz:QNT|190 | 132 | +44253.8 | 52341.9 | 5823.0 |
-| io:OAI|192 | 132 | +343.0 | 470.5 | 76.3 |
-| io:ANTH|193 | 132 | -38.2 | 259.5 | 375.2 |
-| xyz:IREN|7829 | 33 | +57.3 | 250.0 | 149.4 |
-| xyz:SHEIN|230 | 132 | +17.8 | 201.0 | 79.0 |
-| xyz:CXMT|217 | 132 | +2.0 | 124.0 | 75.9 |
-| xyz:KORU|226 | 36 | -7.6 | 120.6 | 85.2 |
-| xyz:RKLB|186 | 132 | +14.8 | 111.5 | 54.2 |
+| para:ANTH|193 | 75 | +150191.7 | 165021.7 | 10217.8 |
+| xyz:ANT|193 | 78 | +149735.8 | 163940.9 | 10017.9 |
+| xyz:QNT|190 | 132 | +44256.5 | 52341.9 | 5817.3 |
+| io:OAI|192 | 132 | +342.7 | 470.5 | 76.2 |
+| io:ANTH|193 | 132 | -38.3 | 259.5 | 375.2 |
+| xyz:IREN|7829 | 33 | +56.0 | 250.0 | 149.2 |
+| xyz:SHEIN|230 | 132 | +18.0 | 201.0 | 79.0 |
+| xyz:CXMT|217 | 132 | +2.3 | 124.0 | 75.6 |
+| xyz:KORU|226 | 36 | -5.1 | 120.6 | 83.7 |
+| xyz:RKLB|186 | 132 | +15.1 | 111.5 | 54.0 |
 
 ### 会话 post top10（p95）
 
