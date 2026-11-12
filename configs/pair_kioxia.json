@@ -1,0 +1,25 @@
+{
+  "dry_run": true,
+  "ratio": "1",
+  "sigma_1m_bps": "15",
+  "max_leg_usd": "500",
+  "state_dir": "state",
+  "book_max_age_ms": 1000,
+  "name": "KIOXIA_xyz_okx",
+  "leg_a": {
+    "instrument_id": "xyz:KIOXIA-USD-PERP.HYPERLIQUID",
+    "venue": "HYPERLIQUID",
+    "direction": "BUY",
+    "max_qty": "0.05"
+  },
+  "leg_b": {
+    "instrument_id": "KIOXIA-USDT-SWAP.OKX",
+    "venue": "OKX",
+    "direction": "SELL",
+    "max_qty": "0.05"
+  },
+  "_notes": [
+    "follower=OKX（Lighter KIOXIA 无盘口）；taker 费 5bps + HL funding 8.59bps/h → carry 主导",
+    "仅作执行系统验证，不放大；名义上限 N_max=$150（OKX 权益 30、lever 10、占用 50%）"
+  ]
+}

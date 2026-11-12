@@ -115,7 +115,7 @@ def q1_ev_formula_audit() -> dict:
     probes["leg_risk"] = pair_cost_bps(m, t, D("500"), leg_risk_bps=D("5")) > base
     probes["recon"] = pair_cost_bps(m, t, D("500"), recon_bps=D("5")) > base
 
-    # (d) 关键缺陷：一轮 = 开仓 + 平仓，但成本只计了「一次 maker + 一次 taker」
+    # (d) 一轮 = 4 次成交：与「完整一轮成本账」对拍（参照 leg_policy 的口径）
     full_round_cost = round_cost_bps(
         leader_maker_bps=D("1.5"), leader_taker_bps=D("4.5"),
         follower_taker_bps=D("0"), follower_maker_bps=D("0"),
@@ -124,16 +124,29 @@ def q1_ev_formula_audit() -> dict:
         carry_leader_bps_h=D("0.05"), carry_follower_bps_h=D("0.0"),
         hold_h=D("0.1"), leg_risk_bps=D("0.3"), recon_bps=D("0.5"))
     frc = full_round_cost["total"]
+    gap = frc - base
     findings.append(
-        "一轮完整成本（开+平，leader=maker / follower=taker）= "
-        f"{frc} bps，而 pair_cost_bps = {base} bps；"
-        f"缺口 {frc - base} bps = 平仓腿的 taker 费 + 平仓腿的半价差/滑点 + 第二腿资金费")
+        f"一轮完整成本账（4 次成交 + 2 tick 滑点代理）= {frc} bps，"
+        f"pair_cost_bps = {base} bps，差 {gap:+.2f} bps/轮"
+        + ("（2026-11-13 已修复：pair_cost_bps 改走 nt_pairs.costs.round_cost_bps；"
+           "残差来自「按规模吃盘口」的滑点 —— LegQuote 不带档位，新实现默认滑点 0）"
+           if abs(gap) < 7.0 else
+           "（旧实现只算 1 maker + 1 taker，缺口 = 平仓腿 taker 费 + 平仓腿半价差/滑点 + 第二腿资金费）"))
 
-    # (e) leg_risk 是常数 0.3，而不是由 σ_1m / t_leg / P_1leg 推出
-    lr_const = pair_cost_bps(m, t, D("500"))
-    lr_hi = pair_cost_bps(m, t, D("500"), leg_risk_bps=leg_risk_bps(D("12.9"), D("30"), D("0.30")))
-    findings.append(f"pair_cost_bps 的腿风险是写死常数 0.3（实测 t=30s/P=0.30 应为 {lr_hi}）："
-                    f"成本被低估 {lr_hi - lr_const} bps/轮")
+    # (e) 腿风险是常数 0.3，还是由 σ_1m / t_leg / P_1leg 推出？
+    import inspect
+    sig = inspect.signature(pair_cost_bps)
+    measured = "t_leg_s" in sig.parameters and "sigma_1m_bps" in sig.parameters
+    if measured:
+        a = pair_cost_bps(m, t, D("500"), t_leg_s=D("2"), sigma_1m_bps=D("12.9"), p_one_leg=D("0.30"))
+        b = pair_cost_bps(m, t, D("500"), t_leg_s=D("30"), sigma_1m_bps=D("12.9"), p_one_leg=D("0.30"))
+        findings.append(f"pair_cost_bps 的腿风险**已按公式实测**（t_leg=2s→{a}，30s→{b}）："
+                        "不再是写死常数 0.3 ✅")
+    else:
+        lr_const = pair_cost_bps(m, t, D("500"))
+        lr_hi = pair_cost_bps(m, t, D("500"), leg_risk_bps=leg_risk_bps(D("12.9"), D("30"), D("0.30")))
+        findings.append(f"pair_cost_bps 的腿风险是写死常数 0.3（实测 t=30s/P=0.30 应为 {lr_hi}）："
+                        f"成本被低估 {lr_hi - lr_const} bps/轮")
 
     # (f) 滑点用「2 tick」代理，不是按规模吃盘口
     findings.append(f"slip_bps 只用 2×tick/price 代理（taker 腿 {taker_cost_bps(t, D('500')) - D('1.5')} bps），"
@@ -203,32 +216,41 @@ def hl_fee_formula(base_maker_bps: float, base_taker_bps: float, deployer_fee_sc
 
 def q2_fee_audit(offline: bool = False) -> dict:
     out: dict[str, Any] = {"offline": offline}
+    os.makedirs(CACHE, exist_ok=True)
+    snap_path = os.path.join(CACHE, "hl_fee_snapshot.json")
 
     # ---- HL：dex 级 deployerFeeScale + growthMode --------------------------------
     hl_assets = ("xyz:SOXL", "xyz:MRVL", "xyz:EWY", "xyz:RKLB", "xyz:BABA", "io:OAI")
     hl_rows = []
-    for name in hl_assets:
-        dex = name.split(":")[0]
-        meta = _try(_http, HL, {"type": "meta", "dex": dex})
-        if "__error__" in meta or "universe" not in meta:
-            hl_rows.append({"asset": name, "error": meta.get("__error__", "bad payload")})
-            continue
-        row = next((u for u in meta["universe"] if u["name"] == name), None)
-        if row is None:
-            hl_rows.append({"asset": name, "error": "not in universe"})
-            continue
-        scale = float(row.get("deployerFeeScale", "nan"))
-        gm = row.get("growthMode") == "enabled"
-        eff = hl_fee_formula(1.5, 4.5, scale, gm)
-        hl_rows.append({
-            "asset": name, "deployer_fee_scale": scale, "growth_mode": gm,
-            "repo_assumed_maker_bps": 1.5, "repo_assumed_taker_bps": 4.5,
-            "effective_maker_bps": round(eff["maker_bps"], 4),
-            "effective_taker_bps": round(eff["taker_bps"], 4),
-            "effective_round_bps": round(eff["all_in_round_bps"], 4),
-            "hip3_scale": eff["hip3_scale"], "deployer_share": eff["deployer_share"],
-        })
-        time.sleep(0.2)
+    if offline and os.path.exists(snap_path):
+        hl_rows = json.load(open(snap_path, encoding="utf-8"))
+    else:
+        for name in hl_assets:
+            dex = name.split(":")[0]
+            meta = _try(_http, HL, {"type": "meta", "dex": dex})
+            if "__error__" in meta or "universe" not in meta:
+                hl_rows.append({"asset": name, "error": meta.get("__error__", "bad payload")})
+                continue
+            row = next((u for u in meta["universe"] if u["name"] == name), None)
+            if row is None:
+                hl_rows.append({"asset": name, "error": "not in universe"})
+                continue
+            scale = float(row.get("deployerFeeScale", "nan"))
+            gm = row.get("growthMode") == "enabled"
+            eff = hl_fee_formula(1.5, 4.5, scale, gm)
+            hl_rows.append({
+                "asset": name, "deployer_fee_scale": scale, "growth_mode": gm,
+                "repo_assumed_maker_bps": 1.5, "repo_assumed_taker_bps": 4.5,
+                "effective_maker_bps": round(eff["maker_bps"], 4),
+                "effective_taker_bps": round(eff["taker_bps"], 4),
+                "effective_round_bps": round(eff["all_in_round_bps"], 4),
+                "hip3_scale": eff["hip3_scale"], "deployer_share": eff["deployer_share"],
+            })
+            time.sleep(0.2)
+        try:
+            json.dump(hl_rows, open(snap_path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        except OSError:
+            pass
     out["hl"] = hl_rows
 
     # ---- Lighter：maker_fee / taker_fee ------------------------------------------
@@ -538,8 +560,12 @@ def _tick_from_levels(levels: list[tuple[float, float]]) -> float:
 
 def live_costs(coin: str, market: int, dex: str = "xyz", offline: bool = False) -> dict:
     """从公开端点取实时盘口/资金费，算「仓库口径 b*」与「完整一轮成本账」。"""
+    os.makedirs(CACHE, exist_ok=True)
+    snap_path = os.path.join(CACHE, f"costs_{coin.replace(':', '_')}.json")
     if offline:
-        return {"error": "offline"}
+        if os.path.exists(snap_path):
+            return json.load(open(snap_path, encoding="utf-8"))
+        return {"error": "offline & no cached costs"}
     try:
         hb = _http(HL, {"type": "l2Book", "coin": coin})
         h_bids = [(float(x["px"]), float(x["sz"])) for x in hb["levels"][0]]
@@ -583,7 +609,7 @@ def live_costs(coin: str, market: int, dex: str = "xyz", offline: bool = False) 
                           hold_h=1.0, leg_risk_bps=0.3, recon_bps=0.5)
     # 仓库 `screen_candidates.py` 的 b* 口径（HL 6.0 + 两腿半价差 + 两腿 2tick + 0.5 carry + 0.3 + 0.5）
     repo_screen = 6.0 + hs_hl / 2 + hs_lt / 2 + slip_hl + slip_lt + 0.5 + 0.3 + 0.5
-    return {"hl_spread_bps": hs_hl, "lt_spread_bps": hs_lt,
+    out = {"hl_spread_bps": hs_hl, "lt_spread_bps": hs_lt,
             "hl_tick": tick_hl, "lt_tick": tick_lt,
             "slip_hl_2tick_bps": slip_hl, "slip_lt_2tick_bps": slip_lt,
             "hl_funding_bps_h": funding_bps_h,
@@ -591,16 +617,22 @@ def live_costs(coin: str, market: int, dex: str = "xyz", offline: bool = False) 
             "hl_effective_maker_bps": off["maker_bps"], "hl_effective_taker_bps": off["taker_bps"],
             "repo_screen_bstar_bps": repo_screen,
             "full_round_cost_repo_fees": repo, "full_round_cost_official_fees": full}
+    try:
+        json.dump(out, open(snap_path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    except OSError:
+        pass
+    return out
 
 
 def ev_bands(capture_impl: float, capture_open_open: float, capture_close_close: float,
-             b_star_repo: float, b_star_full: float, p_fill: float = 0.5) -> dict:
+             b_star_repo: float, b_star_full: float, p_fill: float = 0.5,
+             print_overstatement: float = 0.38) -> dict:
     """三档真实净 EV（bps/轮）。
 
-    保守：捕获按「同价口径」（close→close，扣掉开盘价不可得的部分），
-          成本按完整一轮 + 仓库（高）费率，p_fill 打折。
-    中性：捕获按「开→开」（无前视、两腿同刻定价），成本按完整一轮 + 官方 HIP-3 费率，
-          p_fill=0.5。
+    保守：捕获按「同刻定价」（close→close，扣掉开盘价不可得的部分），
+          成本按完整一轮，p_fill 再打折。
+    中性：捕获按「开→开」（无前视、两腿同刻）再按**打印口径高估比例**折减
+          （实测盘口回归幅度比成交价口径低约 38%），成本按完整一轮，p_fill=0.5。
     乐观：捕获按仓库原口径（开→收），成本按仓库 b*，p_fill=1。
     """
     bands = {
@@ -610,7 +642,7 @@ def ev_bands(capture_impl: float, capture_open_open: float, capture_close_close:
             "p_fill": p_fill * 0.6,
         },
         "neutral": {
-            "capture_bps": capture_open_open,
+            "capture_bps": capture_open_open * (1.0 - print_overstatement),
             "cost_bps": b_star_full,
             "p_fill": p_fill,
         },
@@ -730,7 +762,7 @@ PUBLISHED = {
 }
 
 
-def q4_replay_and_ev(offline: bool = False) -> dict:
+def q4_replay_and_ev(offline: bool = False, print_overstatement: float = 0.38) -> dict:
     cands = [("SOXL", "xyz:SOXL", 197), ("MRVL", "xyz:MRVL", 174),
              ("EWY", "xyz:EWY", 166), ("RKLB", "xyz:RKLB", 186), ("BABA", "xyz:BABA", 177)]
     out: dict[str, Any] = {}
@@ -752,7 +784,8 @@ def q4_replay_and_ev(offline: bool = False) -> dict:
                 capture_open_open=v["open_open"]["mean"],
                 capture_close_close=v["close_close"]["mean"],
                 b_star_repo=costs["repo_screen_bstar_bps"],
-                b_star_full=costs["full_round_cost_official_fees"]["total"])
+                b_star_full=costs["full_round_cost_official_fees"]["total"],
+                print_overstatement=print_overstatement)
             pub = PUBLISHED.get(name)
             if pub:
                 hd = headline_decomposition(pub["capture"], pub["b_star"], costs)
@@ -772,6 +805,11 @@ def q4_replay_and_ev(offline: bool = False) -> dict:
 # 汇总
 # =============================================================================
 def build_report(offline: bool = False, quick: bool = False) -> dict:
+    qs = analyse_quote_samples("SOXL")
+    over = 0.38
+    bk, pr = qs.get("book_reversion_1sigma_bps"), qs.get("print_reversion_1sigma_bps")
+    if bk and pr and pr > 0:
+        over = max(0.0, min(1.0, 1.0 - bk / pr))
     rep: dict[str, Any] = {
         "generated_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "offline": offline,
@@ -781,8 +819,9 @@ def build_report(offline: bool = False, quick: bool = False) -> dict:
         "q2_fees": q2_fee_audit(offline=offline),
         "q3_gates": q3_gate_audit(),
         "q3_repeat_close": q3_repeat_close_semantics(),
-        "q4_replay": q4_replay_and_ev(offline=offline),
-        "q4_quote_samples": analyse_quote_samples("SOXL"),
+        "q4_replay": q4_replay_and_ev(offline=offline, print_overstatement=over),
+        "q4_quote_samples": qs,
+        "q4_print_overstatement": over,
     }
     return rep
 

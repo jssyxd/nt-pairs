@@ -92,7 +92,7 @@ def tick_of(bids, asks) -> float:
 
 
 def main() -> int:
-    print(f"{'sym':8s}{'n':>4s}{'b*':>7s}{'cap':>8s}{'net':>7s}{'win':>6s}{'rth':>8s}{'closed':>8s}"
+    print(f"{'sym':8s}{'n':>4s}{'b*':>7s}{'cap':>8s}{'net':>7s}{'net_same':>9s}{'win':>6s}{'rth':>8s}{'closed':>8s}"
           f"{'depthLT25':>11s}{'repHL':>7s}{'repLT':>7s}{'flag':>8s}")
     for name, coin, mid in CAND:
         try:
@@ -124,19 +124,28 @@ def main() -> int:
                 side = -1 if z > 0 else 1
                 for j in range(i + 1, min(i + 288, len(basis))):
                     if abs((basis[j] - med) / sig) <= 0.3:
-                        ev.append({"cap": (basis[j] - opens[i + 1]) * side, "sess": classify(ts[i]).session})
+                        ev.append({
+                            # 旧口径：入场取 bar 的 open、离场取 bar 的 close（跨瞬间）
+                            "cap": (basis[j] - opens[i + 1]) * side,
+                            # 同刻口径：入场与离场都用 close（两腿同一时刻定价）
+                            "cap_same": (basis[j] - basis[i + 1]) * side,
+                            "sess": classify(ts[i]).session,
+                            "hold": j - i,
+                        })
                         break
             if not ev:
                 print(f"{name:8s} no events")
                 continue
             caps = [e["cap"] for e in ev]
+            caps_same = [e.get("cap_same", e["cap"]) for e in ev]
             rth = [e["cap"] for e in ev if e["sess"] == "rth"]
             clo = [e["cap"] for e in ev if e["sess"] == "closed"]
             rep_hl = repeat_close_pct(h)
             rep_lt = repeat_close_pct(l)
             flag = "STALE" if max(rep_hl, rep_lt) > 10 else ""
             print(f"{name:8s}{len(ev):4d}{bstar:7.1f}{statistics.mean(caps):8.1f}"
-                  f"{statistics.mean(caps) - bstar:7.1f}{100 * sum(1 for x in caps if x > 0) / len(caps):6.0f}"
+                  f"{statistics.mean(caps) - bstar:7.1f}{statistics.mean(caps_same) - bstar:9.1f}"
+                  f"{100 * sum(1 for x in caps if x > 0) / len(caps):6.0f}"
                   f"{((statistics.mean(rth) - bstar) if rth else float('nan')):8.1f}"
                   f"{((statistics.mean(clo) - bstar) if clo else float('nan')):8.1f}{depth_lt:11.0f}"
                   f"{rep_hl:7.1f}{rep_lt:7.1f}{flag:>8s}")

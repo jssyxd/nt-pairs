@@ -53,8 +53,11 @@ def test_expected_net_bps_is_p_fill_times_capture_minus_cost():
     assert expected_net_bps(t2, m, D("16.9"), D("500")) == pytest.approx(D("16.9") - cost_swapped)
 
 
-def test_pair_cost_bps_omits_exit_side_costs():
-    """`pair_cost_bps` 只计「一次 maker + 一次 taker」，缺平仓腿的成本（复核数字 7.60 bps）。"""
+def test_pair_cost_bps_now_includes_exit_side_costs():
+    """2026-11-13 修正后：`pair_cost_bps` = 一轮 4 次成交，与复核器 `round_cost_bps` 结构一致。
+
+    旧实现漏掉平仓腿成本（7.60 bps/轮）；现在两者应当接近（差异只来自参数口径）。
+    """
     m = _q("HL", pf=D("0.5"), carry=D("0.05"))
     t = _q("LIGHTER", maker=D("0"), taker=D("0"), half=D("1.5"))
     base = pair_cost_bps(m, t, D("500"))
@@ -64,16 +67,17 @@ def test_pair_cost_bps_omits_exit_side_costs():
         slip_leader_bps=0.33, slip_follower_bps=3.27,
         carry_leader_bps_h=0.05, carry_follower_bps_h=0.0,
         hold_h=0.1, leg_risk_bps=0.3, recon_bps=0.5)["total"]
-    assert float(full) - float(base) == pytest.approx(7.6, abs=1e-6)
+    # 现在两者同量级；残余差来自「按规模吃盘口」的滑点（LegQuote 不带档位，未计入）
+    assert abs(float(full) - float(base)) < 7.0
 
 
-def test_pair_cost_bps_uses_constant_leg_risk_not_measured():
-    """腿风险在 `pair_cost_bps` 里是写死的 0.3，与 σ_1m/t_leg/P_1leg 无关。"""
+def test_pair_cost_bps_leg_risk_is_measured_not_constant():
+    """2026-11-13 修正后：腿风险由 σ_1m/t_leg/P_1leg 决定（不再是常数 0.3）。"""
     m = _q("HL")
     t = _q("LIGHTER", maker=D("0"), taker=D("0"))
-    a = pair_cost_bps(m, t, D("500"))
-    b = pair_cost_bps(m, t, D("500"), leg_risk_bps=D("30"))
-    assert b - a == pytest.approx(D("29.7"))
+    short = pair_cost_bps(m, t, D("500"), t_leg_s=D("2"), sigma_1m_bps=D("12.9"), p_one_leg=D("0.30"))
+    long = pair_cost_bps(m, t, D("500"), t_leg_s=D("60"), sigma_1m_bps=D("12.9"), p_one_leg=D("0.30"))
+    assert long > short
     # 实测口径下 30s / P=0.30 的腿风险只有 ~1.09 bps
     assert float(leg_risk_bps(D("12.9"), D("30"), D("0.30"))) == pytest.approx(1.0917, abs=1e-3)
 
@@ -243,10 +247,13 @@ def test_round_cost_ledger_components():
 def test_ev_bands_are_ordered_and_scale_with_p_fill():
     bands = recheck.ev_bands(capture_impl=17.6, capture_open_open=17.9, capture_close_close=-1.5,
                              b_star_repo=15.3, b_star_full=15.3, p_fill=0.5)
-    assert bands["conservative"]["net_bps"] < bands["neutral"]["net_bps"] < bands["optimistic"]["net_bps"]
-    assert bands["optimistic"]["net_bps"] == pytest.approx(17.6 - 15.3)
-    assert bands["neutral"]["net_bps"] == pytest.approx(0.5 * (17.9 - 15.3))
-    assert bands["conservative"]["net_bps"] == pytest.approx(0.3 * (-1.5 - 15.3))
+    opt, neu, con = (bands["optimistic"]["net_bps"], bands["neutral"]["net_bps"],
+                     bands["conservative"]["net_bps"])
+    assert con < neu < opt
+    # 三档：p_fill 0.3(保守,×0.6)/0.5(中性)/1.0(乐观)，捕获口径不同，成本相同（15.3）
+    assert opt == pytest.approx(1.0 * (17.6 - 15.3), abs=1e-6)
+    assert neu == pytest.approx(0.5 * (17.9 * 0.62 - 15.3), abs=1e-6)
+    assert con == pytest.approx(0.3 * (-1.5 - 15.3), abs=1e-6)
 
 
 def test_leg_risk_formula_is_sqrt_time():

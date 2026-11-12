@@ -57,13 +57,31 @@ def carry_bps(q: LegQuote, hold_hours: Decimal) -> Decimal:
 
 
 def pair_cost_bps(maker_leg: LegQuote, taker_leg: LegQuote, qty_usd: Decimal, *,
-                  hold_hours: Decimal = Decimal("1"),
+                  hold_hours: Decimal = Decimal("0.25"),
                   leg_risk_bps: Decimal = Decimal("0.3"),
-                  recon_bps: Decimal = Decimal("0.5")) -> Decimal:
-    """一轮（开仓 + 平仓各一次）的摩擦成本，按腿角色计入。"""
-    return (maker_cost_bps(maker_leg) + taker_cost_bps(taker_leg, qty_usd)
-            + carry_bps(maker_leg, hold_hours) + carry_bps(taker_leg, hold_hours)
-            + leg_risk_bps + recon_bps)
+                  recon_bps: Decimal = Decimal("0.5"),
+                  t_leg_s: Decimal = Decimal("10"),
+                  sigma_1m_bps: Decimal = Decimal("12.9"),
+                  p_one_leg: Decimal = Decimal("0.30")) -> Decimal:
+    """一轮往返的成本（4 次成交），口径见 `nt_pairs.costs.round_cost_bps`。
+
+    2026-11-13 修正：旧实现只算「1 次 maker + 1 次 taker」，漏掉平仓腿成本（≈7.6 bps/轮），
+    且腿风险写死 0.3、carry 默认持 1 小时。现在全部走统一成本模型。
+    """
+    from .costs import LegSpec, round_cost_bps
+    maker = LegSpec(venue=maker_leg.venue, maker_bps=maker_leg.maker_bps,
+                    taker_bps=maker_leg.taker_bps, half_spread_bps=maker_leg.half_spread_bps,
+                    price=maker_leg.price, tick=maker_leg.tick,
+                    depth_bid_usd=maker_leg.depth25_usd, depth_ask_usd=maker_leg.depth25_usd,
+                    funding_bps_h=maker_leg.carry_bps_h, carry_sign=1 if maker_leg.carry_bps_h > 0 else -1)
+    taker = LegSpec(venue=taker_leg.venue, maker_bps=taker_leg.maker_bps,
+                    taker_bps=taker_leg.taker_bps, half_spread_bps=taker_leg.half_spread_bps,
+                    price=taker_leg.price, tick=taker_leg.tick,
+                    depth_bid_usd=taker_leg.depth25_usd, depth_ask_usd=taker_leg.depth25_usd,
+                    funding_bps_h=taker_leg.carry_bps_h, carry_sign=1 if taker_leg.carry_bps_h > 0 else -1)
+    return round_cost_bps(maker, taker, qty_usd=qty_usd, hold_hours=hold_hours,
+                          t_leg_s=t_leg_s, sigma_1m_bps=sigma_1m_bps,
+                          p_one_leg=p_one_leg, recon_bps=recon_bps)
 
 
 def expected_net_bps(maker_leg: LegQuote, taker_leg: LegQuote, capture_bps: Decimal,

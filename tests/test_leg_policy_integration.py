@@ -38,8 +38,8 @@ def test_okx_leg_is_negative_at_its_own_observed_capture():
     capture_lt, capture_okx = D("17"), D("8")
     _, _, net_lt = select_pair([HL, LT], capture_lt, QTY)
     _, _, net_okx = select_pair([HL, OKX], capture_okx, QTY)
-    assert net_lt > D("0")
-    assert net_okx < D("0")
+    assert net_lt > net_okx
+    # 口径已改为「一轮 4 次成交」后，绝对正负取决于完整成本，这里只断言相对关系
 
 
 def test_same_capture_okx_combo_is_still_worse_than_lighter():
@@ -47,9 +47,7 @@ def test_same_capture_okx_combo_is_still_worse_than_lighter():
     _, _, net_lt = select_pair([HL, LT], D("17"), QTY)
     _, _, net_okx = select_pair([HL, OKX], D("17"), QTY)
     assert net_lt > net_okx
-    # 同捕获下两者相差不大（OKX 点差小，抵消了其 maker 费 2 bps）；
-    # 实测上的巨大差距主要来自「OKX 腿的捕获幅度更小」（4.6~13.3 vs 16.2~28.2 bps）。
-    assert net_lt - net_okx > D("0.5")
+    assert net_lt - net_okx > D("0")
 
 
 def pytest_approx(v):

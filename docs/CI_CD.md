@@ -56,8 +56,13 @@ CI 是**只读**的：它不 push、不改分支、不下单。
 | `pull_request` | ✅ 运行（纯逻辑快测） | 跳过（不刷屏） | 仅失败时 |
 | `workflow_dispatch`（手动补跑） | 跳过 | ✅ 运行 | 仅失败时 |
 
-`unit-tests` 只装 `pytest` + `pyyaml`，不装 `nautilus_trader`（纯逻辑内核不需要它，
-`tests/test_strategy_smoke.py` 会自行 `importorskip`）。
+`unit-tests` 只装 `pytest` + `pyyaml`，不装 `nautilus_trader`（纯逻辑内核不需要它）。
+
+装配层 / 策略层的测试（`nt_pairs.live_node` / `live_runner` / `strategy` / `runtime`）需要
+`nautilus_trader>=2.0.0rc6`（含 Hyperliquid / Lighter 适配器）。`tests/conftest.py` 在**收集阶段**
+按测试文件实际的 import 逐个探测：缺 nautilus（或版本太老、没有对应适配器）时，
+把这些模块整份跳过并在终端摘要里列出，而不是让 `ModuleNotFoundError` 在 import 阶段
+**中断整个 suite 的收集**（那会连纯逻辑测试一起变红）。
 
 `report` 的失败判定有两个来源：
 

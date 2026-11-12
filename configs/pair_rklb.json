@@ -1,0 +1,26 @@
+{
+  "dry_run": true,
+  "ratio": "1",
+  "sigma_1m_bps": "15",
+  "max_leg_usd": "500",
+  "state_dir": "state",
+  "book_max_age_ms": 1000,
+  "name": "RKLB_xyz_lighter",
+  "leg_a": {
+    "instrument_id": "xyz:RKLB-USD-PERP.HYPERLIQUID",
+    "venue": "HYPERLIQUID",
+    "direction": "BUY",
+    "max_qty": "0.05"
+  },
+  "leg_b": {
+    "instrument_id": "RKLB-PERP.LIGHTER",
+    "venue": "LIGHTER",
+    "direction": "SELL",
+    "max_qty": "0.05"
+  },
+  "_notes": [
+    "leader=HL xyz:RKLB 被动买（maker 费 1.5bps）；follower=Lighter RKLB 主动卖（0 费率）→ 固定费 1.5bps",
+    "Lighter 侧 30 天重复收盘率 31% → 实盘前必须用采集器重算；>10% 则该腿退出",
+    "名义上限按保证金占用对齐：min(0.5×E_HL×10, 0.5×E_LT×20)；权益 40/40 时 N_max=$400"
+  ]
+}

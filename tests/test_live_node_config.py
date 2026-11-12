@@ -15,9 +15,6 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("nautilus_trader.adapters.hyperliquid",
-                        reason="需要 nautilus_trader>=2.0（含 hyperliquid 适配器；CI 纯逻辑 job 不装）")
-
 from nt_pairs.live_node import (
     MissingCredentials,
     build_client_specs,
@@ -29,26 +26,44 @@ from nt_pairs.live_node import (
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PAIR_CONFIG = REPO_ROOT / "configs" / "pair.json"
 
-SECRET_NAMES = ("private_key", "api_key", "secret", "passphrase")
+# 凭据字段名（大小写不敏感扫描）
+SECRET_FIELDS = ("private_key", "api_key", "api_secret", "secret", "passphrase")
+
+# 实盘路径读取的环境变量
+CRED_ENV_VARS = (
+    "HL_PRIVATE_KEY",
+    "HL_ACCOUNT_ADDRESS",
+    "LIGHTER_PRIVATE_KEY",
+    "LIGHTER_ACCOUNT_INDEX",
+    "LIGHTER_API_KEY_INDEX",
+    "LIGHTER_ACCOUNT_ID",
+)
 
 
 @pytest.fixture(autouse=True)
 def _no_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
     """保证测试环境里没有任何凭据。"""
-    for name in (
-        "HL_PRIVATE_KEY",
-        "HL_ACCOUNT_ADDRESS",
-        "LIGHTER_PRIVATE_KEY",
-        "LIGHTER_ACCOUNT_INDEX",
-        "LIGHTER_API_KEY_INDEX",
-        "LIGHTER_ACCOUNT_ID",
-    ):
+    for name in CRED_ENV_VARS:
         monkeypatch.delenv(name, raising=False)
 
 
 @pytest.fixture(scope="module")
 def plan():
     return load_live_plan(PAIR_CONFIG)
+
+
+def _secret_attrs(obj: object) -> dict[str, object]:
+    """取出对象上所有凭据类字段的值。"""
+    found: dict[str, object] = {}
+    for name in dir(obj):
+        low = name.lower()
+        if any(field in low for field in SECRET_FIELDS):
+            try:
+                value = getattr(obj, name)
+            except Exception:  # noqa: BLE001 - 属性可能抛错，忽略
+                continue
+            found[name] = value
+    return found
 
 
 def test_dry_run_builds_node_without_credentials(plan) -> None:
@@ -62,19 +77,25 @@ def test_dry_run_builds_node_without_credentials(plan) -> None:
     kinds = {spec.kind for spec in bundle.client_specs}
     assert "exec" not in kinds
     assert "sim_exec" in kinds
+    assert {spec.kind for spec in bundle.client_specs} == {"data", "sim_exec"}
 
 
 def test_dry_run_node_has_no_credentials(plan) -> None:
-    """装配结果里不能出现任何有值的凭据字段。"""
+    """装配结果里不能出现任何被赋值的凭据字段。"""
     bundle = build_node(plan, dry_run=True)
 
     secrets = scan_secret_fields(bundle)
     assert secrets["populated"] == []
 
-    # 再用 repr 兜底扫一遍：配置对象的字符串表示里不得含有凭据字段名
-    blob = repr(bundle.node) + "".join(repr(spec.config) for spec in bundle.client_specs)
-    for name in SECRET_NAMES:
-        assert name not in blob.lower()
+    # 逐个配置对象检查：凭据字段要么不存在，要么为空
+    for spec in bundle.client_specs:
+        for name, value in _secret_attrs(spec.config).items():
+            assert value in (None, "", []), f"{spec.name}.{name} 竟然有值: {value!r}"
+
+    # repr 兜底：节点与配置对象的字符串表示里不得出现凭据字段名
+    blob = (repr(bundle.node) + "".join(repr(spec.config) for spec in bundle.client_specs)).lower()
+    for field in SECRET_FIELDS:
+        assert field not in blob, f"repr 里出现了凭据字段名 {field}"
 
 
 def test_both_legs_are_subscribed(plan) -> None:
@@ -88,6 +109,7 @@ def test_both_legs_are_subscribed(plan) -> None:
         plan.leader.instrument_id,
         plan.follower.instrument_id,
     }
+    assert {s.instrument_id for s in plan.subscriptions} == set(plan.instrument_ids)
 
 
 def test_strategy_registers_both_legs(plan) -> None:
@@ -105,6 +127,7 @@ def test_live_mode_without_credentials_raises_structured_error(plan) -> None:
     payload = excinfo.value.as_dict()
     assert payload["error"] == "missing_credentials"
     assert payload["missing"]
+    assert set(payload["missing"]) & set(CRED_ENV_VARS)
 
 
 def test_dry_run_never_touches_credential_env(monkeypatch: pytest.MonkeyPatch, plan) -> None:
@@ -120,7 +143,7 @@ def test_dry_run_never_touches_credential_env(monkeypatch: pytest.MonkeyPatch, p
     monkeypatch.setattr(os.environ, "get", spy)
     build_client_specs(plan, dry_run=True)
 
-    assert not [name for name in seen if "KEY" in name.upper()]
+    assert not [name for name in seen if name in CRED_ENV_VARS]
 
 
 def test_runner_reports_missing_config(tmp_path: Path) -> None:
@@ -134,6 +157,7 @@ def test_runner_reports_missing_config(tmp_path: Path) -> None:
 def test_runner_dry_run_builds_without_credentials(
     capsys: pytest.CaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
+    plan,
 ) -> None:
     """runner 的 dry-run 路径在零凭据下能走到节点构建（不启动网络循环）。"""
     from nt_pairs import live_runner
@@ -149,11 +173,5 @@ def test_runner_dry_run_builds_without_credentials(
     summary = json.loads(captured.out[: captured.out.index("\n}") + 2])
     assert summary["dry_run"] is True
     assert len(summary["subscriptions"]) == 2
-    assert {s["instrument_id"] for s in summary["subscriptions"]} == set(plan_ids())
+    assert {s["instrument_id"] for s in summary["subscriptions"]} == set(plan.instrument_ids)
     assert all(spec["kind"] != "exec" for spec in summary["clients"])
-
-
-def plan_ids() -> set[str]:
-    """两腿 instrument id。"""
-    plan = load_live_plan(PAIR_CONFIG)
-    return set(plan.instrument_ids)
