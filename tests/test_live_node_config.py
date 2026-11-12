@@ -15,6 +15,9 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("nautilus_trader.adapters.hyperliquid",
+                        reason="需要 nautilus_trader>=2.0（含 hyperliquid 适配器；CI 纯逻辑 job 不装）")
+
 from nt_pairs.live_node import (
     MissingCredentials,
     build_client_specs,
@@ -128,14 +131,29 @@ def test_runner_reports_missing_config(tmp_path: Path) -> None:
     assert code == EXIT_CONFIG
 
 
-def test_runner_dry_run_builds_without_credentials(capsys: pytest.CaptureFixture) -> None:
-    """runner 的 dry-run 路径在零凭据下能走到节点构建（不启动网络）。"""
+def test_runner_dry_run_builds_without_credentials(
+    capsys: pytest.CaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """runner 的 dry-run 路径在零凭据下能走到节点构建（不启动网络循环）。"""
+    from nt_pairs import live_runner
     from nt_pairs.live_runner import EXIT_OK, main
 
-    # --max-secs 0 + dry-run：节点构建成功后立即返回（不跑网络循环）
-    code = main(["--config", str(PAIR_CONFIG), "--dry-run", "--max-secs", "0"])
+    # 只验证到"装配成功并打印摘要"为止：不跑 node.run()，避免任何网络/长循环。
+    monkeypatch.setattr(live_runner, "_run", lambda node, max_secs: EXIT_OK)
+
+    code = main(["--config", str(PAIR_CONFIG), "--dry-run"])
     captured = capsys.readouterr()
     assert code == EXIT_OK
-    payload = json.loads(captured.out.split("\n{", 1)[0].rsplit("\n", 1)[0] if False else captured.out[: captured.out.index("\n}") + 2])
-    assert payload["dry_run"] is True
-    assert len(payload["subscriptions"]) == 2
+
+    summary = json.loads(captured.out[: captured.out.index("\n}") + 2])
+    assert summary["dry_run"] is True
+    assert len(summary["subscriptions"]) == 2
+    assert {s["instrument_id"] for s in summary["subscriptions"]} == set(plan_ids())
+    assert all(spec["kind"] != "exec" for spec in summary["clients"])
+
+
+def plan_ids() -> set[str]:
+    """两腿 instrument id。"""
+    plan = load_live_plan(PAIR_CONFIG)
+    return set(plan.instrument_ids)

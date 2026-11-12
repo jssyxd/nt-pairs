@@ -53,7 +53,14 @@ from nautilus_trader.adapters.sandbox import (
 from nautilus_trader.common import DataActor
 from nautilus_trader.execution import MakerTakerFeeModel
 from nautilus_trader.live import LiveNode, LiveNodeBuilder, LiveNodeConfig
-from nautilus_trader.model import AccountId, Currency, InstrumentId, Money, Venue
+from nautilus_trader.model import (
+    AccountId,
+    BookType,
+    Currency,
+    InstrumentId,
+    Money,
+    Venue,
+)
 
 from .pair_spec import load_pair
 from .strategy import PairHedgeConfig, PairHedgeStrategy
@@ -570,10 +577,12 @@ class PairHeartbeatActor(DataActor):
 
     心跳字段：盘口时间戳、两腿 mid、基差（bps）、residual、naked_age（秒）。
 
-    数据流只订阅一次：由 :class:`~nt_pairs.strategy.PairHedgeStrategy` 在
-    ``on_start`` 里订阅两腿 L2_MBP。本 actor **不重复订阅**，改为读策略维护的
-    ``book_ts``（收到过 deltas 即视为订阅成功）以及 cache 里的盘口，
-    避免同一 instrument 出现两条数据流。
+    2.0 关键行为：DataEngine 只为 **managed** 订阅维护 cache 里的 ``OrderBook``
+    （非 managed 订阅只把 deltas 直接广播出去，``cache.order_book()`` 恒为
+    ``None``）。因此本 actor 用 ``managed=True`` 订阅两腿 L2_MBP：
+    - 引擎开始维护两腿盘口 → 心跳能拿到 mid/basis；
+    - 策略的 ``cache.order_book()`` 也随之可用（策略本身是非 managed 订阅，
+      与本 actor 共享同一数据源，不需要改策略代码）。
     """
 
     def __new__(cls, *args: Any, **kwargs: Any) -> Any:
@@ -585,9 +594,16 @@ class PairHeartbeatActor(DataActor):
         self._strategy = strategy
         self._plan = plan
         self._ticks = 0
+        self._book_ts: dict[str, int] = {}
 
     # -- 生命周期 ---------------------------------------------------------
     def on_start(self) -> None:
+        for sub in self._plan.subscriptions:
+            self.subscribe_book_deltas(
+                InstrumentId.from_str(sub.instrument_id),
+                BookType.L2_MBP,
+                managed=True,
+            )
         self.clock.set_timer(
             name="heartbeat",
             interval=timedelta(seconds=5),
@@ -597,6 +613,10 @@ class PairHeartbeatActor(DataActor):
             f"heartbeat actor started instruments={list(self._plan.instrument_ids)}"
         )
 
+    def on_book_deltas(self, deltas: Any) -> None:
+        """记录每腿最后一笔 deltas 的事件时间。"""
+        self._book_ts[str(deltas.instrument_id)] = int(deltas.ts_event)
+
     def on_stop(self) -> None:
         self.log.info("heartbeat actor stopped")
 
@@ -604,7 +624,9 @@ class PairHeartbeatActor(DataActor):
     def _on_heartbeat(self, event: Any = None) -> None:
         self._ticks += 1
         now = self.clock.timestamp_ns() / 1e9
-        book_ts = dict(getattr(self._strategy, "book_ts", {}) or {})
+        book_ts = dict(self._book_ts)
+        for iid, ts in (getattr(self._strategy, "book_ts", {}) or {}).items():
+            book_ts.setdefault(iid, int(ts))
         mids: dict[str, Optional[float]] = {}
         for sub in self._plan.subscriptions:
             mids[sub.instrument_id] = self._mid(sub.instrument_id)
@@ -641,12 +663,9 @@ class PairHeartbeatActor(DataActor):
         return float(bid + ask) / 2.0
 
     def subscription_status(self) -> dict[str, bool]:
-        """每条腿的订阅状态（策略收到过该腿的 deltas 即为 True）。"""
-        book_ts = getattr(self._strategy, "book_ts", {}) or {}
-        return {
-            sub.instrument_id: str(sub.instrument_id) in book_ts
-            for sub in self._plan.subscriptions
-        }
+        """每条腿的订阅状态（本 actor 收到过该腿的 deltas 即为 True）。"""
+        seen = set(self._book_ts) | set(getattr(self._strategy, "book_ts", {}) or {})
+        return {sub.instrument_id: sub.instrument_id in seen for sub in self._plan.subscriptions}
 
 
 # ---------------------------------------------------------------------------

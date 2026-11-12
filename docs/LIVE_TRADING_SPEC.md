@@ -20,6 +20,20 @@
 → 同一标的，**同样的捕获幅度，净 EV 差 3 bps**。这就是 `leg_policy.select_pair` 的输出逻辑
 （实测：`taker 排序 LIGHTER > HYPERLIQUID > OKX`）。
 
+## 1.1 实测约束（2026-11-13，`scripts/leverage_check.py` 实跑）
+
+假设各场所权益 HL=40 / Lighter=40 / OKX=30 USD：
+
+| 对 | leader 杠杆上限 | follower 杠杆上限 | **名义上限 N_max** | 约束腿 | **主腿固定费** | follower 资金费 |
+|---|---|---|---:|---|---:|---:|
+| RKLB（HL maker + Lighter taker） | HL 10x（`xyz:RKLB`） | Lighter 20x | **$400** | Lighter（40×20×0.5） | **1.5 bps** | 0 |
+| KIOXIA（HL maker + OKX taker） | HL 10x（`xyz:KIOXIA`） | OKX **10x**（实测 lever=10，非 5） | **$150** | OKX（30×10×0.5） | 6.5 bps | **HL 8.59 bps/h** |
+
+⚠️ **KIOXIA 的 HL 资金费 8.59 bps/h ≈ 75%/年** → 持仓 1 小时就吃掉 8.6 bps，
+而该腿的捕获幅度只有 ~20 bps → **carry 是这笔交易的主要成本项**，
+比手续费重要一个量级。这解释了为什么 KIOXIA 只能做「执行系统验证」，不能做收益来源。
+（`b*` 的 carry 项必须用**实测 funding × 预期持仓**，不是固定 0.5 bps。）
+
 ## 2. 杠杆与保证金对齐（用户明确要求）
 
 **规则：按保证金占用对齐，不按倍数对齐。**

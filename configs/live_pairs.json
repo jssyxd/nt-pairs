@@ -6,7 +6,7 @@
     "margin_usage_cap_per_venue": 0.5,
     "daily_loss_cap_pct": 0.02,
     "equity_freeze_pct": 0.05,
-    "equity_kill_pct": 0.10,
+    "equity_kill_pct": 0.1,
     "naked_warn_s": 60,
     "naked_flatten_s": 180,
     "naked_halt_s": 600,
@@ -14,10 +14,23 @@
     "chase_collar_ticks": 2,
     "taker_collar_bps": 50,
     "max_rounds_per_day": 3,
-    "allowed_sessions": ["closed", "post", "pre", "rth"],
+    "allowed_sessions": [
+      "closed",
+      "post",
+      "pre",
+      "rth"
+    ],
     "session_policy": {
-      "RKLB": ["closed", "post", "pre", "rth"],
-      "KIOXIA": ["closed", "post"]
+      "RKLB": [
+        "closed",
+        "post",
+        "pre",
+        "rth"
+      ],
+      "KIOXIA": [
+        "closed",
+        "post"
+      ]
     },
     "reject_if_repeat_close_pct_gt": 10,
     "min_p95_over_k_bstar": 1.0
@@ -33,7 +46,9 @@
         "side_on_entry": "buy",
         "leverage": 10,
         "leverage_mode": "cross",
-        "note": "leader = 便宜腿（HL taker 费 4.5 bps）；maker 挂单腿"
+        "note": "leader = 便宜腿（HL taker 费 4.5 bps）；maker 挂单腿",
+        "native_id": "xyz:RKLB",
+        "coin": "xyz:RKLB"
       },
       "follower": {
         "venue": "LIGHTER",
@@ -42,7 +57,9 @@
         "side_on_entry": "sell",
         "leverage": 20,
         "leverage_mode": "isolated",
-        "note": "follower = 贵腿，零费率 → 总固定费 4.5 bps（实测最优腿组合）"
+        "note": "follower = 贵腿，零费率 → 总固定费 4.5 bps（实测最优腿组合）",
+        "native_id": "186",
+        "market_id": 186
       },
       "backup": {
         "venue": "OKX",
@@ -51,7 +68,8 @@
         "side_on_entry": "sell",
         "leverage": 5,
         "leverage_mode": "cross",
-        "note": "Lighter 腿拒单/超时未成时改用 OKX 吃单；费率 5 bps，需重算 b*"
+        "note": "Lighter 腿拒单/超时未成时改用 OKX 吃单；费率 5 bps，需重算 b*",
+        "native_id": "RKLB-USDT-SWAP"
       },
       "rationale": "Lighter 侧重复收盘率 31%（30 天 1h）→ 数据质量闸门默认拒绝；实盘前必须确认 <=10%，否则该腿退出。",
       "status": "blocked_pending_data_quality"
@@ -65,7 +83,9 @@
         "role": "maker",
         "side_on_entry": "buy",
         "leverage": 10,
-        "leverage_mode": "cross"
+        "leverage_mode": "cross",
+        "native_id": "xyz:KIOXIA",
+        "coin": "xyz:KIOXIA"
       },
       "follower": {
         "venue": "OKX",
@@ -74,7 +94,8 @@
         "side_on_entry": "sell",
         "leverage": 5,
         "leverage_mode": "cross",
-        "note": "Lighter KIOXIA 无盘口 → taker 腿只能走 OKX；OKX taker 费 5 bps，按六项口径该腿 EV 为负 → 仅作执行系统验证，不放大"
+        "note": "Lighter KIOXIA 无盘口 → taker 腿只能走 OKX；OKX taker 费 5 bps，按六项口径该腿 EV 为负 → 仅作执行系统验证，不放大",
+        "native_id": "KIOXIA-USDT-SWAP"
       },
       "backup": null,
       "rationale": "宽度足够（p95 高），但对手腿深度薄、费率高；作为『验证 3 腿/兜底逻辑』的样本，不作为收益来源。",

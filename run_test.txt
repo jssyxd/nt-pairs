@@ -1,0 +1,223 @@
+[1m2026-11-12T16:14:04.336619100Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter: =================================================================[0m
+[1m2026-11-12T16:14:04.336630900Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter:  NAUTILUS TRADER - Automated Algorithmic Trading Platform[0m
+[1m2026-11-12T16:14:04.336631400Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter:  by Nautech Systems Pty Ltd.[0m
+[1m2026-11-12T16:14:04.336631500Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter:  Copyright (C) 2015-2026. All rights reserved.[0m
+[1m2026-11-12T16:14:04.336631600Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter: =================================================================[0m
+[1m2026-11-12T16:14:04.336631700Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⡤⠤⠤⠤⠤⠤⠤⠤⢤⡀⠀⠀⠀⠀⠀⠀[0m
+[1m2026-11-12T16:14:04.336632600Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⠤⠖⠚⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⠁⠀⠀⠀⠀⠀⠀[0m
+[1m2026-11-12T16:14:04.336632700Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: ⠀⠀⠀⠀⠀⠀⢀⣠⠖⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡴⠚⠁⠀⠀⠀⠀⠀⠀⠀[0m
+[1m2026-11-12T16:14:04.336632800Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: ⠀⠀⠀⠀⢀⡴⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡞⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[0m
+[1m2026-11-12T16:14:04.336633600Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: ⠀⠀⠀⣠⠏⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⠤⠖⠒⠒⠒⠒⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[0m
+[1m2026-11-12T16:14:04.336633700Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: ⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⢀⡖⠋⣠⢴⢪⠞⣩⢟⡭⠵⢤⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀[0m
+[1m2026-11-12T16:14:04.336633800Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: ⠀⠀⣦⡙⠦⣄⡀⠀⢀⣠⠴⠋⢠⡐⣇⢸⡘⢦⡇⣏⡴⣋⡭⠖⠮⢥⡀⠀⠀⠀⠀⠀⠀⠀[0m
+[1m2026-11-12T16:14:04.336633801Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: ⠀⠀⢸⡉⠓⠦⠭⠭⠭⠴⣺⠃⠸⣷⢬⣓⣛⠒⠩⣌⢡⡷⢒⣫⠭⣝⡛⠆⠀⠀⠀⠀⠀⠀[0m
+[1m2026-11-12T16:14:04.336633900Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: ⠀⠀⠀⠙⠦⢤⣀⣠⠤⠞⣡⠞⡆⠺⣭⣭⡷⢇⣷⡻⠡⠾⣛⣒⠦⢤⡙⡆⠀⠀⠀⠀⠀⠀[0m
+[1m2026-11-12T16:14:04.336634000Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: ⠀⠀⠀⠈⠳⣖⠒⠒⠒⠋⠁⣠⠇⡼⢦⠀⣌⡉⢥⣄⣛⡻⢥⡈⠉⢳⡙⠇⠀⠀⠀⠀⠀⠀[0m
+[1m2026-11-12T16:14:04.336634001Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: ⠀⠀⠀⠀⠀⠈⠙⣒⣒⣒⣋⡥⠞⠁⣸⠃⡇⠙⢦⢹⠀⠙⡆⢳⢀⡴⠃⠀⠀⠀⠀⠀⠀⠀[0m
+[1m2026-11-12T16:14:04.336634100Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: ⠀⠀⠀⠀⠀⠀⠀⠈⠙⠒⠦⠤⠴⣚⣡⠞⠁⣠⠏⡼⢀⣠⠇⠞⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀[0m
+[1m2026-11-12T16:14:04.336634200Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠉⠑⠚⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[0m
+[1m2026-11-12T16:14:04.336634300Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter: =================================================================[0m
+[1m2026-11-12T16:14:04.336634400Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter:  SYSTEM SPECIFICATION[0m
+[1m2026-11-12T16:14:04.336635200Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter: =================================================================[0m
+[1m2026-11-12T16:14:04.336635600Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: CPU architecture: Genuine Intel(R) 0000[0m
+[1m2026-11-12T16:14:04.336636700Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: CPU(s): 32 @ 1600 MHz[0m
+[1m2026-11-12T16:14:04.336637000Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: OS: kernel-26200 Windows 11 Enterprise[0m
+[1m2026-11-12T16:14:04.336731000Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter: =================================================================[0m
+[1m2026-11-12T16:14:04.336731700Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter:  MEMORY USAGE[0m
+[1m2026-11-12T16:14:04.336731800Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter: =================================================================[0m
+[1m2026-11-12T16:14:04.336735600Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: RAM-Total: 31.75 GiB[0m
+[1m2026-11-12T16:14:04.336736000Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: RAM-Used: 24.89 GiB (78.41%)[0m
+[1m2026-11-12T16:14:04.336736300Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: RAM-Avail: 6.86 GiB (21.59%)[0m
+[1m2026-11-12T16:14:04.336736500Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: Swap-Total: 34.15 GiB[0m
+[1m2026-11-12T16:14:04.336738100Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: Swap-Used: 32.16 GiB (94.16%)[0m
+[1m2026-11-12T16:14:04.336738400Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: Swap-Avail: 1.99 GiB (5.84%)[0m
+[1m2026-11-12T16:14:04.336738600Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter: =================================================================[0m
+[1m2026-11-12T16:14:04.336738700Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter:  IDENTIFIERS[0m
+[1m2026-11-12T16:14:04.336738800Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter: =================================================================[0m
+[1m2026-11-12T16:14:04.336739400Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: trader_id: TRADER-001[0m
+[1m2026-11-12T16:14:04.336739500Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: machine_id: Pko[0m
+[1m2026-11-12T16:14:04.336741200Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: instance_id: c92e0793-d162-4bab-ad2a-c3d842b2888c[0m
+[1m2026-11-12T16:14:04.336741400Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: PID: 111652[0m
+[1m2026-11-12T16:14:04.336741500Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter: =================================================================[0m
+[1m2026-11-12T16:14:04.336741600Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter:  VERSIONING[0m
+[1m2026-11-12T16:14:04.336741700Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter: =================================================================[0m
+[1m2026-11-12T16:14:04.336752500Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: nautilus_trader: 2.0.0rc6[0m
+[1m2026-11-12T16:14:04.336752800Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: nautilus_core: 0.65.0[0m
+[1m2026-11-12T16:14:04.336757100Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: python: 3.12.9[0m
+[1m2026-11-12T16:14:04.336762000Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: git_commit: 7b766f8825b2[0m
+[1m2026-11-12T16:14:04.336762200Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: rustc: 1.98.1 (48a229cea 2026-09-01)[0m
+[1m2026-11-12T16:14:04.336762500Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: target: x86_64-pc-windows-msvc[0m
+[1m2026-11-12T16:14:04.336762700Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: profile: release[0m
+[1m2026-11-12T16:14:04.336762800Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: panic: abort[0m
+[1m2026-11-12T16:14:04.336763000Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: precision: high (128-bit, 16 dp)[0m
+[1m2026-11-12T16:14:04.336763100Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: allocator: mimalloc 0.1.52[0m
+[1m2026-11-12T16:14:04.336763200Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: cargo_lock: f4055f4d[0m
+[1m2026-11-12T16:14:04.336763400Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: rust_decimal: 1.43.0[0m
+[1m2026-11-12T16:14:04.336763600Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: rustls: 0.23.45[0m
+[1m2026-11-12T16:14:04.336763700Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: aws_lc_rs: 1.18.1[0m
+[1m2026-11-12T16:14:04.336763800Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: tokio: 1.53.1[0m
+[1m2026-11-12T16:14:04.336764000Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: pyo3: 0.29.2[0m
+[1m2026-11-12T16:14:04.336764100Z[0m [INFO] TRADER-001.OAI_entropy__OPENAI_lighter: pyo3_async_runtimes: 0.29.0[0m
+[1m2026-11-12T16:14:05.463305400Z[0m [36m[INFO] TRADER-001.OAI_entropy__OPENAI_lighter: =================================================================[0m
+[1m2026-11-12T16:14:05.463348100Z[0m [INFO] TRADER-001.nautilus_system::kernel: Building system kernel[0m
+[1m2026-11-12T16:14:05.463820300Z[0m [INFO] TRADER-001.nautilus_live::node::builder: Registered DataClient-hyperliquid[0m
+{
+  "pair": "OAI_entropy__OPENAI_lighter",
+  "dry_run": true,
+  "leader": {
+    "instrument_id": "io:OAI-USD-PERP.HYPERLIQUID",
+    "venue": "HYPERLIQUID",
+    "direction": "BUY",
+    "max_qty": "0.05"
+  },
+  "follower": {
+    "instrument_id": "OPENAI-PERP.LIGHTER",
+    "venue": "LIGHTER",
+    "direction": "SELL",
+    "max_qty": "0.05"
+  },
+  "subscriptions": [
+    {
+      "instrument_id": "io:OAI-USD-PERP.HYPERLIQUID",
+      "book_type": "L2_MBP",
+      "role": "leader",
+      "venue": "HYPERLIQUID"
+    },
+    {
+      "instrument_id": "OPENAI-PERP.LIGHTER",
+      "book_type": "L2_MBP",
+      "role": "follower",
+      "venue": "LIGHTER"
+    }
+  ],
+  "clients": [
+    {
+      "name": "hyperliquid",
+      "kind": "data",
+      "venue": "HYPERLIQUID",
+      "config": "HyperliquidDataClientConfig"
+    },
+    {
+      "name": "lighter",
+      "kind": "data",
+      "venue": "LIGHTER",
+      "config": "LighterDataClientConfig"
+    },
+    {
+      "name": "hyperliquid-sim",
+      "kind": "sim_exec",
+      "venue": "HYPERLIQUID",
+      "config": "<nautilus_trader.adapters.sandbox.SandboxExecutionClientConfig object at 0x000001D9F2F8F060>"
+    },
+    {
+      "name": "lighter-sim",
+      "kind": "sim_exec",
+      "venue": "LIGHTER",
+      "config": "<nautilus_trader.adapters.sandbox.SandboxExecutionClientConfig object at 0x000001D9F2F90860>"
+    }
+  ]
+}
+[1m2026-11-12T16:14:05.463947800Z[0m [INFO] TRADER-001.nautilus_live::node::builder: Registered DataClient-lighter[0m
+{"event": "node_starting", "dry_run": true, "instruments": ["io:OAI-USD-PERP.HYPERLIQUID", "OPENAI-PERP.LIGHTER"], "credentials_loaded": false}[1m2026-11-12T16:14:05.463982900Z[0m [INFO] TRADER-001.nautilus_live::node::builder: Registered ExecutionClient-lighter-sim[0m
+
+[1m2026-11-12T16:14:05.463987900Z[0m [INFO] TRADER-001.nautilus_live::node::builder: Registered ExecutionClient-hyperliquid-sim[0m
+[1m2026-11-12T16:14:05.463991500Z[0m [INFO] TRADER-001.nautilus_execution::engine: Set client hyperliquid-sim routing for HYPERLIQUID[0m
+[1m2026-11-12T16:14:05.463994600Z[0m [INFO] TRADER-001.nautilus_execution::engine: Set client lighter-sim routing for LIGHTER[0m
+[1m2026-11-12T16:14:05.464002700Z[0m [INFO] TRADER-001.nautilus_execution::engine: Subscribed to instrument updates for venue LIGHTER[0m
+[1m2026-11-12T16:14:05.464006100Z[0m [INFO] TRADER-001.nautilus_execution::engine: Subscribed to instrument updates for venue HYPERLIQUID[0m
+[1m2026-11-12T16:14:05.464019800Z[0m [INFO] TRADER-001.nautilus_live::node::builder: Built successfully[0m
+[1m2026-11-12T16:14:05.495608800Z[0m [INFO] TRADER-001.PairHedgeStrategy-000: Ready[0m
+[1m2026-11-12T16:14:05.495636100Z[0m [INFO] TRADER-001.nautilus_system::python::registration: Registered Python strategy PairHedgeStrategy-000 with trader TRADER-001[0m
+[1m2026-11-12T16:14:05.495637900Z[0m [INFO] TRADER-001.nautilus_live::python::node: Registered Python strategy PairHedgeStrategy-000[0m
+[1m2026-11-12T16:14:05.495661300Z[0m [INFO] TRADER-001.PairHeartbeatActor: Ready[0m
+[1m2026-11-12T16:14:05.495661900Z[0m [INFO] TRADER-001.nautilus_live::python::node: Registered Python actor PairHeartbeatActor[0m
+[1m2026-11-12T16:14:05.562174900Z[0m [INFO] TRADER-001.nautilus_live::node: Event loop starting[0m
+[1m2026-11-12T16:14:05.562178300Z[0m [INFO] TRADER-001.nautilus_system::kernel: Starting[0m
+[1m2026-11-12T16:14:05.562180600Z[0m [INFO] TRADER-001.nautilus_hyperliquid::data: Starting Hyperliquid data client: client_id=hyperliquid, environment=Mainnet, proxy_url=None[0m
+[1m2026-11-12T16:14:05.562184200Z[0m [INFO] TRADER-001.nautilus_lighter::data: Starting Lighter data client: client_id=lighter, environment=Mainnet, has_credentials=false[0m
+[1m2026-11-12T16:14:05.562237400Z[0m [INFO] TRADER-001.nautilus_sandbox::execution: Sandbox execution client started: venue=LIGHTER, account_id=LIGHTER-SANDBOX-001, oms_type=Netting, account_type=Margin[0m
+[1m2026-11-12T16:14:05.562259300Z[0m [INFO] TRADER-001.nautilus_sandbox::execution: Sandbox execution client started: venue=HYPERLIQUID, account_id=HYPERLIQUID-SANDBOX-001, oms_type=Netting, account_type=Margin[0m
+[1m2026-11-12T16:14:05.562261700Z[0m [INFO] TRADER-001.nautilus_execution::engine: Started[0m
+[1m2026-11-12T16:14:05.562262100Z[0m [INFO] TRADER-001.nautilus_risk::engine: Started[0m
+[1m2026-11-12T16:14:05.562263300Z[0m [INFO] TRADER-001.nautilus_system::kernel: Initializing trader[0m
+[1m2026-11-12T16:14:05.562264100Z[0m [INFO] TRADER-001.nautilus_system::kernel: Started[0m
+[1m2026-11-12T16:14:05.562266600Z[0m [INFO] TRADER-001.nautilus_system::kernel: Connecting data clients...[0m
+[1m2026-11-12T16:14:11.314938400Z[0m [INFO] TRADER-001.nautilus_lighter::data: Connected: client_id=lighter[0m
+[1m2026-11-12T16:14:13.011511300Z[0m [INFO] TRADER-001.nautilus_hyperliquid::data: Connected: client_id=hyperliquid[0m
+[1m2026-11-12T16:14:13.011528000Z[0m [INFO] TRADER-001.nautilus_hyperliquid::data: Hyperliquid instrument refresh started, interval=3600s[0m
+[1m2026-11-12T16:14:13.015518000Z[0m [INFO] TRADER-001.nautilus_system::kernel: Connecting execution clients...[0m
+[1m2026-11-12T16:14:13.015552700Z[0m [INFO] TRADER-001.nautilus_portfolio::portfolio: Updated AccountState(account_id=LIGHTER-SANDBOX-001, account_type=MARGIN, base_currency=USD, is_reported=false, balances=[AccountBalance(total=1000000.00 USD, locked=0.00 USD, free=1000000.00 USD)], margins=[], event_id=ec22436e-7068-4965-8a07-cea68debb2b4)[0m
+[1m2026-11-12T16:14:13.015628000Z[0m [INFO] TRADER-001.nautilus_sandbox::execution: Sandbox execution client connected: venue=LIGHTER[0m
+[1m2026-11-12T16:14:13.015631200Z[0m [INFO] TRADER-001.nautilus_portfolio::portfolio: Updated AccountState(account_id=HYPERLIQUID-SANDBOX-001, account_type=MARGIN, base_currency=USD, is_reported=false, balances=[AccountBalance(total=1000000.00 USD, locked=0.00 USD, free=1000000.00 USD)], margins=[], event_id=497cd37e-15b8-4d7b-8f69-a5f225a7b995)[0m
+[1m2026-11-12T16:14:13.015640400Z[0m [INFO] TRADER-001.nautilus_sandbox::execution: Sandbox execution client connected: venue=HYPERLIQUID[0m
+[1m2026-11-12T16:14:13.015642500Z[0m [INFO] TRADER-001.nautilus_live::node: Awaiting engine connections (60s timeout)...[0m
+[1m2026-11-12T16:14:13.015644800Z[0m [INFO] TRADER-001.nautilus_live::node: All engine clients connected[0m
+[1m2026-11-12T16:14:13.015651900Z[0m [94m[INFO] TRADER-001.nautilus_live::node: Starting execution state reconciliation...[0m
+[1m2026-11-12T16:14:13.015655600Z[0m [94m[INFO] TRADER-001.nautilus_live::node: Requesting mass status from lighter-sim...[0m
+[1m2026-11-12T16:14:13.015664400Z[0m [94m[INFO] TRADER-001.nautilus_live::node: Reconciling ExecutionMassStatus for lighter-sim[0m
+[1m2026-11-12T16:14:13.015679100Z[0m [94m[INFO] TRADER-001.nautilus_live::execution::manager: Reconciling ExecutionMassStatus for LIGHTER[0m
+[1m2026-11-12T16:14:13.015679600Z[0m [94m[INFO] TRADER-001.nautilus_live::execution::manager: Received 0 order(s), 0 fill(s), 0 position(s)[0m
+[1m2026-11-12T16:14:13.015696900Z[0m [94m[INFO] TRADER-001.nautilus_live::execution::manager: Reconciliation complete for LIGHTER: reconciled=0, external=0, open=0, fills=0, positions=0, skipped=0, filtered=0[0m
+[1m2026-11-12T16:14:13.015701000Z[0m [94m[INFO] TRADER-001.nautilus_live::node: Reconciliation for lighter-sim succeeded[0m
+[1m2026-11-12T16:14:13.015703600Z[0m [94m[INFO] TRADER-001.nautilus_live::node: Requesting mass status from hyperliquid-sim...[0m
+[1m2026-11-12T16:14:13.015704700Z[0m [94m[INFO] TRADER-001.nautilus_live::node: Reconciling ExecutionMassStatus for hyperliquid-sim[0m
+[1m2026-11-12T16:14:13.015705300Z[0m [94m[INFO] TRADER-001.nautilus_live::execution::manager: Reconciling ExecutionMassStatus for HYPERLIQUID[0m
+[1m2026-11-12T16:14:13.015705500Z[0m [94m[INFO] TRADER-001.nautilus_live::execution::manager: Received 0 order(s), 0 fill(s), 0 position(s)[0m
+[1m2026-11-12T16:14:13.015706300Z[0m [94m[INFO] TRADER-001.nautilus_live::execution::manager: Reconciliation complete for HYPERLIQUID: reconciled=0, external=0, open=0, fills=0, positions=0, skipped=0, filtered=0[0m
+[1m2026-11-12T16:14:13.015706900Z[0m [94m[INFO] TRADER-001.nautilus_live::node: Reconciliation for hyperliquid-sim succeeded[0m
+[1m2026-11-12T16:14:13.015714500Z[0m [INFO] TRADER-001.nautilus_portfolio::portfolio: Initialized 0 open orders[0m
+[1m2026-11-12T16:14:13.015716400Z[0m [INFO] TRADER-001.nautilus_portfolio::portfolio: Initialized 0 open positions[0m
+[1m2026-11-12T16:14:13.015720700Z[0m [INFO] TRADER-001.nautilus_portfolio::portfolio: Initialized 0 Wallet reservations[0m
+[1m2026-11-12T16:14:13.015721200Z[0m [94m[INFO] TRADER-001.nautilus_live::node: Startup reconciliation completed in 0.00s[0m
+[1m2026-11-12T16:14:13.015724900Z[0m [INFO] TRADER-001.nautilus_system::kernel: Starting trader...[0m
+[1m2026-11-12T16:14:13.015727900Z[0m [INFO] TRADER-001.nautilus_execution::order_emulator::emulator: Started[0m
+[1m2026-11-12T16:14:13.015730500Z[0m [INFO] TRADER-001.nautilus_system::trader: Starting[0m
+[1m2026-11-12T16:14:13.015741200Z[0m [INFO] TRADER-001.PairHeartbeatActor: Starting[0m
+[1m2026-11-12T16:14:13.015784600Z[0m [INFO] TRADER-001.nautilus_common::actor::data_actor: [CMD]--> Subscribe(BookDeltas(SubscribeBookDeltas { instrument_id: "io:OAI-USD-PERP.HYPERLIQUID", book_type: L2_MBP, client_id: None, venue: Some("HYPERLIQUID"), command_id: UUID4(7e6690d9-67a9-4d69-ba1c-ed045cf36e6a), ts_init: UnixNanos(1794500053015777200), depth: None, managed: true, correlation_id: None, params: None }))[0m
+[1m2026-11-12T16:14:13.015815300Z[0m [INFO] TRADER-001.nautilus_common::actor::data_actor: [CMD]--> Subscribe(BookDeltas(SubscribeBookDeltas { instrument_id: "OPENAI-PERP.LIGHTER", book_type: L2_MBP, client_id: None, venue: Some("LIGHTER"), command_id: UUID4(5d4c21d2-d9b5-44b3-981f-000968a1eaf3), ts_init: UnixNanos(1794500053015814700), depth: None, managed: true, correlation_id: None, params: None }))[0m
+[1m2026-11-12T16:14:13.015865100Z[0m [INFO] TRADER-001.PairHeartbeatActor: heartbeat actor started instruments=['io:OAI-USD-PERP.HYPERLIQUID', 'OPENAI-PERP.LIGHTER'][0m
+[1m2026-11-12T16:14:13.015867500Z[0m [INFO] TRADER-001.PairHeartbeatActor: Running[0m
+[1m2026-11-12T16:14:13.015870400Z[0m [INFO] TRADER-001.PairHedgeStrategy-000: Starting[0m
+[1m2026-11-12T16:14:13.015872000Z[0m [INFO] TRADER-001.nautilus_trading::strategy: Starting PairHedgeStrategy-000[0m
+[1m2026-11-12T16:14:13.015882700Z[0m [INFO] TRADER-001.nautilus_common::actor::data_actor: [CMD]--> Subscribe(BookDeltas(SubscribeBookDeltas { instrument_id: "io:OAI-USD-PERP.HYPERLIQUID", book_type: L2_MBP, client_id: None, venue: Some("HYPERLIQUID"), command_id: UUID4(48ab194b-2525-4501-b453-9f8a838a140f), ts_init: UnixNanos(1794500053015881400), depth: None, managed: false, correlation_id: None, params: None }))[0m
+[1m2026-11-12T16:14:13.015886900Z[0m [INFO] TRADER-001.nautilus_common::actor::data_actor: [CMD]--> Subscribe(BookDeltas(SubscribeBookDeltas { instrument_id: "OPENAI-PERP.LIGHTER", book_type: L2_MBP, client_id: None, venue: Some("LIGHTER"), command_id: UUID4(7ac70475-2bbb-4346-8b0a-e205680e90b4), ts_init: UnixNanos(1794500053015886400), depth: None, managed: false, correlation_id: None, params: None }))[0m
+[1m2026-11-12T16:14:13.015906700Z[0m [INFO] TRADER-001.PairHedgeStrategy-000: pair strategy started leader=io:OAI-USD-PERP.HYPERLIQUID follower=OPENAI-PERP.LIGHTER dry_run=True[0m
+[1m2026-11-12T16:14:13.015908300Z[0m [INFO] TRADER-001.PairHedgeStrategy-000: Running[0m
+[1m2026-11-12T16:14:13.015908900Z[0m [INFO] TRADER-001.nautilus_system::trader: Running[0m
+[1m2026-11-12T16:14:13.015909000Z[0m [INFO] TRADER-001.nautilus_system::kernel: Trader started[0m
+[1m2026-11-12T16:14:13.015990700Z[0m [94m[INFO] TRADER-001.nautilus_data::client: Subscribed io:OAI-USD-PERP.HYPERLIQUID order book deltas[0m
+[1m2026-11-12T16:14:13.016019100Z[0m [94m[INFO] TRADER-001.nautilus_data::client: Subscribed OPENAI-PERP.LIGHTER order book deltas[0m
+[1m2026-11-12T16:14:18.017220100Z[0m [INFO] TRADER-001.PairHeartbeatActor: {"kind": "heartbeat", "tick": 1, "ts_event": {"OPENAI-PERP.LIGHTER": 1794500058515000000, "io:OAI-USD-PERP.HYPERLIQUID": 1794500053839000064}, "mid": {"io:OAI-USD-PERP.HYPERLIQUID": 1336.4, "OPENAI-PERP.LIGHTER": 1376.39}, "basis_bps": 299.23675546243754, "residual": "0", "naked_age_s": null, "subscribed": {"io:OAI-USD-PERP.HYPERLIQUID": true, "OPENAI-PERP.LIGHTER": true}}[0m
+[1m2026-11-12T16:14:23.024233000Z[0m [INFO] TRADER-001.PairHeartbeatActor: {"kind": "heartbeat", "tick": 2, "ts_event": {"OPENAI-PERP.LIGHTER": 1794500063161000000, "io:OAI-USD-PERP.HYPERLIQUID": 1794500059247000064}, "mid": {"io:OAI-USD-PERP.HYPERLIQUID": 1336.4, "OPENAI-PERP.LIGHTER": 1376.17}, "basis_bps": 297.5905417539648, "residual": "0", "naked_age_s": null, "subscribed": {"io:OAI-USD-PERP.HYPERLIQUID": true, "OPENAI-PERP.LIGHTER": true}}[0m
+[1m2026-11-12T16:14:28.018082100Z[0m [INFO] TRADER-001.PairHeartbeatActor: {"kind": "heartbeat", "tick": 3, "ts_event": {"OPENAI-PERP.LIGHTER": 1794500068607000000, "io:OAI-USD-PERP.HYPERLIQUID": 1794500059247000064}, "mid": {"io:OAI-USD-PERP.HYPERLIQUID": 1336.4, "OPENAI-PERP.LIGHTER": 1376.02}, "basis_bps": 296.4681233163713, "residual": "0", "naked_age_s": null, "subscribed": {"io:OAI-USD-PERP.HYPERLIQUID": true, "OPENAI-PERP.LIGHTER": true}}[0m
+[1m2026-11-12T16:14:30.631791800Z[0m [INFO] TRADER-001.nautilus_live::node: Received stop signal from handle[0m
+[1m2026-11-12T16:14:30.631807500Z[0m [INFO] TRADER-001.nautilus_system::kernel: Stopping trader...[0m
+[1m2026-11-12T16:14:30.631810700Z[0m [INFO] TRADER-001.nautilus_system::trader: Stopping[0m
+[1m2026-11-12T16:14:30.631814500Z[0m [INFO] TRADER-001.PairHeartbeatActor: Stopping[0m
+[1m2026-11-12T16:14:30.631831400Z[0m [INFO] TRADER-001.PairHeartbeatActor: heartbeat actor stopped[0m
+[1m2026-11-12T16:14:30.631833700Z[0m [INFO] TRADER-001.PairHeartbeatActor: Stopped[0m
+[1m2026-11-12T16:14:30.631838600Z[0m [INFO] TRADER-001.PairHedgeStrategy-000: Stopping[0m
+[1m2026-11-12T16:14:30.736710900Z[0m [INFO] TRADER-001.PairHedgeStrategy-000: pair strategy stopped[0m
+[1m2026-11-12T16:14:30.736723000Z[0m [INFO] TRADER-001.PairHedgeStrategy-000: Stopped[0m
+[1m2026-11-12T16:14:30.736725600Z[0m [INFO] TRADER-001.nautilus_system::trader: Stopped[0m
+[1m2026-11-12T16:14:30.736726800Z[0m [INFO] TRADER-001.nautilus_live::node: Awaiting residual events (10s)...[0m
+[1m2026-11-12T16:14:33.017284100Z[0m [INFO] TRADER-001.PairHeartbeatActor: {"kind": "heartbeat", "tick": 4, "ts_event": {"OPENAI-PERP.LIGHTER": 1794500071290000000, "io:OAI-USD-PERP.HYPERLIQUID": 1794500069432999936}, "mid": {"io:OAI-USD-PERP.HYPERLIQUID": 1336.25, "OPENAI-PERP.LIGHTER": 1376.335}, "basis_bps": 299.98129092609906, "residual": "0", "naked_age_s": null, "subscribed": {"io:OAI-USD-PERP.HYPERLIQUID": true, "OPENAI-PERP.LIGHTER": true}}[0m
+[1m2026-11-12T16:14:38.027992900Z[0m [INFO] TRADER-001.PairHeartbeatActor: {"kind": "heartbeat", "tick": 5, "ts_event": {"OPENAI-PERP.LIGHTER": 1794500071290000000, "io:OAI-USD-PERP.HYPERLIQUID": 1794500069432999936}, "mid": {"io:OAI-USD-PERP.HYPERLIQUID": 1336.25, "OPENAI-PERP.LIGHTER": 1376.02}, "basis_bps": 297.62394761459365, "residual": "0", "naked_age_s": null, "subscribed": {"io:OAI-USD-PERP.HYPERLIQUID": true, "OPENAI-PERP.LIGHTER": true}}[0m
+[1m2026-11-12T16:14:40.749278200Z[0m [INFO] TRADER-001.nautilus_system::kernel: Disconnecting clients...[0m
+[1m2026-11-12T16:14:40.749344300Z[0m [INFO] TRADER-001.nautilus_sandbox::execution: Sandbox execution client disconnected: venue=LIGHTER[0m
+[1m2026-11-12T16:14:40.749347100Z[0m [INFO] TRADER-001.nautilus_sandbox::execution: Sandbox execution client disconnected: venue=HYPERLIQUID[0m
+[1m2026-11-12T16:14:40.856702500Z[0m [INFO] TRADER-001.nautilus_hyperliquid::data: Disconnected: client_id=hyperliquid[0m
+[1m2026-11-12T16:14:40.871089900Z[0m [INFO] TRADER-001.nautilus_lighter::data: Disconnected: client_id=lighter[0m
+[1m2026-11-12T16:14:40.871100400Z[0m [INFO] TRADER-001.nautilus_live::node: Awaiting engine disconnections (10s timeout)...[0m
+[1m2026-11-12T16:14:40.871105100Z[0m [INFO] TRADER-001.nautilus_live::node: All engine clients disconnected[0m
+[1m2026-11-12T16:14:40.871155300Z[0m [INFO] TRADER-001.nautilus_hyperliquid::data: Stopping Hyperliquid data client hyperliquid[0m
+[1m2026-11-12T16:14:40.871156900Z[0m [INFO] TRADER-001.nautilus_lighter::data: Stopping Lighter data client lighter[0m
+[1m2026-11-12T16:14:40.871205000Z[0m [INFO] TRADER-001.nautilus_sandbox::execution: Sandbox execution client stopped: venue=LIGHTER[0m
+[1m2026-11-12T16:14:40.871217200Z[0m [INFO] TRADER-001.nautilus_sandbox::execution: Sandbox execution client stopped: venue=HYPERLIQUID[0m
+[1m2026-11-12T16:14:40.871223200Z[0m [INFO] TRADER-001.nautilus_execution::engine: Stopped[0m
+[1m2026-11-12T16:14:40.871224500Z[0m [INFO] TRADER-001.nautilus_risk::engine: Stopped[0m
+[1m2026-11-12T16:14:40.871225300Z[0m [INFO] TRADER-001.nautilus_execution::order_emulator::emulator: Stopped[0m
+[1m2026-11-12T16:14:40.871226701Z[0m [INFO] TRADER-001.nautilus_system::kernel: Stopped[0m
+[1m2026-11-12T16:14:40.871301400Z[0m [INFO] TRADER-001.nautilus_live::node: Drained 1 remaining events during shutdown[0m
+[1m2026-11-12T16:14:40.871301900Z[0m [INFO] TRADER-001.nautilus_live::node: Event loop stopped[0m
+[1m2026-11-12T16:14:41.024740100Z[0m [1;31m[ERROR] TRADER-001.nautilus_live::runner: Failed to send time event message: channel closed[0m

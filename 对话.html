@@ -36,7 +36,7 @@ hr{border:0;border-top:1px solid var(--bd);margin:24px 0}
 </style></head><body>
 <header>
 <h1>nt-pairs · 全量人机对话 / Agent 交互 / 建模与部署记录</h1>
-<div class="sub">生成时间 2026-11-12T16:11:57.489024+00:00 ｜ 仓库 nt-pairs ｜ 引擎 NautilusTrader 2.0.0rc6 ｜
+<div class="sub">生成时间 2026-11-12T16:18:50.537844+00:00 ｜ 仓库 nt-pairs ｜ 引擎 NautilusTrader 2.0.0rc6 ｜
 涵盖：人类↔Agent 对话、Captain↔worker 逐字转录、矩阵与演算、EV/净边际、实时监控口径、回测报告、部署指导书</div>
 </header>
 <nav><a href="#sec-A">A. 人类 ↔ Agent 原始对话（前序项目）</a><a href="#sec-B">B. 人类在本项目的指令 / Captain 回复原文</a><a href="#sec-C">C. Herdr 派发记录（captain ↔ worker，nt-pairs）</a><a href="#sec-D">D. Herdr 派发记录（captain ↔ worker，ant-cross-arb 前序研究）</a><a href="#sec-E">E. 项目文档：总纲、契约、状态、矩阵、EV、部署、回测</a><a href="#sec-F">F. 源码与脚本（可执行证据）</a><a href="#sec-G">G. 配置、测试与 Field Guide</a></nav>
@@ -22560,7 +22560,7 @@ install -m 600 /dev/null /etc/nt-pairs/env
 - `docs/DEPLOYMENT_GUIDE.md` — 通用部署指导书（VPS 选型、WS 心跳、对账、回滚）
 - `docs/MATRIX_SUMMARY.md` — 三场所矩阵结论
 - `STATUS.md` — 逐项状态表
-</code></pre></div></details><h3>docs/LIVE_TRADING_SPEC.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\LIVE_TRADING_SPEC.md</span><span class="tag">7,143 bytes</span></div><h1>实盘交易规格（RKLB / KIOXIA · 2026-11-13）</h1>
+</code></pre></div></details><h3>docs/LIVE_TRADING_SPEC.md</h3><div class="file-meta"><span class="tag">W:\nt-pairs\docs\LIVE_TRADING_SPEC.md</span><span class="tag">8,154 bytes</span></div><h1>实盘交易规格（RKLB / KIOXIA · 2026-11-13）</h1>
 <p><strong>状态</strong>：<code>dry_run=true</code> 为默认值；真实下单需<strong>逐级</strong>放开（见 §7 上线闸门）。</p>
 <p><strong>资金</strong>：用户账户内仅有少量资金，且<strong>明确接受全部亏损</strong>；因此本规格的第一目标是「不把错误放大」，</p>
 <p>第二目标才是「采集到可标定的成交数据」。</p>
@@ -22575,6 +22575,16 @@ install -m 600 /dev/null /etc/nt-pairs/env
 <ul><li>HL maker 1.5 + Lighter taker <strong>0</strong> = <strong>1.5 bps</strong></li><li>Lighter maker 0 + HL taker 4.5 = <strong>4.5 bps</strong></li></ul>
 <p>→ 同一标的，<strong>同样的捕获幅度，净 EV 差 3 bps</strong>。这就是 <code>leg_policy.select_pair</code> 的输出逻辑</p>
 <p>（实测：<code>taker 排序 LIGHTER &gt; HYPERLIQUID &gt; OKX</code>）。</p>
+<h2>1.1 实测约束（2026-11-13，<code>scripts/leverage_check.py</code> 实跑）</h2>
+<p>假设各场所权益 HL=40 / Lighter=40 / OKX=30 USD：</p>
+<table><thead><tr><th>对</th><th>leader 杠杆上限</th><th>follower 杠杆上限</th><th><strong>名义上限 N_max</strong></th><th>约束腿</th><th><strong>主腿固定费</strong></th><th>follower 资金费</th></tr></thead><tbody>
+<tr><td>RKLB（HL maker + Lighter taker）</td><td>HL 10x（<code>xyz:RKLB</code>）</td><td>Lighter 20x</td><td><strong>$400</strong></td><td>Lighter（40×20×0.5）</td><td><strong>1.5 bps</strong></td><td>0</td></tr>
+<tr><td>KIOXIA（HL maker + OKX taker）</td><td>HL 10x（<code>xyz:KIOXIA</code>）</td><td>OKX <strong>10x</strong>（实测 lever=10，非 5）</td><td><strong>$150</strong></td><td>OKX（30×10×0.5）</td><td>6.5 bps</td><td><strong>HL 8.59 bps/h</strong></td></tr>
+</tbody></table>
+<p>⚠️ <strong>KIOXIA 的 HL 资金费 8.59 bps/h ≈ 75%/年</strong> → 持仓 1 小时就吃掉 8.6 bps，</p>
+<p>而该腿的捕获幅度只有 ~20 bps → <strong>carry 是这笔交易的主要成本项</strong>，</p>
+<p>比手续费重要一个量级。这解释了为什么 KIOXIA 只能做「执行系统验证」，不能做收益来源。</p>
+<p>（<code>b*</code> 的 carry 项必须用<strong>实测 funding × 预期持仓</strong>，不是固定 0.5 bps。）</p>
 <h2>2. 杠杆与保证金对齐（用户明确要求）</h2>
 <p><strong>规则：按保证金占用对齐，不按倍数对齐。</strong></p>
 <pre><code>N_leg ≤ min( 0.5 × E_HL × lev_HL(maxLeverage) ,
@@ -22645,6 +22655,20 @@ install -m 600 /dev/null /etc/nt-pairs/env
 - Lighter maker 0 + HL taker 4.5 = **4.5 bps**
 → 同一标的，**同样的捕获幅度，净 EV 差 3 bps**。这就是 `leg_policy.select_pair` 的输出逻辑
 （实测：`taker 排序 LIGHTER &gt; HYPERLIQUID &gt; OKX`）。
+
+## 1.1 实测约束（2026-11-13，`scripts/leverage_check.py` 实跑）
+
+假设各场所权益 HL=40 / Lighter=40 / OKX=30 USD：
+
+| 对 | leader 杠杆上限 | follower 杠杆上限 | **名义上限 N_max** | 约束腿 | **主腿固定费** | follower 资金费 |
+|---|---|---|---:|---|---:|---:|
+| RKLB（HL maker + Lighter taker） | HL 10x（`xyz:RKLB`） | Lighter 20x | **$400** | Lighter（40×20×0.5） | **1.5 bps** | 0 |
+| KIOXIA（HL maker + OKX taker） | HL 10x（`xyz:KIOXIA`） | OKX **10x**（实测 lever=10，非 5） | **$150** | OKX（30×10×0.5） | 6.5 bps | **HL 8.59 bps/h** |
+
+⚠️ **KIOXIA 的 HL 资金费 8.59 bps/h ≈ 75%/年** → 持仓 1 小时就吃掉 8.6 bps，
+而该腿的捕获幅度只有 ~20 bps → **carry 是这笔交易的主要成本项**，
+比手续费重要一个量级。这解释了为什么 KIOXIA 只能做「执行系统验证」，不能做收益来源。
+（`b*` 的 carry 项必须用**实测 funding × 预期持仓**，不是固定 0.5 bps。）
 
 ## 2. 杠杆与保证金对齐（用户明确要求）
 
@@ -24912,7 +24936,7 @@ def leg_risk_bps(sigma_basis_bps: Decimal, t_leg_s: Decimal, p_one_leg: Decimal,
         return Decimal(&quot;0&quot;)
     v = math.sqrt(2 / math.pi) * float(sigma_basis_bps) * math.sqrt(float(t_leg_s) / 60.0) \
         * float(p_one_leg) * float(alpha)
-    return Decimal(str(v))</code></pre></div></details><h3>src/nt_pairs/live_node.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\live_node.py</span><span class="tag">26,766 bytes</span></div><p>&quot;&quot;&quot;NautilusTrader 2.0 `<code>LiveNode</code>` 装配层（实盘节点接线）。</p>
+    return Decimal(str(v))</code></pre></div></details><h3>src/nt_pairs/live_node.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\src/nt_pairs\live_node.py</span><span class="tag">27,509 bytes</span></div><p>&quot;&quot;&quot;NautilusTrader 2.0 `<code>LiveNode</code>` 装配层（实盘节点接线）。</p>
 <p>2.0.0rc6 移除了 1.x 的 `<code>TradingNode</code><code> / </code><code>TradingNodeConfig</code>`，改为</p>
 <p>`<code>nautilus_trader.live</code><code> 里的 </code><code>LiveNode</code><code> / </code><code>LiveNodeBuilder</code><code> / </code><code>LiveNodeConfig</code>`。</p>
 <p>本模块只负责<strong>装配</strong>（纯配置 + 节点构建），不启动网络循环，因此可以被单测直接调用。</p>
@@ -24960,7 +24984,14 @@ def leg_risk_bps(sigma_basis_bps: Decimal, t_leg_s: Decimal, p_one_leg: Decimal,
 <p>from nautilus_trader.common import DataActor</p>
 <p>from nautilus_trader.execution import MakerTakerFeeModel</p>
 <p>from nautilus_trader.live import LiveNode, LiveNodeBuilder, LiveNodeConfig</p>
-<p>from nautilus_trader.model import AccountId, Currency, InstrumentId, Money, Venue</p>
+<p>from nautilus_trader.model import (</p>
+<p>    AccountId,</p>
+<p>    BookType,</p>
+<p>    Currency,</p>
+<p>    InstrumentId,</p>
+<p>    Money,</p>
+<p>    Venue,</p>
+<p>)</p>
 <p>from .pair_spec import load_pair</p>
 <p>from .strategy import PairHedgeConfig, PairHedgeStrategy</p>
 <p>__all__ = [</p>
@@ -25396,10 +25427,11 @@ def leg_risk_bps(sigma_basis_bps: Decimal, t_leg_s: Decimal, p_one_leg: Decimal,
 <p>class PairHeartbeatActor(DataActor):</p>
 <p>    &quot;&quot;&quot;每 5 秒打一条心跳，并汇报两腿的订阅状态。</p>
 <p>    心跳字段：盘口时间戳、两腿 mid、基差（bps）、residual、naked_age（秒）。</p>
-<p>    数据流只订阅一次：由 :class:<code>~nt_pairs.strategy.PairHedgeStrategy</code> 在</p>
-<p>    `<code>on_start</code>` 里订阅两腿 L2_MBP。本 actor <strong>不重复订阅</strong>，改为读策略维护的</p>
-<p>    `<code>book_ts</code>`（收到过 deltas 即视为订阅成功）以及 cache 里的盘口，</p>
-<p>    避免同一 instrument 出现两条数据流。</p>
+<p>    2.0 关键行为：DataEngine 只为 <strong>managed</strong> 订阅维护 cache 里的 `<code>OrderBook</code>`</p>
+<p>    （非 managed 订阅只把 deltas 直接广播出去，`<code>cache.order_book()</code>` 恒为</p>
+<p>    `<code>None</code><code>）。因此本 actor 用 </code><code>managed=True</code>` 订阅两腿 L2_MBP：</p>
+<ul><li>引擎开始维护两腿盘口 → 心跳能拿到 mid/basis；</li><li>策略的 `<code>cache.order_book()</code>` 也随之可用（策略本身是非 managed 订阅，</li></ul>
+<p>      与本 actor 共享同一数据源，不需要改策略代码）。</p>
 <p>    &quot;&quot;&quot;</p>
 <p>    def __new__(cls, *args: Any, **kwargs: Any) -&gt; Any:</p>
 <p>        # 2.0 的 DataActor.__new__ 只接受 0~1 个位置参数，自定义构造参数需在此吞掉。</p>
@@ -25409,8 +25441,15 @@ def leg_risk_bps(sigma_basis_bps: Decimal, t_leg_s: Decimal, p_one_leg: Decimal,
 <p>        self._strategy = strategy</p>
 <p>        self._plan = plan</p>
 <p>        self._ticks = 0</p>
+<p>        self._book_ts: dict[str, int] = {}</p>
 <p>    # -- 生命周期 ---------------------------------------------------------</p>
 <p>    def on_start(self) -&gt; None:</p>
+<p>        for sub in self._plan.subscriptions:</p>
+<p>            self.subscribe_book_deltas(</p>
+<p>                InstrumentId.from_str(sub.instrument_id),</p>
+<p>                BookType.L2_MBP,</p>
+<p>                managed=True,</p>
+<p>            )</p>
 <p>        self.clock.set_timer(</p>
 <p>            name=&quot;heartbeat&quot;,</p>
 <p>            interval=timedelta(seconds=5),</p>
@@ -25419,13 +25458,18 @@ def leg_risk_bps(sigma_basis_bps: Decimal, t_leg_s: Decimal, p_one_leg: Decimal,
 <p>        self.log.info(</p>
 <p>            f&quot;heartbeat actor started instruments={list(self._plan.instrument_ids)}&quot;</p>
 <p>        )</p>
+<p>    def on_book_deltas(self, deltas: Any) -&gt; None:</p>
+<p>        &quot;&quot;&quot;记录每腿最后一笔 deltas 的事件时间。&quot;&quot;&quot;</p>
+<p>        self._book_ts[str(deltas.instrument_id)] = int(deltas.ts_event)</p>
 <p>    def on_stop(self) -&gt; None:</p>
 <p>        self.log.info(&quot;heartbeat actor stopped&quot;)</p>
 <p>    # -- 心跳 -------------------------------------------------------------</p>
 <p>    def _on_heartbeat(self, event: Any = None) -&gt; None:</p>
 <p>        self._ticks += 1</p>
 <p>        now = self.clock.timestamp_ns() / 1e9</p>
-<p>        book_ts = dict(getattr(self._strategy, &quot;book_ts&quot;, {}) or {})</p>
+<p>        book_ts = dict(self._book_ts)</p>
+<p>        for iid, ts in (getattr(self._strategy, &quot;book_ts&quot;, {}) or {}).items():</p>
+<p>            book_ts.setdefault(iid, int(ts))</p>
 <p>        mids: dict[str, Optional[float]] = {}</p>
 <p>        for sub in self._plan.subscriptions:</p>
 <p>            mids[sub.instrument_id] = self._mid(sub.instrument_id)</p>
@@ -25460,12 +25504,9 @@ def leg_risk_bps(sigma_basis_bps: Decimal, t_leg_s: Decimal, p_one_leg: Decimal,
 <p>            return None</p>
 <p>        return float(bid + ask) / 2.0</p>
 <p>    def subscription_status(self) -&gt; dict[str, bool]:</p>
-<p>        &quot;&quot;&quot;每条腿的订阅状态（策略收到过该腿的 deltas 即为 True）。&quot;&quot;&quot;</p>
-<p>        book_ts = getattr(self._strategy, &quot;book_ts&quot;, {}) or {}</p>
-<p>        return {</p>
-<p>            sub.instrument_id: str(sub.instrument_id) in book_ts</p>
-<p>            for sub in self._plan.subscriptions</p>
-<p>        }</p>
+<p>        &quot;&quot;&quot;每条腿的订阅状态（本 actor 收到过该腿的 deltas 即为 True）。&quot;&quot;&quot;</p>
+<p>        seen = set(self._book_ts) | set(getattr(self._strategy, &quot;book_ts&quot;, {}) or {})</p>
+<p>        return {sub.instrument_id: sub.instrument_id in seen for sub in self._plan.subscriptions}</p>
 <h1>---------------------------------------------------------------------------</h1>
 <h1>节点装配</h1>
 <h1>---------------------------------------------------------------------------</h1>
@@ -25623,7 +25664,14 @@ from nautilus_trader.adapters.sandbox import (
 from nautilus_trader.common import DataActor
 from nautilus_trader.execution import MakerTakerFeeModel
 from nautilus_trader.live import LiveNode, LiveNodeBuilder, LiveNodeConfig
-from nautilus_trader.model import AccountId, Currency, InstrumentId, Money, Venue
+from nautilus_trader.model import (
+    AccountId,
+    BookType,
+    Currency,
+    InstrumentId,
+    Money,
+    Venue,
+)
 
 from .pair_spec import load_pair
 from .strategy import PairHedgeConfig, PairHedgeStrategy
@@ -26140,10 +26188,12 @@ class PairHeartbeatActor(DataActor):
 
     心跳字段：盘口时间戳、两腿 mid、基差（bps）、residual、naked_age（秒）。
 
-    数据流只订阅一次：由 :class:`~nt_pairs.strategy.PairHedgeStrategy` 在
-    ``on_start`` 里订阅两腿 L2_MBP。本 actor **不重复订阅**，改为读策略维护的
-    ``book_ts``（收到过 deltas 即视为订阅成功）以及 cache 里的盘口，
-    避免同一 instrument 出现两条数据流。
+    2.0 关键行为：DataEngine 只为 **managed** 订阅维护 cache 里的 ``OrderBook``
+    （非 managed 订阅只把 deltas 直接广播出去，``cache.order_book()`` 恒为
+    ``None``）。因此本 actor 用 ``managed=True`` 订阅两腿 L2_MBP：
+    - 引擎开始维护两腿盘口 → 心跳能拿到 mid/basis；
+    - 策略的 ``cache.order_book()`` 也随之可用（策略本身是非 managed 订阅，
+      与本 actor 共享同一数据源，不需要改策略代码）。
     &quot;&quot;&quot;
 
     def __new__(cls, *args: Any, **kwargs: Any) -&gt; Any:
@@ -26155,9 +26205,16 @@ class PairHeartbeatActor(DataActor):
         self._strategy = strategy
         self._plan = plan
         self._ticks = 0
+        self._book_ts: dict[str, int] = {}
 
     # -- 生命周期 ---------------------------------------------------------
     def on_start(self) -&gt; None:
+        for sub in self._plan.subscriptions:
+            self.subscribe_book_deltas(
+                InstrumentId.from_str(sub.instrument_id),
+                BookType.L2_MBP,
+                managed=True,
+            )
         self.clock.set_timer(
             name=&quot;heartbeat&quot;,
             interval=timedelta(seconds=5),
@@ -26167,6 +26224,10 @@ class PairHeartbeatActor(DataActor):
             f&quot;heartbeat actor started instruments={list(self._plan.instrument_ids)}&quot;
         )
 
+    def on_book_deltas(self, deltas: Any) -&gt; None:
+        &quot;&quot;&quot;记录每腿最后一笔 deltas 的事件时间。&quot;&quot;&quot;
+        self._book_ts[str(deltas.instrument_id)] = int(deltas.ts_event)
+
     def on_stop(self) -&gt; None:
         self.log.info(&quot;heartbeat actor stopped&quot;)
 
@@ -26174,7 +26235,9 @@ class PairHeartbeatActor(DataActor):
     def _on_heartbeat(self, event: Any = None) -&gt; None:
         self._ticks += 1
         now = self.clock.timestamp_ns() / 1e9
-        book_ts = dict(getattr(self._strategy, &quot;book_ts&quot;, {}) or {})
+        book_ts = dict(self._book_ts)
+        for iid, ts in (getattr(self._strategy, &quot;book_ts&quot;, {}) or {}).items():
+            book_ts.setdefault(iid, int(ts))
         mids: dict[str, Optional[float]] = {}
         for sub in self._plan.subscriptions:
             mids[sub.instrument_id] = self._mid(sub.instrument_id)
@@ -26211,12 +26274,9 @@ class PairHeartbeatActor(DataActor):
         return float(bid + ask) / 2.0
 
     def subscription_status(self) -&gt; dict[str, bool]:
-        &quot;&quot;&quot;每条腿的订阅状态（策略收到过该腿的 deltas 即为 True）。&quot;&quot;&quot;
-        book_ts = getattr(self._strategy, &quot;book_ts&quot;, {}) or {}
-        return {
-            sub.instrument_id: str(sub.instrument_id) in book_ts
-            for sub in self._plan.subscriptions
-        }
+        &quot;&quot;&quot;每条腿的订阅状态（本 actor 收到过该腿的 deltas 即为 True）。&quot;&quot;&quot;
+        seen = set(self._book_ts) | set(getattr(self._strategy, &quot;book_ts&quot;, {}) or {})
+        return {sub.instrument_id: sub.instrument_id in seen for sub in self._plan.subscriptions}
 
 
 # ---------------------------------------------------------------------------
@@ -33241,6 +33301,279 @@ def main() -&gt; int:
 
 
 if __name__ == &quot;__main__&quot;:
+    raise SystemExit(main())</code></pre></div></details><h3>scripts/leverage_check.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\scripts\leverage_check.py</span><span class="tag">6,741 bytes</span></div><p>#!/usr/bin/env python</p>
+<p>&quot;&quot;&quot;杠杆对齐核查：按「保证金占用」对齐，而不是按倍数对齐。</p>
+<p>对 <code>configs/live_pairs.json</code> 的每个配对：</p>
+<ol><li>从三个场所的<strong>公开</strong>接口读该合约的杠杆上限与合约规格；</li><li>用统一公式算出「两腿名义相等且各自保证金占用 ≤ cap%」时的最大下单名义：</li></ol>
+<p>       N_max = min_over_venues( equity_venue <em> leverage_venue </em> margin_cap )</p>
+<p>   其中 equity_venue 需要私有接口（运行时由交易程序取），本脚本在缺权益时</p>
+<p>   只输出<strong>比例关系</strong>（哪条腿是约束）与「等名义所需的杠杆对齐条件」；</p>
+<ol><li>校验两腿单位换算 ratio（若提供了校准值）并打印校准来源。</li></ol>
+<p>用法：</p>
+<p>    python scripts/leverage_check.py --config configs/live_pairs.json</p>
+<p>    python scripts/leverage_check.py --config configs/live_pairs.json --equity HL=40,LIGHTER=40,OKX=30</p>
+<p>&quot;&quot;&quot;</p>
+<p>from __future__ import annotations</p>
+<p>import argparse</p>
+<p>import json</p>
+<p>import os</p>
+<p>import sys</p>
+<p>import urllib.request</p>
+<p>from decimal import Decimal</p>
+<p>from typing import Any</p>
+<p>HL = &quot;<a href="https://api.hyperliquid.xyz/info&quot;" target="_blank">https://api.hyperliquid.xyz/info&quot;</a></p>
+<p>LT = &quot;<a href="https://mainnet.zklighter.elliot.ai/api/v1&quot;" target="_blank">https://mainnet.zklighter.elliot.ai/api/v1&quot;</a></p>
+<p>OKX = &quot;<a href="https://www.okx.com/api/v5&quot;" target="_blank">https://www.okx.com/api/v5&quot;</a></p>
+<p>UA = {&quot;User-Agent&quot;: &quot;Mozilla/5.0&quot;}</p>
+<p>def http_json(url: str, payload: dict | None = None) -&gt; Any:</p>
+<p>    if payload is None:</p>
+<p>        req = urllib.request.Request(url, headers=UA)</p>
+<p>    else:</p>
+<p>        req = urllib.request.Request(url, data=json.dumps(payload).encode(),</p>
+<p>                                     headers={**UA, &quot;Content-Type&quot;: &quot;application/json&quot;})</p>
+<p>    with urllib.request.urlopen(req, timeout=25) as fh:</p>
+<p>        return json.load(fh)</p>
+<p>def hl_instrument(ident: str) -&gt; dict:</p>
+<p>    dex = ident.split(&quot;:&quot;)[0]</p>
+<p>    d = http_json(HL, {&quot;type&quot;: &quot;metaAndAssetCtxs&quot;, &quot;dex&quot;: dex})</p>
+<p>    for u, c in zip(d[0][&quot;universe&quot;], d[1]):</p>
+<p>        if u[&quot;name&quot;] == ident:</p>
+<p>            return {&quot;venue&quot;: &quot;HYPERLIQUID&quot;, &quot;instrument&quot;: ident, &quot;max_leverage&quot;: int(u.get(&quot;maxLeverage&quot;) or 0),</p>
+<p>                    &quot;size_decimals&quot;: int(u.get(&quot;szDecimals&quot;) or 0),</p>
+<p>                    &quot;mark&quot;: float(c.get(&quot;markPx&quot;) or 0), &quot;funding_bps_h&quot;: float(c.get(&quot;funding&quot;) or 0) * 1e4,</p>
+<p>                    &quot;oi&quot;: float(c.get(&quot;openInterest&quot;) or 0)}</p>
+<p>    return {&quot;venue&quot;: &quot;HYPERLIQUID&quot;, &quot;instrument&quot;: ident, &quot;error&quot;: &quot;not found&quot;}</p>
+<p>def lighter_instrument(market_id: int) -&gt; dict:</p>
+<p>    d = http_json(f&quot;{LT}/orderBookDetails?market_id={market_id}&quot;)</p>
+<p>    m = (d.get(&quot;order_book_details&quot;) or [{}])[0]</p>
+<p>    return {&quot;venue&quot;: &quot;LIGHTER&quot;, &quot;instrument&quot;: m.get(&quot;symbol&quot;), &quot;market_id&quot;: market_id,</p>
+<p>            &quot;max_leverage&quot;: 20 if m.get(&quot;market_type&quot;) == &quot;perp&quot; else None,</p>
+<p>            &quot;maker_bps&quot;: float(m.get(&quot;maker_fee&quot;) or 0) * 1e4,</p>
+<p>            &quot;taker_bps&quot;: float(m.get(&quot;taker_fee&quot;) or 0) * 1e4,</p>
+<p>            &quot;min_base_amount&quot;: float(m.get(&quot;min_base_amount&quot;) or 0),</p>
+<p>            &quot;min_quote_amount&quot;: float(m.get(&quot;min_quote_amount&quot;) or 0),</p>
+<p>            &quot;mark&quot;: float(m.get(&quot;mark_price&quot;) or 0), &quot;oi&quot;: float(m.get(&quot;open_interest&quot;) or 0)}</p>
+<p>def okx_instrument(inst: str) -&gt; dict:</p>
+<p>    d = http_json(f&quot;{OKX}/public/instruments?instType=SWAP&amp;instId={inst}&quot;)</p>
+<p>    x = (d.get(&quot;data&quot;) or [{}])[0]</p>
+<p>    return {&quot;venue&quot;: &quot;OKX&quot;, &quot;instrument&quot;: inst, &quot;max_leverage&quot;: int(x.get(&quot;lever&quot;) or 0),</p>
+<p>            &quot;ct_val&quot;: x.get(&quot;ctVal&quot;), &quot;lot_sz&quot;: x.get(&quot;lotSz&quot;), &quot;tick_sz&quot;: x.get(&quot;tickSz&quot;),</p>
+<p>            &quot;state&quot;: x.get(&quot;state&quot;), &quot;settle&quot;: x.get(&quot;settleCcy&quot;)}</p>
+<p>def main() -&gt; int:</p>
+<p>    ap = argparse.ArgumentParser()</p>
+<p>    ap.add_argument(&quot;--config&quot;, default=&quot;configs/live_pairs.json&quot;)</p>
+<p>    ap.add_argument(&quot;--equity&quot;, default=&quot;&quot;, help=&quot;形如 HL=40,LIGHTER=40,OKX=30（USD）&quot;)</p>
+<p>    args = ap.parse_args()</p>
+<p>    with open(args.config, encoding=&quot;utf-8&quot;) as fh:</p>
+<p>        cfg = json.load(fh)</p>
+<p>    equity = {}</p>
+<p>    for kv in args.equity.split(&quot;,&quot;):</p>
+<p>        if &quot;=&quot; in kv:</p>
+<p>            k, v = kv.split(&quot;=&quot;)</p>
+<p>            equity[k.upper()] = Decimal(v)</p>
+<p>    cap = Decimal(str(cfg[&quot;global&quot;][&quot;margin_usage_cap_per_venue&quot;]))</p>
+<p>    lo = Decimal(str(cfg[&quot;global&quot;][&quot;min_leg_notional_usd&quot;]))</p>
+<p>    hi = Decimal(str(cfg[&quot;global&quot;][&quot;max_leg_notional_usd&quot;]))</p>
+<p>    print(f&quot;margin_usage_cap={cap}  notional_range=${lo}..${hi}&quot;)</p>
+<p>    for pair in cfg[&quot;pairs&quot;]:</p>
+<p>        print(f&quot;\n=== {pair[&#x27;name&#x27;]} ({pair.get(&#x27;status&#x27;,&#x27;&#x27;)})&quot;)</p>
+<p>        legs = [pair[&quot;leader&quot;], pair[&quot;follower&quot;]]</p>
+<p>        backup = pair.get(&quot;backup&quot;)</p>
+<p>        if backup:</p>
+<p>            print(f&quot;  [backup       ] (不参与名义上限计算) {backup[&#x27;venue&#x27;]} {backup[&#x27;instrument_id&#x27;]} lev={backup.get(&#x27;leverage&#x27;)}&quot;)</p>
+<p>        infos = []</p>
+<p>        for leg in legs:</p>
+<p>            v = leg[&quot;venue&quot;]</p>
+<p>            try:</p>
+<p>                nat = leg.get(&quot;native_id&quot;) or leg[&quot;instrument_id&quot;]</p>
+<p>                if v == &quot;HYPERLIQUID&quot;:</p>
+<p>                    info = hl_instrument(nat)</p>
+<p>                elif v == &quot;LIGHTER&quot;:</p>
+<p>                    info = lighter_instrument(int(nat))</p>
+<p>                else:</p>
+<p>                    info = okx_instrument(nat)</p>
+<p>            except Exception as exc:  # noqa: BLE001</p>
+<p>                info = {&quot;venue&quot;: v, &quot;instrument&quot;: leg.get(&quot;instrument_id&quot;), &quot;error&quot;: f&quot;{type(exc).__name__}: {exc}&quot;}</p>
+<p>            info[&quot;role&quot;] = leg[&quot;role&quot;]</p>
+<p>            info[&quot;configured_leverage&quot;] = leg.get(&quot;leverage&quot;)</p>
+<p>            info[&quot;configured_mode&quot;] = leg.get(&quot;leverage_mode&quot;)</p>
+<p>            infos.append(info)</p>
+<p>            print(f&quot;  [{leg[&#x27;role&#x27;]:14s}] {info}&quot;)</p>
+<p>        # 约束腿：equity<em>leverage</em>cap 最小者</p>
+<p>        caps = []</p>
+<p>        for info in infos:</p>
+<p>            eq = equity.get(info[&quot;venue&quot;])</p>
+<p>            lev = info.get(&quot;max_leverage&quot;) or info.get(&quot;configured_leverage&quot;) or 0</p>
+<p>            if eq is None or not lev:</p>
+<p>                continue</p>
+<p>            caps.append((eq <em> Decimal(lev) </em> cap, info[&quot;venue&quot;], info[&quot;role&quot;], lev))</p>
+<p>        if caps:</p>
+<p>            caps.sort()</p>
+<p>            n_max = caps[0][0]</p>
+<p>            print(f&quot;  → 名义上限 N_max = ${n_max:.2f}（约束腿：{caps[0][1]} / {caps[0][2]}，&quot;</p>
+<p>                  f&quot;杠杆 {caps[0][3]}）&quot;)</p>
+<p>            if n_max &lt; lo:</p>
+<p>                print(&quot;  → ⚠️ 低于最小下单额 $100：需要充值或降低保证金占用上限&quot;)</p>
+<p>        else:</p>
+<p>            print(&quot;  → 未提供各场所权益 → 只给出比例关系：&quot;</p>
+<p>                  &quot;两腿名义相同，杠杆倍数可不同，约束由 min(equity<em>lev</em>cap) 决定&quot;)</p>
+<p>        # 费用对齐</p>
+<p>        fees = []</p>
+<p>        for info in infos:</p>
+<p>            if info[&quot;role&quot;] == &quot;maker&quot;:</p>
+<p>                fees.append((&quot;maker&quot;, info.get(&quot;venue&quot;), info.get(&quot;maker_bps&quot;, 1.5)))</p>
+<p>            elif info[&quot;role&quot;] in (&quot;taker&quot;, &quot;taker_fallback&quot;):</p>
+<p>                fees.append((&quot;taker&quot;, info.get(&quot;venue&quot;), info.get(&quot;taker_bps&quot;, 5.0)))</p>
+<p>        print(f&quot;  → 费用组合：{fees}；主腿组合固定费 = &quot;</p>
+<p>              f&quot;{sum(f for _, _, f in fees if _ != &#x27;taker_fallback&#x27;):.2f} bps&quot;)</p>
+<p>    return 0</p>
+<p>if __name__ == &quot;__main__&quot;:</p>
+<p>    raise SystemExit(main())</p><details><summary>原文（逐字，raw）</summary><div><pre><code>#!/usr/bin/env python
+&quot;&quot;&quot;杠杆对齐核查：按「保证金占用」对齐，而不是按倍数对齐。
+
+对 `configs/live_pairs.json` 的每个配对：
+1. 从三个场所的**公开**接口读该合约的杠杆上限与合约规格；
+2. 用统一公式算出「两腿名义相等且各自保证金占用 ≤ cap%」时的最大下单名义：
+       N_max = min_over_venues( equity_venue * leverage_venue * margin_cap )
+   其中 equity_venue 需要私有接口（运行时由交易程序取），本脚本在缺权益时
+   只输出**比例关系**（哪条腿是约束）与「等名义所需的杠杆对齐条件」；
+3. 校验两腿单位换算 ratio（若提供了校准值）并打印校准来源。
+
+用法：
+    python scripts/leverage_check.py --config configs/live_pairs.json
+    python scripts/leverage_check.py --config configs/live_pairs.json --equity HL=40,LIGHTER=40,OKX=30
+&quot;&quot;&quot;
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+import urllib.request
+from decimal import Decimal
+from typing import Any
+
+HL = &quot;https://api.hyperliquid.xyz/info&quot;
+LT = &quot;https://mainnet.zklighter.elliot.ai/api/v1&quot;
+OKX = &quot;https://www.okx.com/api/v5&quot;
+UA = {&quot;User-Agent&quot;: &quot;Mozilla/5.0&quot;}
+
+
+def http_json(url: str, payload: dict | None = None) -&gt; Any:
+    if payload is None:
+        req = urllib.request.Request(url, headers=UA)
+    else:
+        req = urllib.request.Request(url, data=json.dumps(payload).encode(),
+                                     headers={**UA, &quot;Content-Type&quot;: &quot;application/json&quot;})
+    with urllib.request.urlopen(req, timeout=25) as fh:
+        return json.load(fh)
+
+
+def hl_instrument(ident: str) -&gt; dict:
+    dex = ident.split(&quot;:&quot;)[0]
+    d = http_json(HL, {&quot;type&quot;: &quot;metaAndAssetCtxs&quot;, &quot;dex&quot;: dex})
+    for u, c in zip(d[0][&quot;universe&quot;], d[1]):
+        if u[&quot;name&quot;] == ident:
+            return {&quot;venue&quot;: &quot;HYPERLIQUID&quot;, &quot;instrument&quot;: ident, &quot;max_leverage&quot;: int(u.get(&quot;maxLeverage&quot;) or 0),
+                    &quot;size_decimals&quot;: int(u.get(&quot;szDecimals&quot;) or 0),
+                    &quot;mark&quot;: float(c.get(&quot;markPx&quot;) or 0), &quot;funding_bps_h&quot;: float(c.get(&quot;funding&quot;) or 0) * 1e4,
+                    &quot;oi&quot;: float(c.get(&quot;openInterest&quot;) or 0)}
+    return {&quot;venue&quot;: &quot;HYPERLIQUID&quot;, &quot;instrument&quot;: ident, &quot;error&quot;: &quot;not found&quot;}
+
+
+def lighter_instrument(market_id: int) -&gt; dict:
+    d = http_json(f&quot;{LT}/orderBookDetails?market_id={market_id}&quot;)
+    m = (d.get(&quot;order_book_details&quot;) or [{}])[0]
+    return {&quot;venue&quot;: &quot;LIGHTER&quot;, &quot;instrument&quot;: m.get(&quot;symbol&quot;), &quot;market_id&quot;: market_id,
+            &quot;max_leverage&quot;: 20 if m.get(&quot;market_type&quot;) == &quot;perp&quot; else None,
+            &quot;maker_bps&quot;: float(m.get(&quot;maker_fee&quot;) or 0) * 1e4,
+            &quot;taker_bps&quot;: float(m.get(&quot;taker_fee&quot;) or 0) * 1e4,
+            &quot;min_base_amount&quot;: float(m.get(&quot;min_base_amount&quot;) or 0),
+            &quot;min_quote_amount&quot;: float(m.get(&quot;min_quote_amount&quot;) or 0),
+            &quot;mark&quot;: float(m.get(&quot;mark_price&quot;) or 0), &quot;oi&quot;: float(m.get(&quot;open_interest&quot;) or 0)}
+
+
+def okx_instrument(inst: str) -&gt; dict:
+    d = http_json(f&quot;{OKX}/public/instruments?instType=SWAP&amp;instId={inst}&quot;)
+    x = (d.get(&quot;data&quot;) or [{}])[0]
+    return {&quot;venue&quot;: &quot;OKX&quot;, &quot;instrument&quot;: inst, &quot;max_leverage&quot;: int(x.get(&quot;lever&quot;) or 0),
+            &quot;ct_val&quot;: x.get(&quot;ctVal&quot;), &quot;lot_sz&quot;: x.get(&quot;lotSz&quot;), &quot;tick_sz&quot;: x.get(&quot;tickSz&quot;),
+            &quot;state&quot;: x.get(&quot;state&quot;), &quot;settle&quot;: x.get(&quot;settleCcy&quot;)}
+
+
+def main() -&gt; int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument(&quot;--config&quot;, default=&quot;configs/live_pairs.json&quot;)
+    ap.add_argument(&quot;--equity&quot;, default=&quot;&quot;, help=&quot;形如 HL=40,LIGHTER=40,OKX=30（USD）&quot;)
+    args = ap.parse_args()
+    with open(args.config, encoding=&quot;utf-8&quot;) as fh:
+        cfg = json.load(fh)
+    equity = {}
+    for kv in args.equity.split(&quot;,&quot;):
+        if &quot;=&quot; in kv:
+            k, v = kv.split(&quot;=&quot;)
+            equity[k.upper()] = Decimal(v)
+    cap = Decimal(str(cfg[&quot;global&quot;][&quot;margin_usage_cap_per_venue&quot;]))
+    lo = Decimal(str(cfg[&quot;global&quot;][&quot;min_leg_notional_usd&quot;]))
+    hi = Decimal(str(cfg[&quot;global&quot;][&quot;max_leg_notional_usd&quot;]))
+
+    print(f&quot;margin_usage_cap={cap}  notional_range=${lo}..${hi}&quot;)
+    for pair in cfg[&quot;pairs&quot;]:
+        print(f&quot;\n=== {pair[&#x27;name&#x27;]} ({pair.get(&#x27;status&#x27;,&#x27;&#x27;)})&quot;)
+        legs = [pair[&quot;leader&quot;], pair[&quot;follower&quot;]]
+        backup = pair.get(&quot;backup&quot;)
+        if backup:
+            print(f&quot;  [backup       ] (不参与名义上限计算) {backup[&#x27;venue&#x27;]} {backup[&#x27;instrument_id&#x27;]} lev={backup.get(&#x27;leverage&#x27;)}&quot;)
+        infos = []
+        for leg in legs:
+            v = leg[&quot;venue&quot;]
+            try:
+                nat = leg.get(&quot;native_id&quot;) or leg[&quot;instrument_id&quot;]
+                if v == &quot;HYPERLIQUID&quot;:
+                    info = hl_instrument(nat)
+                elif v == &quot;LIGHTER&quot;:
+                    info = lighter_instrument(int(nat))
+                else:
+                    info = okx_instrument(nat)
+            except Exception as exc:  # noqa: BLE001
+                info = {&quot;venue&quot;: v, &quot;instrument&quot;: leg.get(&quot;instrument_id&quot;), &quot;error&quot;: f&quot;{type(exc).__name__}: {exc}&quot;}
+            info[&quot;role&quot;] = leg[&quot;role&quot;]
+            info[&quot;configured_leverage&quot;] = leg.get(&quot;leverage&quot;)
+            info[&quot;configured_mode&quot;] = leg.get(&quot;leverage_mode&quot;)
+            infos.append(info)
+            print(f&quot;  [{leg[&#x27;role&#x27;]:14s}] {info}&quot;)
+        # 约束腿：equity*leverage*cap 最小者
+        caps = []
+        for info in infos:
+            eq = equity.get(info[&quot;venue&quot;])
+            lev = info.get(&quot;max_leverage&quot;) or info.get(&quot;configured_leverage&quot;) or 0
+            if eq is None or not lev:
+                continue
+            caps.append((eq * Decimal(lev) * cap, info[&quot;venue&quot;], info[&quot;role&quot;], lev))
+        if caps:
+            caps.sort()
+            n_max = caps[0][0]
+            print(f&quot;  → 名义上限 N_max = ${n_max:.2f}（约束腿：{caps[0][1]} / {caps[0][2]}，&quot;
+                  f&quot;杠杆 {caps[0][3]}）&quot;)
+            if n_max &lt; lo:
+                print(&quot;  → ⚠️ 低于最小下单额 $100：需要充值或降低保证金占用上限&quot;)
+        else:
+            print(&quot;  → 未提供各场所权益 → 只给出比例关系：&quot;
+                  &quot;两腿名义相同，杠杆倍数可不同，约束由 min(equity*lev*cap) 决定&quot;)
+        # 费用对齐
+        fees = []
+        for info in infos:
+            if info[&quot;role&quot;] == &quot;maker&quot;:
+                fees.append((&quot;maker&quot;, info.get(&quot;venue&quot;), info.get(&quot;maker_bps&quot;, 1.5)))
+            elif info[&quot;role&quot;] in (&quot;taker&quot;, &quot;taker_fallback&quot;):
+                fees.append((&quot;taker&quot;, info.get(&quot;venue&quot;), info.get(&quot;taker_bps&quot;, 5.0)))
+        print(f&quot;  → 费用组合：{fees}；主腿组合固定费 = &quot;
+              f&quot;{sum(f for _, _, f in fees if _ != &#x27;taker_fallback&#x27;):.2f} bps&quot;)
+    return 0
+
+
+if __name__ == &quot;__main__&quot;:
     raise SystemExit(main())</code></pre></div></details><h3>scripts/make_report.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\scripts\make_report.py</span><span class="tag">29,731 bytes</span></div><p>#!/usr/bin/env python</p>
 <p>&quot;&quot;&quot;VPS 侧 6 小时报告生成器（纯标准库，不联网、不需要任何密钥）。</p>
 <p>输入：</p>
@@ -35923,7 +36256,7 @@ def main() -&gt; int:
 
 if __name__ == &quot;__main__&quot;:
     sys.exit(main())
-</code></pre></div></details><h3>scripts/recheck.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\scripts\recheck.py</span><span class="tag">43,613 bytes</span></div><p>#!/usr/bin/env python</p>
+</code></pre></div></details><h3>scripts/recheck.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\scripts\recheck.py</span><span class="tag">46,752 bytes</span></div><p>#!/usr/bin/env python</p>
 <p>&quot;&quot;&quot;独立复核（E8）：数值、风控与「可交易」结论的第三方重算。</p>
 <p>只读仓库既有实现（<code>src/nt_pairs/*</code>、<code>scripts/build_matrix.py</code>、</p>
 <p><code>scripts/screen_candidates.py</code>），不改它们；本脚本只做复算与对拍。</p>
@@ -36477,6 +36810,29 @@ if __name__ == &quot;__main__&quot;:
 <p>    for b in bands.values():</p>
 <p>        b[&quot;net_bps&quot;] = b[&quot;p_fill&quot;] * (b[&quot;capture_bps&quot;] - b[&quot;cost_bps&quot;])</p>
 <p>    return bands</p>
+<p>def headline_decomposition(capture: float, b_star: float, costs: dict) -&gt; dict:</p>
+<p>    &quot;&quot;&quot;把报告里的 headline（capture − b*）逐项拆开：补上漏计的成本、修正多计的成本。</p>
+<p>    用于回答「+5.3 bps/轮 在扣掉哪些还没扣的成本之后还剩多少」。</p>
+<p>    &quot;&quot;&quot;</p>
+<p>    hs_lt = costs[&quot;lt_spread_bps&quot;]</p>
+<p>    slip_lt = costs[&quot;slip_lt_2tick_bps&quot;]</p>
+<p>    carry_live = costs[&quot;hl_funding_bps_h&quot;]</p>
+<p>    fee_repo = 6.0</p>
+<p>    fee_real = costs[&quot;hl_effective_maker_bps&quot;] + costs[&quot;hl_effective_taker_bps&quot;]</p>
+<p>    lr_const = 0.3</p>
+<p>    lr_30s = float(leg_risk_bps(D(&quot;12.9&quot;), D(&quot;30&quot;), D(&quot;0.30&quot;)))</p>
+<p>    items = [</p>
+<p>        (&quot;报告 headline（capture − b*）&quot;, capture - b_star),</p>
+<p>        (&quot;补：follower 平仓再穿一次价差（半价差）&quot;, -hs_lt / 2),</p>
+<p>        (&quot;补：follower 平仓的按规模滑点（2 tick）&quot;, -slip_lt),</p>
+<p>        (&quot;修正：carry 0.5 → 实测（成本降 → 净升）&quot;, 0.5 - carry_live),</p>
+<p>        (&quot;修正：HL 费率 6.0 → 官方 HIP-3 实际（成本降 → 净升）&quot;, fee_repo - fee_real),</p>
+<p>        (&quot;修正：腿风险 0.3 → t_leg=30s / P=0.30（成本升 → 净降）&quot;, lr_const - lr_30s),</p>
+<p>    ]</p>
+<p>    total = sum(v for _, v in items)</p>
+<p>    return {&quot;items&quot;: items, &quot;net_at_p1&quot;: total,</p>
+<p>            &quot;net_at_p05&quot;: 0.5 <em> total, &quot;net_at_p03&quot;: 0.3 </em> total,</p>
+<p>            &quot;note&quot;: &quot;capture 口径若换成「两腿同刻定价」（收→收），capture ≈ 0 → 三档全部转负&quot;}</p>
 <p>def analyse_quote_samples(symbol: str = &quot;SOXL&quot;) -&gt; dict:</p>
 <p>    &quot;&quot;&quot;分析 <code>scripts/recheck_quote_sample.py</code> 的高频采样：盘口基差 vs 成交价基差。&quot;&quot;&quot;</p>
 <p>    path = os.path.join(CACHE, f&quot;quote_samples_{symbol}.jsonl&quot;)</p>
@@ -36544,6 +36900,13 @@ if __name__ == &quot;__main__&quot;:
 <p>        out[f&quot;{label}_replay_capture_n&quot;] = len(caps)</p>
 <p>        out[f&quot;{label}_replay_win_pct&quot;] = (100 * sum(1 for c in caps if c &gt; 0) / len(caps)) if caps else None</p>
 <p>    return out</p>
+<p>#: <code>docs/MATRIX_SUMMARY.md</code> §3.0 的最终裁决（已发布的数字，复核基准）</p>
+<p>PUBLISHED = {</p>
+<p>    &quot;SOXL&quot;: {&quot;events&quot;: 115, &quot;b_star&quot;: 11.6, &quot;capture&quot;: 16.9, &quot;net&quot;: 5.3, &quot;win_pct&quot;: 97,</p>
+<p>             &quot;rth_net&quot;: -0.2, &quot;closed_net&quot;: 10.3, &quot;rep_hl&quot;: 0.2, &quot;rep_lt&quot;: 1.6},</p>
+<p>    &quot;MRVL&quot;: {&quot;events&quot;: 119, &quot;b_star&quot;: 14.7, &quot;capture&quot;: 16.2, &quot;net&quot;: 1.5, &quot;win_pct&quot;: 90,</p>
+<p>             &quot;rth_net&quot;: 7.8, &quot;closed_net&quot;: -3.0, &quot;rep_hl&quot;: 1.7, &quot;rep_lt&quot;: 8.2},</p>
+<p>}</p>
 <p>def q4_replay_and_ev(offline: bool = False) -&gt; dict:</p>
 <p>    cands = [(&quot;SOXL&quot;, &quot;xyz:SOXL&quot;, 197), (&quot;MRVL&quot;, &quot;xyz:MRVL&quot;, 174),</p>
 <p>             (&quot;EWY&quot;, &quot;xyz:EWY&quot;, 166), (&quot;RKLB&quot;, &quot;xyz:RKLB&quot;, 186), (&quot;BABA&quot;, &quot;xyz:BABA&quot;, 177)]</p>
@@ -36558,6 +36921,7 @@ if __name__ == &quot;__main__&quot;:
 <p>        rec = fade_replay(h, l)</p>
 <p>        costs = live_costs(coin, mid, dex=coin.split(&quot;:&quot;)[0], offline=offline)</p>
 <p>        rec[&quot;costs&quot;] = costs</p>
+<p>        rec[&quot;published&quot;] = PUBLISHED.get(name)</p>
 <p>        if &quot;error&quot; not in costs:</p>
 <p>            v = rec[&quot;variants&quot;]</p>
 <p>            rec[&quot;ev_bands&quot;] = ev_bands(</p>
@@ -36566,6 +36930,16 @@ if __name__ == &quot;__main__&quot;:
 <p>                capture_close_close=v[&quot;close_close&quot;][&quot;mean&quot;],</p>
 <p>                b_star_repo=costs[&quot;repo_screen_bstar_bps&quot;],</p>
 <p>                b_star_full=costs[&quot;full_round_cost_official_fees&quot;][&quot;total&quot;])</p>
+<p>            pub = PUBLISHED.get(name)</p>
+<p>            if pub:</p>
+<p>                hd = headline_decomposition(pub[&quot;capture&quot;], pub[&quot;b_star&quot;], costs)</p>
+<p>                cc = v[&quot;close_close&quot;][&quot;mean&quot;]</p>
+<p>                hd[&quot;alt_contemporaneous_capture&quot;] = {</p>
+<p>                    &quot;capture_bps&quot;: cc,</p>
+<p>                    &quot;net_at_p1&quot;: cc - costs[&quot;full_round_cost_official_fees&quot;][&quot;total&quot;],</p>
+<p>                    &quot;net_at_p05&quot;: 0.5 * (cc - costs[&quot;full_round_cost_official_fees&quot;][&quot;total&quot;]),</p>
+<p>                }</p>
+<p>                rec[&quot;headline_decomposition&quot;] = hd</p>
 <p>        out[name] = rec</p>
 <p>        time.sleep(0.3)</p>
 <p>    return out</p>
@@ -36669,6 +37043,17 @@ if __name__ == &quot;__main__&quot;:
 <p>              f&quot;{ {k: round(vv, 2) for k, vv in c[&#x27;full_round_cost_official_fees&#x27;].items()} }&quot;)</p>
 <p>        print(f&quot;    保守 {b[&#x27;conservative&#x27;][&#x27;net_bps&#x27;]:+.2f} | 中性 {b[&#x27;neutral&#x27;][&#x27;net_bps&#x27;]:+.2f} | &quot;</p>
 <p>              f&quot;乐观 {b[&#x27;optimistic&#x27;][&#x27;net_bps&#x27;]:+.2f}&quot;)</p>
+<p>        hd = r.get(&quot;headline_decomposition&quot;)</p>
+<p>        if hd:</p>
+<p>            print(f&quot;    headline 拆解（{name}，docs/MATRIX_SUMMARY.md §3.0）：&quot;)</p>
+<p>            for label, val in hd[&quot;items&quot;]:</p>
+<p>                print(f&quot;      {label:42s}{val:+8.2f}&quot;)</p>
+<p>            print(f&quot;      → 补齐后 p_fill=1: {hd[&#x27;net_at_p1&#x27;]:+.2f} | p_fill=0.5: {hd[&#x27;net_at_p05&#x27;]:+.2f} &quot;</p>
+<p>                  f&quot;| p_fill=0.3: {hd[&#x27;net_at_p03&#x27;]:+.2f}&quot;)</p>
+<p>            alt = hd.get(&quot;alt_contemporaneous_capture&quot;)</p>
+<p>            if alt:</p>
+<p>                print(f&quot;      → 若捕获改用「两腿同刻定价」capture={alt[&#x27;capture_bps&#x27;]:+.2f}：&quot;</p>
+<p>                      f&quot;p_fill=1 {alt[&#x27;net_at_p1&#x27;]:+.2f} / p_fill=0.5 {alt[&#x27;net_at_p05&#x27;]:+.2f}&quot;)</p>
 <p>    qs = rep.get(&quot;q4_quote_samples&quot;, {})</p>
 <p>    print(&quot;\n## Q4 高频采样：盘口基差 vs 成交价基差&quot;)</p>
 <p>    if &quot;error&quot; in qs:</p>
@@ -37321,6 +37706,32 @@ def ev_bands(capture_impl: float, capture_open_open: float, capture_close_close:
     return bands
 
 
+def headline_decomposition(capture: float, b_star: float, costs: dict) -&gt; dict:
+    &quot;&quot;&quot;把报告里的 headline（capture − b*）逐项拆开：补上漏计的成本、修正多计的成本。
+
+    用于回答「+5.3 bps/轮 在扣掉哪些还没扣的成本之后还剩多少」。
+    &quot;&quot;&quot;
+    hs_lt = costs[&quot;lt_spread_bps&quot;]
+    slip_lt = costs[&quot;slip_lt_2tick_bps&quot;]
+    carry_live = costs[&quot;hl_funding_bps_h&quot;]
+    fee_repo = 6.0
+    fee_real = costs[&quot;hl_effective_maker_bps&quot;] + costs[&quot;hl_effective_taker_bps&quot;]
+    lr_const = 0.3
+    lr_30s = float(leg_risk_bps(D(&quot;12.9&quot;), D(&quot;30&quot;), D(&quot;0.30&quot;)))
+    items = [
+        (&quot;报告 headline（capture − b*）&quot;, capture - b_star),
+        (&quot;补：follower 平仓再穿一次价差（半价差）&quot;, -hs_lt / 2),
+        (&quot;补：follower 平仓的按规模滑点（2 tick）&quot;, -slip_lt),
+        (&quot;修正：carry 0.5 → 实测（成本降 → 净升）&quot;, 0.5 - carry_live),
+        (&quot;修正：HL 费率 6.0 → 官方 HIP-3 实际（成本降 → 净升）&quot;, fee_repo - fee_real),
+        (&quot;修正：腿风险 0.3 → t_leg=30s / P=0.30（成本升 → 净降）&quot;, lr_const - lr_30s),
+    ]
+    total = sum(v for _, v in items)
+    return {&quot;items&quot;: items, &quot;net_at_p1&quot;: total,
+            &quot;net_at_p05&quot;: 0.5 * total, &quot;net_at_p03&quot;: 0.3 * total,
+            &quot;note&quot;: &quot;capture 口径若换成「两腿同刻定价」（收→收），capture ≈ 0 → 三档全部转负&quot;}
+
+
 def analyse_quote_samples(symbol: str = &quot;SOXL&quot;) -&gt; dict:
     &quot;&quot;&quot;分析 `scripts/recheck_quote_sample.py` 的高频采样：盘口基差 vs 成交价基差。&quot;&quot;&quot;
     path = os.path.join(CACHE, f&quot;quote_samples_{symbol}.jsonl&quot;)
@@ -37391,6 +37802,15 @@ def analyse_quote_samples(symbol: str = &quot;SOXL&quot;) -&gt; dict:
     return out
 
 
+#: `docs/MATRIX_SUMMARY.md` §3.0 的最终裁决（已发布的数字，复核基准）
+PUBLISHED = {
+    &quot;SOXL&quot;: {&quot;events&quot;: 115, &quot;b_star&quot;: 11.6, &quot;capture&quot;: 16.9, &quot;net&quot;: 5.3, &quot;win_pct&quot;: 97,
+             &quot;rth_net&quot;: -0.2, &quot;closed_net&quot;: 10.3, &quot;rep_hl&quot;: 0.2, &quot;rep_lt&quot;: 1.6},
+    &quot;MRVL&quot;: {&quot;events&quot;: 119, &quot;b_star&quot;: 14.7, &quot;capture&quot;: 16.2, &quot;net&quot;: 1.5, &quot;win_pct&quot;: 90,
+             &quot;rth_net&quot;: 7.8, &quot;closed_net&quot;: -3.0, &quot;rep_hl&quot;: 1.7, &quot;rep_lt&quot;: 8.2},
+}
+
+
 def q4_replay_and_ev(offline: bool = False) -&gt; dict:
     cands = [(&quot;SOXL&quot;, &quot;xyz:SOXL&quot;, 197), (&quot;MRVL&quot;, &quot;xyz:MRVL&quot;, 174),
              (&quot;EWY&quot;, &quot;xyz:EWY&quot;, 166), (&quot;RKLB&quot;, &quot;xyz:RKLB&quot;, 186), (&quot;BABA&quot;, &quot;xyz:BABA&quot;, 177)]
@@ -37405,6 +37825,7 @@ def q4_replay_and_ev(offline: bool = False) -&gt; dict:
         rec = fade_replay(h, l)
         costs = live_costs(coin, mid, dex=coin.split(&quot;:&quot;)[0], offline=offline)
         rec[&quot;costs&quot;] = costs
+        rec[&quot;published&quot;] = PUBLISHED.get(name)
         if &quot;error&quot; not in costs:
             v = rec[&quot;variants&quot;]
             rec[&quot;ev_bands&quot;] = ev_bands(
@@ -37413,6 +37834,16 @@ def q4_replay_and_ev(offline: bool = False) -&gt; dict:
                 capture_close_close=v[&quot;close_close&quot;][&quot;mean&quot;],
                 b_star_repo=costs[&quot;repo_screen_bstar_bps&quot;],
                 b_star_full=costs[&quot;full_round_cost_official_fees&quot;][&quot;total&quot;])
+            pub = PUBLISHED.get(name)
+            if pub:
+                hd = headline_decomposition(pub[&quot;capture&quot;], pub[&quot;b_star&quot;], costs)
+                cc = v[&quot;close_close&quot;][&quot;mean&quot;]
+                hd[&quot;alt_contemporaneous_capture&quot;] = {
+                    &quot;capture_bps&quot;: cc,
+                    &quot;net_at_p1&quot;: cc - costs[&quot;full_round_cost_official_fees&quot;][&quot;total&quot;],
+                    &quot;net_at_p05&quot;: 0.5 * (cc - costs[&quot;full_round_cost_official_fees&quot;][&quot;total&quot;]),
+                }
+                rec[&quot;headline_decomposition&quot;] = hd
         out[name] = rec
         time.sleep(0.3)
     return out
@@ -37525,6 +37956,17 @@ def print_report(rep: dict) -&gt; None:
               f&quot;{ {k: round(vv, 2) for k, vv in c[&#x27;full_round_cost_official_fees&#x27;].items()} }&quot;)
         print(f&quot;    保守 {b[&#x27;conservative&#x27;][&#x27;net_bps&#x27;]:+.2f} | 中性 {b[&#x27;neutral&#x27;][&#x27;net_bps&#x27;]:+.2f} | &quot;
               f&quot;乐观 {b[&#x27;optimistic&#x27;][&#x27;net_bps&#x27;]:+.2f}&quot;)
+        hd = r.get(&quot;headline_decomposition&quot;)
+        if hd:
+            print(f&quot;    headline 拆解（{name}，docs/MATRIX_SUMMARY.md §3.0）：&quot;)
+            for label, val in hd[&quot;items&quot;]:
+                print(f&quot;      {label:42s}{val:+8.2f}&quot;)
+            print(f&quot;      → 补齐后 p_fill=1: {hd[&#x27;net_at_p1&#x27;]:+.2f} | p_fill=0.5: {hd[&#x27;net_at_p05&#x27;]:+.2f} &quot;
+                  f&quot;| p_fill=0.3: {hd[&#x27;net_at_p03&#x27;]:+.2f}&quot;)
+            alt = hd.get(&quot;alt_contemporaneous_capture&quot;)
+            if alt:
+                print(f&quot;      → 若捕获改用「两腿同刻定价」capture={alt[&#x27;capture_bps&#x27;]:+.2f}：&quot;
+                      f&quot;p_fill=1 {alt[&#x27;net_at_p1&#x27;]:+.2f} / p_fill=0.5 {alt[&#x27;net_at_p05&#x27;]:+.2f}&quot;)
 
     qs = rep.get(&quot;q4_quote_samples&quot;, {})
     print(&quot;\n## Q4 高频采样：盘口基差 vs 成交价基差&quot;)
@@ -39984,7 +40426,7 @@ if __name__ == &quot;__main__&quot;:
     &quot;sigma_1m_bps 为占位，须用 scripts/probe_basis.py 或采集器数据重算。&quot;
   ]
 }
-</code></pre></div></details><h3>configs/live_pairs.json</h3><div class="file-meta"><span class="tag">W:\nt-pairs\configs\live_pairs.json</span><span class="tag">3,487 bytes</span></div><p>{</p>
+</code></pre></div></details><h3>configs/live_pairs.json</h3><div class="file-meta"><span class="tag">W:\nt-pairs\configs\live_pairs.json</span><span class="tag">3,840 bytes</span></div><p>{</p>
 <p>  &quot;global&quot;: {</p>
 <p>    &quot;dry_run&quot;: true,</p>
 <p>    &quot;max_leg_notional_usd&quot;: &quot;500&quot;,</p>
@@ -39992,7 +40434,7 @@ if __name__ == &quot;__main__&quot;:
 <p>    &quot;margin_usage_cap_per_venue&quot;: 0.5,</p>
 <p>    &quot;daily_loss_cap_pct&quot;: 0.02,</p>
 <p>    &quot;equity_freeze_pct&quot;: 0.05,</p>
-<p>    &quot;equity_kill_pct&quot;: 0.10,</p>
+<p>    &quot;equity_kill_pct&quot;: 0.1,</p>
 <p>    &quot;naked_warn_s&quot;: 60,</p>
 <p>    &quot;naked_flatten_s&quot;: 180,</p>
 <p>    &quot;naked_halt_s&quot;: 600,</p>
@@ -40000,10 +40442,23 @@ if __name__ == &quot;__main__&quot;:
 <p>    &quot;chase_collar_ticks&quot;: 2,</p>
 <p>    &quot;taker_collar_bps&quot;: 50,</p>
 <p>    &quot;max_rounds_per_day&quot;: 3,</p>
-<p>    &quot;allowed_sessions&quot;: [&quot;closed&quot;, &quot;post&quot;, &quot;pre&quot;, &quot;rth&quot;],</p>
+<p>    &quot;allowed_sessions&quot;: [</p>
+<p>      &quot;closed&quot;,</p>
+<p>      &quot;post&quot;,</p>
+<p>      &quot;pre&quot;,</p>
+<p>      &quot;rth&quot;</p>
+<p>    ],</p>
 <p>    &quot;session_policy&quot;: {</p>
-<p>      &quot;RKLB&quot;: [&quot;closed&quot;, &quot;post&quot;, &quot;pre&quot;, &quot;rth&quot;],</p>
-<p>      &quot;KIOXIA&quot;: [&quot;closed&quot;, &quot;post&quot;]</p>
+<p>      &quot;RKLB&quot;: [</p>
+<p>        &quot;closed&quot;,</p>
+<p>        &quot;post&quot;,</p>
+<p>        &quot;pre&quot;,</p>
+<p>        &quot;rth&quot;</p>
+<p>      ],</p>
+<p>      &quot;KIOXIA&quot;: [</p>
+<p>        &quot;closed&quot;,</p>
+<p>        &quot;post&quot;</p>
+<p>      ]</p>
 <p>    },</p>
 <p>    &quot;reject_if_repeat_close_pct_gt&quot;: 10,</p>
 <p>    &quot;min_p95_over_k_bstar&quot;: 1.0</p>
@@ -40019,7 +40474,9 @@ if __name__ == &quot;__main__&quot;:
 <p>        &quot;side_on_entry&quot;: &quot;buy&quot;,</p>
 <p>        &quot;leverage&quot;: 10,</p>
 <p>        &quot;leverage_mode&quot;: &quot;cross&quot;,</p>
-<p>        &quot;note&quot;: &quot;leader = 便宜腿（HL taker 费 4.5 bps）；maker 挂单腿&quot;</p>
+<p>        &quot;note&quot;: &quot;leader = 便宜腿（HL taker 费 4.5 bps）；maker 挂单腿&quot;,</p>
+<p>        &quot;native_id&quot;: &quot;xyz:RKLB&quot;,</p>
+<p>        &quot;coin&quot;: &quot;xyz:RKLB&quot;</p>
 <p>      },</p>
 <p>      &quot;follower&quot;: {</p>
 <p>        &quot;venue&quot;: &quot;LIGHTER&quot;,</p>
@@ -40028,7 +40485,9 @@ if __name__ == &quot;__main__&quot;:
 <p>        &quot;side_on_entry&quot;: &quot;sell&quot;,</p>
 <p>        &quot;leverage&quot;: 20,</p>
 <p>        &quot;leverage_mode&quot;: &quot;isolated&quot;,</p>
-<p>        &quot;note&quot;: &quot;follower = 贵腿，零费率 → 总固定费 4.5 bps（实测最优腿组合）&quot;</p>
+<p>        &quot;note&quot;: &quot;follower = 贵腿，零费率 → 总固定费 4.5 bps（实测最优腿组合）&quot;,</p>
+<p>        &quot;native_id&quot;: &quot;186&quot;,</p>
+<p>        &quot;market_id&quot;: 186</p>
 <p>      },</p>
 <p>      &quot;backup&quot;: {</p>
 <p>        &quot;venue&quot;: &quot;OKX&quot;,</p>
@@ -40037,7 +40496,8 @@ if __name__ == &quot;__main__&quot;:
 <p>        &quot;side_on_entry&quot;: &quot;sell&quot;,</p>
 <p>        &quot;leverage&quot;: 5,</p>
 <p>        &quot;leverage_mode&quot;: &quot;cross&quot;,</p>
-<p>        &quot;note&quot;: &quot;Lighter 腿拒单/超时未成时改用 OKX 吃单；费率 5 bps，需重算 b*&quot;</p>
+<p>        &quot;note&quot;: &quot;Lighter 腿拒单/超时未成时改用 OKX 吃单；费率 5 bps，需重算 b*&quot;,</p>
+<p>        &quot;native_id&quot;: &quot;RKLB-USDT-SWAP&quot;</p>
 <p>      },</p>
 <p>      &quot;rationale&quot;: &quot;Lighter 侧重复收盘率 31%（30 天 1h）→ 数据质量闸门默认拒绝；实盘前必须确认 &lt;=10%，否则该腿退出。&quot;,</p>
 <p>      &quot;status&quot;: &quot;blocked_pending_data_quality&quot;</p>
@@ -40051,7 +40511,9 @@ if __name__ == &quot;__main__&quot;:
 <p>        &quot;role&quot;: &quot;maker&quot;,</p>
 <p>        &quot;side_on_entry&quot;: &quot;buy&quot;,</p>
 <p>        &quot;leverage&quot;: 10,</p>
-<p>        &quot;leverage_mode&quot;: &quot;cross&quot;</p>
+<p>        &quot;leverage_mode&quot;: &quot;cross&quot;,</p>
+<p>        &quot;native_id&quot;: &quot;xyz:KIOXIA&quot;,</p>
+<p>        &quot;coin&quot;: &quot;xyz:KIOXIA&quot;</p>
 <p>      },</p>
 <p>      &quot;follower&quot;: {</p>
 <p>        &quot;venue&quot;: &quot;OKX&quot;,</p>
@@ -40060,7 +40522,8 @@ if __name__ == &quot;__main__&quot;:
 <p>        &quot;side_on_entry&quot;: &quot;sell&quot;,</p>
 <p>        &quot;leverage&quot;: 5,</p>
 <p>        &quot;leverage_mode&quot;: &quot;cross&quot;,</p>
-<p>        &quot;note&quot;: &quot;Lighter KIOXIA 无盘口 → taker 腿只能走 OKX；OKX taker 费 5 bps，按六项口径该腿 EV 为负 → 仅作执行系统验证，不放大&quot;</p>
+<p>        &quot;note&quot;: &quot;Lighter KIOXIA 无盘口 → taker 腿只能走 OKX；OKX taker 费 5 bps，按六项口径该腿 EV 为负 → 仅作执行系统验证，不放大&quot;,</p>
+<p>        &quot;native_id&quot;: &quot;KIOXIA-USDT-SWAP&quot;</p>
 <p>      },</p>
 <p>      &quot;backup&quot;: null,</p>
 <p>      &quot;rationale&quot;: &quot;宽度足够（p95 高），但对手腿深度薄、费率高；作为『验证 3 腿/兜底逻辑』的样本，不作为收益来源。&quot;,</p>
@@ -40081,7 +40544,7 @@ if __name__ == &quot;__main__&quot;:
     &quot;margin_usage_cap_per_venue&quot;: 0.5,
     &quot;daily_loss_cap_pct&quot;: 0.02,
     &quot;equity_freeze_pct&quot;: 0.05,
-    &quot;equity_kill_pct&quot;: 0.10,
+    &quot;equity_kill_pct&quot;: 0.1,
     &quot;naked_warn_s&quot;: 60,
     &quot;naked_flatten_s&quot;: 180,
     &quot;naked_halt_s&quot;: 600,
@@ -40089,10 +40552,23 @@ if __name__ == &quot;__main__&quot;:
     &quot;chase_collar_ticks&quot;: 2,
     &quot;taker_collar_bps&quot;: 50,
     &quot;max_rounds_per_day&quot;: 3,
-    &quot;allowed_sessions&quot;: [&quot;closed&quot;, &quot;post&quot;, &quot;pre&quot;, &quot;rth&quot;],
+    &quot;allowed_sessions&quot;: [
+      &quot;closed&quot;,
+      &quot;post&quot;,
+      &quot;pre&quot;,
+      &quot;rth&quot;
+    ],
     &quot;session_policy&quot;: {
-      &quot;RKLB&quot;: [&quot;closed&quot;, &quot;post&quot;, &quot;pre&quot;, &quot;rth&quot;],
-      &quot;KIOXIA&quot;: [&quot;closed&quot;, &quot;post&quot;]
+      &quot;RKLB&quot;: [
+        &quot;closed&quot;,
+        &quot;post&quot;,
+        &quot;pre&quot;,
+        &quot;rth&quot;
+      ],
+      &quot;KIOXIA&quot;: [
+        &quot;closed&quot;,
+        &quot;post&quot;
+      ]
     },
     &quot;reject_if_repeat_close_pct_gt&quot;: 10,
     &quot;min_p95_over_k_bstar&quot;: 1.0
@@ -40108,7 +40584,9 @@ if __name__ == &quot;__main__&quot;:
         &quot;side_on_entry&quot;: &quot;buy&quot;,
         &quot;leverage&quot;: 10,
         &quot;leverage_mode&quot;: &quot;cross&quot;,
-        &quot;note&quot;: &quot;leader = 便宜腿（HL taker 费 4.5 bps）；maker 挂单腿&quot;
+        &quot;note&quot;: &quot;leader = 便宜腿（HL taker 费 4.5 bps）；maker 挂单腿&quot;,
+        &quot;native_id&quot;: &quot;xyz:RKLB&quot;,
+        &quot;coin&quot;: &quot;xyz:RKLB&quot;
       },
       &quot;follower&quot;: {
         &quot;venue&quot;: &quot;LIGHTER&quot;,
@@ -40117,7 +40595,9 @@ if __name__ == &quot;__main__&quot;:
         &quot;side_on_entry&quot;: &quot;sell&quot;,
         &quot;leverage&quot;: 20,
         &quot;leverage_mode&quot;: &quot;isolated&quot;,
-        &quot;note&quot;: &quot;follower = 贵腿，零费率 → 总固定费 4.5 bps（实测最优腿组合）&quot;
+        &quot;note&quot;: &quot;follower = 贵腿，零费率 → 总固定费 4.5 bps（实测最优腿组合）&quot;,
+        &quot;native_id&quot;: &quot;186&quot;,
+        &quot;market_id&quot;: 186
       },
       &quot;backup&quot;: {
         &quot;venue&quot;: &quot;OKX&quot;,
@@ -40126,7 +40606,8 @@ if __name__ == &quot;__main__&quot;:
         &quot;side_on_entry&quot;: &quot;sell&quot;,
         &quot;leverage&quot;: 5,
         &quot;leverage_mode&quot;: &quot;cross&quot;,
-        &quot;note&quot;: &quot;Lighter 腿拒单/超时未成时改用 OKX 吃单；费率 5 bps，需重算 b*&quot;
+        &quot;note&quot;: &quot;Lighter 腿拒单/超时未成时改用 OKX 吃单；费率 5 bps，需重算 b*&quot;,
+        &quot;native_id&quot;: &quot;RKLB-USDT-SWAP&quot;
       },
       &quot;rationale&quot;: &quot;Lighter 侧重复收盘率 31%（30 天 1h）→ 数据质量闸门默认拒绝；实盘前必须确认 &lt;=10%，否则该腿退出。&quot;,
       &quot;status&quot;: &quot;blocked_pending_data_quality&quot;
@@ -40140,7 +40621,9 @@ if __name__ == &quot;__main__&quot;:
         &quot;role&quot;: &quot;maker&quot;,
         &quot;side_on_entry&quot;: &quot;buy&quot;,
         &quot;leverage&quot;: 10,
-        &quot;leverage_mode&quot;: &quot;cross&quot;
+        &quot;leverage_mode&quot;: &quot;cross&quot;,
+        &quot;native_id&quot;: &quot;xyz:KIOXIA&quot;,
+        &quot;coin&quot;: &quot;xyz:KIOXIA&quot;
       },
       &quot;follower&quot;: {
         &quot;venue&quot;: &quot;OKX&quot;,
@@ -40149,7 +40632,8 @@ if __name__ == &quot;__main__&quot;:
         &quot;side_on_entry&quot;: &quot;sell&quot;,
         &quot;leverage&quot;: 5,
         &quot;leverage_mode&quot;: &quot;cross&quot;,
-        &quot;note&quot;: &quot;Lighter KIOXIA 无盘口 → taker 腿只能走 OKX；OKX taker 费 5 bps，按六项口径该腿 EV 为负 → 仅作执行系统验证，不放大&quot;
+        &quot;note&quot;: &quot;Lighter KIOXIA 无盘口 → taker 腿只能走 OKX；OKX taker 费 5 bps，按六项口径该腿 EV 为负 → 仅作执行系统验证，不放大&quot;,
+        &quot;native_id&quot;: &quot;KIOXIA-USDT-SWAP&quot;
       },
       &quot;backup&quot;: null,
       &quot;rationale&quot;: &quot;宽度足够（p95 高），但对手腿深度薄、费率高；作为『验证 3 腿/兜底逻辑』的样本，不作为收益来源。&quot;,
@@ -41463,7 +41947,7 @@ def test_expected_net_uses_p_fill_when_known():
     maker_unsure = LegQuote(**{**HL.__dict__, &quot;p_fill&quot;: D(&quot;0.2&quot;)})
     net_certain = expected_net_bps(maker_certain, LT, CAPTURE, QTY)
     net_unsure = expected_net_bps(maker_unsure, LT, CAPTURE, QTY)
-    assert net_certain == pytest_approx(net_unsure * 5)</code></pre></div></details><h3>tests/test_live_node_config.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_live_node_config.py</span><span class="tag">4,876 bytes</span></div><p>&quot;&quot;&quot;装配层测试（不联网、不下单）。</p>
+    assert net_certain == pytest_approx(net_unsure * 5)</code></pre></div></details><h3>tests/test_live_node_config.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_live_node_config.py</span><span class="tag">5,451 bytes</span></div><p>&quot;&quot;&quot;装配层测试（不联网、不下单）。</p>
 <p>覆盖：</p>
 <ul><li>`<code>--dry-run</code>` 在<strong>没有任何密钥</strong>的环境变量下也能成功构建节点；</li><li>装配结果里<strong>没有</strong>任何凭据字段被赋值；</li><li>两腿 instrument id 都进了订阅列表；</li><li>实盘路径缺凭据时给出结构化错误（在任何网络连接之前失败）。</li></ul>
 <p>&quot;&quot;&quot;</p>
@@ -41472,6 +41956,8 @@ def test_expected_net_uses_p_fill_when_known():
 <p>import os</p>
 <p>from pathlib import Path</p>
 <p>import pytest</p>
+<p>pytest.importorskip(&quot;nautilus_trader.adapters.hyperliquid&quot;,</p>
+<p>                        reason=&quot;需要 nautilus_trader&gt;=2.0（含 hyperliquid 适配器；CI 纯逻辑 job 不装）&quot;)</p>
 <p>from nt_pairs.live_node import (</p>
 <p>    MissingCredentials,</p>
 <p>    build_client_specs,</p>
@@ -41554,16 +42040,27 @@ def test_expected_net_uses_p_fill_when_known():
 <p>    from nt_pairs.live_runner import EXIT_CONFIG, main</p>
 <p>    code = main([&quot;--config&quot;, str(tmp_path / &quot;nope.json&quot;), &quot;--dry-run&quot;])</p>
 <p>    assert code == EXIT_CONFIG</p>
-<p>def test_runner_dry_run_builds_without_credentials(capsys: pytest.CaptureFixture) -&gt; None:</p>
-<p>    &quot;&quot;&quot;runner 的 dry-run 路径在零凭据下能走到节点构建（不启动网络）。&quot;&quot;&quot;</p>
+<p>def test_runner_dry_run_builds_without_credentials(</p>
+<p>    capsys: pytest.CaptureFixture,</p>
+<p>    monkeypatch: pytest.MonkeyPatch,</p>
+<p>) -&gt; None:</p>
+<p>    &quot;&quot;&quot;runner 的 dry-run 路径在零凭据下能走到节点构建（不启动网络循环）。&quot;&quot;&quot;</p>
+<p>    from nt_pairs import live_runner</p>
 <p>    from nt_pairs.live_runner import EXIT_OK, main</p>
-<p>    # --max-secs 0 + dry-run：节点构建成功后立即返回（不跑网络循环）</p>
-<p>    code = main([&quot;--config&quot;, str(PAIR_CONFIG), &quot;--dry-run&quot;, &quot;--max-secs&quot;, &quot;0&quot;])</p>
+<p>    # 只验证到&quot;装配成功并打印摘要&quot;为止：不跑 node.run()，避免任何网络/长循环。</p>
+<p>    monkeypatch.setattr(live_runner, &quot;_run&quot;, lambda node, max_secs: EXIT_OK)</p>
+<p>    code = main([&quot;--config&quot;, str(PAIR_CONFIG), &quot;--dry-run&quot;])</p>
 <p>    captured = capsys.readouterr()</p>
 <p>    assert code == EXIT_OK</p>
-<p>    payload = json.loads(captured.out.split(&quot;\n{&quot;, 1)[0].rsplit(&quot;\n&quot;, 1)[0] if False else captured.out[: captured.out.index(&quot;\n}&quot;) + 2])</p>
-<p>    assert payload[&quot;dry_run&quot;] is True</p>
-<p>    assert len(payload[&quot;subscriptions&quot;]) == 2</p><details><summary>原文（逐字，raw）</summary><div><pre><code>&quot;&quot;&quot;装配层测试（不联网、不下单）。
+<p>    summary = json.loads(captured.out[: captured.out.index(&quot;\n}&quot;) + 2])</p>
+<p>    assert summary[&quot;dry_run&quot;] is True</p>
+<p>    assert len(summary[&quot;subscriptions&quot;]) == 2</p>
+<p>    assert {s[&quot;instrument_id&quot;] for s in summary[&quot;subscriptions&quot;]} == set(plan_ids())</p>
+<p>    assert all(spec[&quot;kind&quot;] != &quot;exec&quot; for spec in summary[&quot;clients&quot;])</p>
+<p>def plan_ids() -&gt; set[str]:</p>
+<p>    &quot;&quot;&quot;两腿 instrument id。&quot;&quot;&quot;</p>
+<p>    plan = load_live_plan(PAIR_CONFIG)</p>
+<p>    return set(plan.instrument_ids)</p><details><summary>原文（逐字，raw）</summary><div><pre><code>&quot;&quot;&quot;装配层测试（不联网、不下单）。
 
 覆盖：
 - ``--dry-run`` 在**没有任何密钥**的环境变量下也能成功构建节点；
@@ -41579,6 +42076,9 @@ import os
 from pathlib import Path
 
 import pytest
+
+pytest.importorskip(&quot;nautilus_trader.adapters.hyperliquid&quot;,
+                        reason=&quot;需要 nautilus_trader&gt;=2.0（含 hyperliquid 适配器；CI 纯逻辑 job 不装）&quot;)
 
 from nt_pairs.live_node import (
     MissingCredentials,
@@ -41693,18 +42193,33 @@ def test_runner_reports_missing_config(tmp_path: Path) -&gt; None:
     assert code == EXIT_CONFIG
 
 
-def test_runner_dry_run_builds_without_credentials(capsys: pytest.CaptureFixture) -&gt; None:
-    &quot;&quot;&quot;runner 的 dry-run 路径在零凭据下能走到节点构建（不启动网络）。&quot;&quot;&quot;
+def test_runner_dry_run_builds_without_credentials(
+    capsys: pytest.CaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -&gt; None:
+    &quot;&quot;&quot;runner 的 dry-run 路径在零凭据下能走到节点构建（不启动网络循环）。&quot;&quot;&quot;
+    from nt_pairs import live_runner
     from nt_pairs.live_runner import EXIT_OK, main
 
-    # --max-secs 0 + dry-run：节点构建成功后立即返回（不跑网络循环）
-    code = main([&quot;--config&quot;, str(PAIR_CONFIG), &quot;--dry-run&quot;, &quot;--max-secs&quot;, &quot;0&quot;])
+    # 只验证到&quot;装配成功并打印摘要&quot;为止：不跑 node.run()，避免任何网络/长循环。
+    monkeypatch.setattr(live_runner, &quot;_run&quot;, lambda node, max_secs: EXIT_OK)
+
+    code = main([&quot;--config&quot;, str(PAIR_CONFIG), &quot;--dry-run&quot;])
     captured = capsys.readouterr()
     assert code == EXIT_OK
-    payload = json.loads(captured.out.split(&quot;\n{&quot;, 1)[0].rsplit(&quot;\n&quot;, 1)[0] if False else captured.out[: captured.out.index(&quot;\n}&quot;) + 2])
-    assert payload[&quot;dry_run&quot;] is True
-    assert len(payload[&quot;subscriptions&quot;]) == 2
-</code></pre></div></details><h3>tests/test_make_report.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_make_report.py</span><span class="tag">6,193 bytes</span></div><p>&quot;&quot;&quot;<code>scripts/make_report.py</code> 与 <code>scripts/ci_summary.py</code> 的行为测试。</p>
+
+    summary = json.loads(captured.out[: captured.out.index(&quot;\n}&quot;) + 2])
+    assert summary[&quot;dry_run&quot;] is True
+    assert len(summary[&quot;subscriptions&quot;]) == 2
+    assert {s[&quot;instrument_id&quot;] for s in summary[&quot;subscriptions&quot;]} == set(plan_ids())
+    assert all(spec[&quot;kind&quot;] != &quot;exec&quot; for spec in summary[&quot;clients&quot;])
+
+
+def plan_ids() -&gt; set[str]:
+    &quot;&quot;&quot;两腿 instrument id。&quot;&quot;&quot;
+    plan = load_live_plan(PAIR_CONFIG)
+    return set(plan.instrument_ids)
+</code></pre></div></details><h3>tests/test_make_report.py</h3><div class="file-meta"><span class="tag">W:\nt-pairs\tests\test_make_report.py</span><span class="tag">6,182 bytes</span></div><p>&quot;&quot;&quot;<code>scripts/make_report.py</code> 与 <code>scripts/ci_summary.py</code> 的行为测试。</p>
 <p>覆盖三件<strong>消费者可见</strong>的事：</p>
 <ol><li>没有任何日志/采集数据时，仍产出一份「无数据」报告（不抛异常，退出码 0）；</li><li>脱敏：key / secret / 私钥 / 账户地址只输出「前 6 位 + …」，普通数字不受影响；</li><li>报告与 summary 的关键数字正确（成交/未成交计数、重复收盘率、净 EV）。</li></ol>
 <p>&quot;&quot;&quot;</p>
@@ -41715,7 +42230,6 @@ def test_runner_dry_run_builds_without_credentials(capsys: pytest.CaptureFixture
 <p>import json</p>
 <p>import os</p>
 <p>import subprocess</p>
-<p>import sys</p>
 <p>import pytest</p>
 <p>ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))</p>
 <p>SCRIPTS = os.path.join(ROOT, &quot;scripts&quot;)</p>
@@ -41839,7 +42353,6 @@ import io
 import json
 import os
 import subprocess
-import sys
 
 import pytest
 

@@ -625,6 +625,32 @@ def ev_bands(capture_impl: float, capture_open_open: float, capture_close_close:
     return bands
 
 
+def headline_decomposition(capture: float, b_star: float, costs: dict) -> dict:
+    """把报告里的 headline（capture − b*）逐项拆开：补上漏计的成本、修正多计的成本。
+
+    用于回答「+5.3 bps/轮 在扣掉哪些还没扣的成本之后还剩多少」。
+    """
+    hs_lt = costs["lt_spread_bps"]
+    slip_lt = costs["slip_lt_2tick_bps"]
+    carry_live = costs["hl_funding_bps_h"]
+    fee_repo = 6.0
+    fee_real = costs["hl_effective_maker_bps"] + costs["hl_effective_taker_bps"]
+    lr_const = 0.3
+    lr_30s = float(leg_risk_bps(D("12.9"), D("30"), D("0.30")))
+    items = [
+        ("报告 headline（capture − b*）", capture - b_star),
+        ("补：follower 平仓再穿一次价差（半价差）", -hs_lt / 2),
+        ("补：follower 平仓的按规模滑点（2 tick）", -slip_lt),
+        ("修正：carry 0.5 → 实测（成本降 → 净升）", 0.5 - carry_live),
+        ("修正：HL 费率 6.0 → 官方 HIP-3 实际（成本降 → 净升）", fee_repo - fee_real),
+        ("修正：腿风险 0.3 → t_leg=30s / P=0.30（成本升 → 净降）", lr_const - lr_30s),
+    ]
+    total = sum(v for _, v in items)
+    return {"items": items, "net_at_p1": total,
+            "net_at_p05": 0.5 * total, "net_at_p03": 0.3 * total,
+            "note": "capture 口径若换成「两腿同刻定价」（收→收），capture ≈ 0 → 三档全部转负"}
+
+
 def analyse_quote_samples(symbol: str = "SOXL") -> dict:
     """分析 `scripts/recheck_quote_sample.py` 的高频采样：盘口基差 vs 成交价基差。"""
     path = os.path.join(CACHE, f"quote_samples_{symbol}.jsonl")
@@ -695,6 +721,15 @@ def analyse_quote_samples(symbol: str = "SOXL") -> dict:
     return out
 
 
+#: `docs/MATRIX_SUMMARY.md` §3.0 的最终裁决（已发布的数字，复核基准）
+PUBLISHED = {
+    "SOXL": {"events": 115, "b_star": 11.6, "capture": 16.9, "net": 5.3, "win_pct": 97,
+             "rth_net": -0.2, "closed_net": 10.3, "rep_hl": 0.2, "rep_lt": 1.6},
+    "MRVL": {"events": 119, "b_star": 14.7, "capture": 16.2, "net": 1.5, "win_pct": 90,
+             "rth_net": 7.8, "closed_net": -3.0, "rep_hl": 1.7, "rep_lt": 8.2},
+}
+
+
 def q4_replay_and_ev(offline: bool = False) -> dict:
     cands = [("SOXL", "xyz:SOXL", 197), ("MRVL", "xyz:MRVL", 174),
              ("EWY", "xyz:EWY", 166), ("RKLB", "xyz:RKLB", 186), ("BABA", "xyz:BABA", 177)]
@@ -709,6 +744,7 @@ def q4_replay_and_ev(offline: bool = False) -> dict:
         rec = fade_replay(h, l)
         costs = live_costs(coin, mid, dex=coin.split(":")[0], offline=offline)
         rec["costs"] = costs
+        rec["published"] = PUBLISHED.get(name)
         if "error" not in costs:
             v = rec["variants"]
             rec["ev_bands"] = ev_bands(
@@ -717,6 +753,16 @@ def q4_replay_and_ev(offline: bool = False) -> dict:
                 capture_close_close=v["close_close"]["mean"],
                 b_star_repo=costs["repo_screen_bstar_bps"],
                 b_star_full=costs["full_round_cost_official_fees"]["total"])
+            pub = PUBLISHED.get(name)
+            if pub:
+                hd = headline_decomposition(pub["capture"], pub["b_star"], costs)
+                cc = v["close_close"]["mean"]
+                hd["alt_contemporaneous_capture"] = {
+                    "capture_bps": cc,
+                    "net_at_p1": cc - costs["full_round_cost_official_fees"]["total"],
+                    "net_at_p05": 0.5 * (cc - costs["full_round_cost_official_fees"]["total"]),
+                }
+                rec["headline_decomposition"] = hd
         out[name] = rec
         time.sleep(0.3)
     return out
@@ -829,6 +875,17 @@ def print_report(rep: dict) -> None:
               f"{ {k: round(vv, 2) for k, vv in c['full_round_cost_official_fees'].items()} }")
         print(f"    保守 {b['conservative']['net_bps']:+.2f} | 中性 {b['neutral']['net_bps']:+.2f} | "
               f"乐观 {b['optimistic']['net_bps']:+.2f}")
+        hd = r.get("headline_decomposition")
+        if hd:
+            print(f"    headline 拆解（{name}，docs/MATRIX_SUMMARY.md §3.0）：")
+            for label, val in hd["items"]:
+                print(f"      {label:42s}{val:+8.2f}")
+            print(f"      → 补齐后 p_fill=1: {hd['net_at_p1']:+.2f} | p_fill=0.5: {hd['net_at_p05']:+.2f} "
+                  f"| p_fill=0.3: {hd['net_at_p03']:+.2f}")
+            alt = hd.get("alt_contemporaneous_capture")
+            if alt:
+                print(f"      → 若捕获改用「两腿同刻定价」capture={alt['capture_bps']:+.2f}："
+                      f"p_fill=1 {alt['net_at_p1']:+.2f} / p_fill=0.5 {alt['net_at_p05']:+.2f}")
 
     qs = rep.get("q4_quote_samples", {})
     print("\n## Q4 高频采样：盘口基差 vs 成交价基差")
