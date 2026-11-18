@@ -12,6 +12,7 @@ import contextlib
 import importlib.util
 import io
 import json
+from datetime import datetime, timedelta, timezone
 import os
 import subprocess
 
@@ -134,10 +135,14 @@ def test_summary_ignores_non_timestamped_markdown(tmp_path) -> None:
 def test_summary_renders_numbers(tmp_path) -> None:
     reports = tmp_path / "reports"
     reports.mkdir()
-    md = reports / "20261112T120000Z.md"
+    # 时间戳必须相对“现在”生成：ci_summary 会把超过 24 小时没更新的报告判为过期（退出码 3），
+    # 写死 20261112T120000Z 会让这条用例在 2026-11-13 之后必然失败（时间炸弹）。
+    now = datetime.now(timezone.utc) - timedelta(minutes=1)
+    stamp = now.strftime("%Y%m%dT%H%M%SZ")
+    md = reports / f"{stamp}.md"
     md.write_text("# 报告\n", encoding="utf-8")
-    (reports / "20261112T120000Z.json").write_text(json.dumps({
-        "generated_utc": "2026-11-12T12:00:00Z", "window_hours": 6,
+    (reports / f"{stamp}.json").write_text(json.dumps({
+        "generated_utc": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "window_hours": 6,
         "logs": {"fills": 4, "no_fills": 3, "risk_events": 2, "errors": 1, "lines": 20,
                  "findings": ["队列跳变"]},
         "collector": {"window_samples": 17, "total_samples": 100,
