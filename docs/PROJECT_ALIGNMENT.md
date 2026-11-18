@@ -72,6 +72,8 @@ bash /opt/nt-pairs/scripts/vps_report_cron.sh          # 期望输出「已推�
 | 事项 | 结论 | 证据 |
 |---|---|---|
 | 能不能开真单 | **不能开策略真单**：策略里**没有开仓代码，也没有平仓代码**；11 条风控闸门在运行时 **0 条生效** | `docs/LIVE_TRADING_SPEC.md` §3 与 `.herd-dispatch/jobs/live-safety/report.md`（逐条 file:line） |
+| 链路验证脚本 | `scripts/live_smoke_order.py` 已实现：沙盒端到端 **exit 0**；真单已验证到「订单送达交易所」 | `docs/SMOKE_ORDER_2026-11-19.md` |
+| 真单卡在哪 | **HL 账户权益为 0**（主钱包与 API 钱包 `accountValue=0.0`）→ 交易所不接单；Lighter 有 27.61 USDC；OKX 凭证 403 | 同上（附 REST 证据） |
 | 能做什么 | **链路验证脚本**（独立脚本，硬编码 $20/腿上限、每日 1 轮、--send 才真发） | `scripts/live_smoke_order.py`（实现中） |
 | 策略有没有正期望 | **没有**：实测 5 标的 × 2388 分钟，成交后基差 markout_15 只有 +0.17…+0.62 bps，扣真实往返成本 14.35 bps 后每次成交 −13.7…−17.5 bps | `docs/FILL_CALIBRATION_2026-11-18.md` |
 | 采集器 | 正常：5 天 330MB，HL/Lighter/OKX 各约 3.6 万行/天，25 期 6h 报告在 VPS 本地 | VPS `/opt/nt-pairs/data/collector`、`/opt/nt-pairs/reports` |
