@@ -1,0 +1,167 @@
+{
+ "generated_utc": "2026-11-12T16:17:01Z",
+ "window_start": "2026-11-12T10:17:01Z",
+ "window_hours": 6.0,
+ "logs": {
+  "files": [
+   {
+    "name": "report_cron.log",
+    "bytes": 0,
+    "age_h": 0.0,
+    "lines": 0,
+    "state": "",
+    "last_ts": "",
+    "in_window": true
+   }
+  ],
+  "lines": 0,
+  "lines_in_window": 0,
+  "fills": 0,
+  "no_fills": 0,
+  "risk_events": 0,
+  "errors": 0,
+  "basis": [],
+  "ev": [],
+  "p_fill": [],
+  "findings": [],
+  "dir_exists": true
+ },
+ "error_signatures": [],
+ "collector": {
+  "root": "/opt/nt-pairs/data/collector",
+  "exists": true,
+  "venues": {
+   "HYPERLIQUID": {
+    "samples": 812,
+    "window_samples": 812,
+    "files": 1,
+    "first_ts": "2026-11-12T15:58:10.535061+00:00",
+    "last_ts": "2026-11-12T16:16:50.948503+00:00",
+    "symbols": {
+     "xyz:SOXL": {
+      "n": 134,
+      "stale": 0
+     },
+     "xyz:RKLB": {
+      "n": 134,
+      "stale": 2
+     },
+     "xyz:KIOXIA": {
+      "n": 134,
+      "stale": 6
+     },
+     "xyz:MRVL": {
+      "n": 134,
+      "stale": 3
+     },
+     "xyz:EWY": {
+      "n": 134,
+      "stale": 6
+     },
+     "io:OAI": {
+      "n": 134,
+      "stale": 52
+     },
+     "para:ANTH": {
+      "n": 8,
+      "stale": 5
+     }
+    },
+    "stale_ratio": 0.09113300492610837,
+    "n_symbols": 7
+   },
+   "LIGHTER": {
+    "samples": 817,
+    "window_samples": 817,
+    "files": 1,
+    "first_ts": "2026-11-12T15:58:10.535061+00:00",
+    "last_ts": "2026-11-12T16:16:50.948503+00:00",
+    "symbols": {
+     "RKLB": {
+      "n": 135,
+      "stale": 6
+     },
+     "SOXL": {
+      "n": 135,
+      "stale": 3
+     },
+     "KIOXIA": {
+      "n": 135,
+      "stale": 11
+     },
+     "MRVL": {
+      "n": 135,
+      "stale": 1
+     },
+     "EWY": {
+      "n": 135,
+      "stale": 8
+     },
+     "OPENAI": {
+      "n": 134,
+      "stale": 8
+     },
+     "ANTHROPIC": {
+      "n": 8,
+      "stale": 0
+     }
+    },
+    "stale_ratio": 0.04528763769889841,
+    "n_symbols": 7
+   },
+   "OKX": {
+    "samples": 816,
+    "window_samples": 816,
+    "files": 1,
+    "first_ts": "2026-11-12T15:58:10.535061+00:00",
+    "last_ts": "2026-11-12T16:16:50.948503+00:00",
+    "symbols": {
+     "SOXL-USDT-SWAP": {
+      "n": 135,
+      "stale": 5
+     },
+     "RKLB-USDT-SWAP": {
+      "n": 135,
+      "stale": 5
+     },
+     "KIOXIA-USDT-SWAP": {
+      "n": 135,
+      "stale": 33
+     },
+     "MRVL-USDT-SWAP": {
+      "n": 135,
+      "stale": 4
+     },
+     "EWY-USDT-SWAP": {
+      "n": 134,
+      "stale": 12
+     },
+     "OPENAI-USDT-SWAP": {
+      "n": 134,
+      "stale": 26
+     },
+     "ANTHROPIC-USDT-SWAP": {
+      "n": 8,
+      "stale": 2
+     }
+    },
+    "stale_ratio": 0.10661764705882353,
+    "n_symbols": 7
+   }
+  },
+  "total_samples": 2445,
+  "window_samples": 2445
+ },
+ "matrix": {
+  "available": false,
+  "generated_utc": "",
+  "pairs": 0,
+  "tradable": 0,
+  "top": [],
+  "repeat_close": [],
+  "basis_p95": []
+ },
+ "sim": {
+  "available": false
+ }
+}

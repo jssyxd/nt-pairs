@@ -1,0 +1,181 @@
+{
+ "generated_utc": "2026-11-18T16:17:02Z",
+ "window_start": "2026-11-18T10:17:02Z",
+ "window_hours": 6.0,
+ "logs": {
+  "files": [
+   {
+    "name": "analyze.log",
+    "bytes": 96,
+    "age_h": 0.49,
+    "lines": 2,
+    "state": "",
+    "last_ts": "",
+    "in_window": true
+   },
+   {
+    "name": "report_cron.log",
+    "bytes": 18120,
+    "age_h": 5.99,
+    "lines": 336,
+    "state": "",
+    "last_ts": "",
+    "in_window": true
+   }
+  ],
+  "lines": 338,
+  "lines_in_window": 338,
+  "fills": 0,
+  "no_fills": 0,
+  "risk_events": 0,
+  "errors": 24,
+  "basis": [],
+  "ev": [],
+  "p_fill": [],
+  "findings": [],
+  "dir_exists": true
+ },
+ "error_signatures": [
+  {
+   "count": 24,
+   "text": "error: failed to push some refs to 'github.com:jssyxd/nt-pairs.git'"
+  }
+ ],
+ "collector": {
+  "root": "/opt/nt-pairs/data/collector",
+  "exists": true,
+  "venues": {
+   "HYPERLIQUID": {
+    "samples": 344400,
+    "window_samples": 14286,
+    "files": 7,
+    "first_ts": "2026-11-12T15:58:10.535061+00:00",
+    "last_ts": "2026-11-18T16:16:59.387087+00:00",
+    "symbols": {
+     "xyz:SOXL": {
+      "n": 57399,
+      "stale": 1116
+     },
+     "xyz:RKLB": {
+      "n": 57398,
+      "stale": 7048
+     },
+     "xyz:KIOXIA": {
+      "n": 57398,
+      "stale": 10568
+     },
+     "xyz:MRVL": {
+      "n": 57399,
+      "stale": 6263
+     },
+     "xyz:EWY": {
+      "n": 57399,
+      "stale": 10445
+     },
+     "io:OAI": {
+      "n": 57399,
+      "stale": 26216
+     },
+     "para:ANTH": {
+      "n": 8,
+      "stale": 5
+     }
+    },
+    "stale_ratio": 0.17903890824622531,
+    "n_symbols": 7
+   },
+   "LIGHTER": {
+    "samples": 344415,
+    "window_samples": 14286,
+    "files": 7,
+    "first_ts": "2026-11-12T15:58:10.535061+00:00",
+    "last_ts": "2026-11-18T16:16:59.387087+00:00",
+    "symbols": {
+     "RKLB": {
+      "n": 57402,
+      "stale": 14950
+     },
+     "SOXL": {
+      "n": 57402,
+      "stale": 5867
+     },
+     "KIOXIA": {
+      "n": 57402,
+      "stale": 13441
+     },
+     "MRVL": {
+      "n": 57402,
+      "stale": 5763
+     },
+     "EWY": {
+      "n": 57402,
+      "stale": 17390
+     },
+     "OPENAI": {
+      "n": 57397,
+      "stale": 12174
+     },
+     "ANTHROPIC": {
+      "n": 8,
+      "stale": 0
+     }
+    },
+    "stale_ratio": 0.20203823875266758,
+    "n_symbols": 7
+   },
+   "OKX": {
+    "samples": 344409,
+    "window_samples": 14298,
+    "files": 7,
+    "first_ts": "2026-11-12T15:58:10.535061+00:00",
+    "last_ts": "2026-11-18T16:17:21.422719+00:00",
+    "symbols": {
+     "SOXL-USDT-SWAP": {
+      "n": 57399,
+      "stale": 8985
+     },
+     "RKLB-USDT-SWAP": {
+      "n": 57401,
+      "stale": 21144
+     },
+     "KIOXIA-USDT-SWAP": {
+      "n": 57401,
+      "stale": 34563
+     },
+     "MRVL-USDT-SWAP": {
+      "n": 57400,
+      "stale": 9782
+     },
+     "EWY-USDT-SWAP": {
+      "n": 57400,
+      "stale": 17933
+     },
+     "OPENAI-USDT-SWAP": {
+      "n": 57400,
+      "stale": 31859
+     },
+     "ANTHROPIC-USDT-SWAP": {
+      "n": 8,
+      "stale": 2
+     }
+    },
+    "stale_ratio": 0.3608151935634667,
+    "n_symbols": 7
+   }
+  },
+  "total_samples": 1033224,
+  "window_samples": 42870
+ },
+ "matrix": {
+  "available": false,
+  "generated_utc": "",
+  "pairs": 0,
+  "tradable": 0,
+  "top": [],
+  "repeat_close": [],
+  "basis_p95": []
+ },
+ "sim": {
+  "available": false
+ }
+}
