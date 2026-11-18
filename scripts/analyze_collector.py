@@ -31,12 +31,36 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 from nt_pairs.sessions import classify  # noqa: E402
 
 
-def load_venue(root: str, venue: str) -> dict[str, list[dict]]:
+
+# 各场所的标的命名不同，不能按字符串直接求交集：
+#   HL: xyz:RKLB / io:OAI   Lighter: RKLB / OPENAI   OKX: RKLB-USDT-SWAP / OPENAI-USDT-SWAP
+def canonical_symbol(venue: str, sym: str) -> str:
+    """把三个场所的 instrument id 归一到同一个基础标的。"""
+    s = sym.strip()
+    if venue == "HYPERLIQUID":
+        if s.startswith("xyz:"):
+            s = s[4:]
+        elif s.startswith("io:"):
+            s = s[3:]
+    elif venue == "OKX":
+        for suf in ("-USDT-SWAP", "-USDC-SWAP", "-USD-SWAP"):
+            if s.endswith(suf):
+                s = s[: -len(suf)]
+                break
+    return s.upper()
+
+def load_venue(root: str, venue: str, max_files: int = 2, max_rows: int = 40000) -> dict[str, list[dict]]:
+    """只读最近 `max_files` 个文件、每个标的最多留 `max_rows` 行。
+
+    VPS 只有 960MB：把 5 天 330MB 的 JSONL 全读进内存会被 OOM kill（dmesg 证据：
+    `oom-kill ... task=python ... anon-rss:663228kB`）。所以这里既限文件数也限行数。
+    """
     out: dict[str, list[dict]] = defaultdict(list)
     d = os.path.join(root, venue)
     if not os.path.isdir(d):
         return out
-    for fn in sorted(os.listdir(d)):
+    files = [fn for fn in sorted(os.listdir(d)) if fn.endswith((".jsonl", ".jsonl.gz"))]
+    for fn in files[-max_files:]:
         path = os.path.join(d, fn)
         if fn.endswith(".jsonl.gz"):
             opener = lambda p=path: gzip.open(p, "rt", encoding="utf-8", errors="replace")  # noqa: E731
@@ -52,7 +76,13 @@ def load_venue(root: str, venue: str) -> dict[str, list[dict]]:
                     except Exception:  # noqa: BLE001
                         continue
                     if r.get("symbol"):
+                        # 只留 top-of-book 一档：完整 20 档 × 2 边是内存杀手
+                        # （VPS 960MB，之前两次被 OOM kill）。
+                        r["bids"] = (r.get("bids") or [])[:1]
+                        r["asks"] = (r.get("asks") or [])[:1]
                         out[r["symbol"]].append(r)
+                        if len(out[r["symbol"]]) > max_rows:
+                            del out[r["symbol"]][: len(out[r["symbol"]]) - max_rows]
             except (EOFError, OSError, gzip.BadGzipFile):
                 # 正在写入或被截断的归档：已读到的行仍然有效
                 pass
@@ -107,6 +137,8 @@ def main() -> int:
     ap.add_argument("--fee-bps", type=float, default=7.0, help="双腿往返固定费（bps）")
     ap.add_argument("--capture-bps", type=float, default=17.0, help="基差捕获（bps）")
     ap.add_argument("--out", default="data/fill_calibration.json", help="输出 JSON 路径")
+    ap.add_argument("--max-files", type=int, default=2, help="每个场所最多读几个文件")
+    ap.add_argument("--max-rows", type=int, default=40000, help="每个标的最多保留多少行")
     args = ap.parse_args()
 
     hl = load_venue(args.root, "HYPERLIQUID")
@@ -115,16 +147,24 @@ def main() -> int:
     print(f"loaded: HL {sum(len(v) for v in hl.values())} snaps / "
           f"Lighter {sum(len(v) for v in lt.values())} / OKX {sum(len(v) for v in okx.values())}", file=sys.stderr)
 
+    # 按归一化后的基础标的配对（三所命名不同，见 canonical_symbol）
+    def by_base(d: dict[str, list[dict]], venue: str) -> dict[str, list[dict]]:
+        out: dict[str, list[dict]] = defaultdict(list)
+        for k, v in d.items():
+            out[canonical_symbol(venue, k)].extend(v)
+        return out
+
+    hl_b, lt_b, okx_b = by_base(hl, "HYPERLIQUID"), by_base(lt, "LIGHTER"), by_base(okx, "OKX")
     report = []
-    for sym in sorted(set(hl) & (set(lt) | set(okx))):
-        follower_set = lt if sym in lt else okx
-        follower_venue = "LIGHTER" if sym in lt else "OKX"
-        a_snaps, b_snaps = hl[sym], follower_set[sym]
+    for sym in sorted(set(hl_b) & (set(lt_b) | set(okx_b))):
+        follower_set = lt_b if sym in lt_b else okx_b
+        follower_venue = "LIGHTER" if sym in lt_b else "OKX"
+        a_snaps, b_snaps = hl_b[sym], follower_set[sym]
         # 按分钟对齐（取每分钟最后一个快照）
         def minute_map(snaps):
             m = {}
             for s in snaps:
-                key = int(s.get("t_epoch", 0) * 60)
+                key = int(s.get("t_epoch", 0) // 60) * 60
                 m[key] = s
             return m
         am, bm = minute_map(a_snaps), minute_map(b_snaps)

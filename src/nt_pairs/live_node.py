@@ -690,6 +690,8 @@ def build_node(
     dry_run: Optional[bool] = None,
     environment: str = "mainnet",
     node_name: Optional[str] = None,
+    connect_timeout_s: int = 60,
+    timeout_disconnection_s: int = 60,
 ) -> NodeBundle:
     """按计划组装 ``LiveNode``（不启动网络循环）。
 
@@ -708,6 +710,10 @@ def build_node(
         shutdown_on_error=True,
     )
     builder = LiveNodeBuilder.from_config(node_name or plan.name, config)
+    # 2.0 默认的 data-connect 超时太短：从 VPS 连 HL/Lighter 的 WS 在 TLS 握手 + 首个消息上
+    # 可能超过默认值，实测表现为 node_run_failed: RuntimeError("data-connect timeout")。
+    builder = builder.with_timeout_connection(connect_timeout_s)
+    builder = builder.with_timeout_disconnection_secs(timeout_disconnection_s)
     for spec in specs:
         if spec.kind == "data":
             builder.add_data_client(spec.name, spec.factory, spec.config)
