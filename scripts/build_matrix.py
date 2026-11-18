@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 import math
 import os
 import statistics
@@ -36,7 +37,11 @@ HL = "https://api.hyperliquid.xyz/info"
 LT = "https://mainnet.zklighter.elliot.ai/api/v1"
 OKX = "https://www.okx.com/api/v5"
 DEXES = ("xyz", "io", "para", "vntl", "flx", "km", "mkts", "cash", "hyna")
-SNAP = r"W:\ant-cross-arb\.herd-dispatch\jobs\universe-map"
+# OKX 标的快照：原来指向 ant-cross-arb 的工作区（`W:\ant-cross-arb\.herd-dispatch\jobs\universe-map`），
+# 那是 nt-pairs 的**硬路径依赖**：删掉 ant 目录后 `load_okx()` 只会打印一行、返回空列表，
+# 三所矩阵会**静默**退化成两所（仓库对照报告 I-2）。
+# 现在快照已经复制进本仓 `data/snapshots/`，这里只认本仓路径。
+SNAP = str(Path(__file__).resolve().parent.parent / "data" / "snapshots")
 UA = {"User-Agent": "Mozilla/5.0"}
 EQUITY_HINT = ("BTC", "ETH", "SOL", "XRP", "DOGE", "BNB", "LTC", "BCH", "ADA", "AVAX", "LINK", "SUI", "TON",
                "TRX", "DOT", "MATIC", "ARB", "OP", "APT", "NEAR", "ATOM", "UNI", "AAVE", "PEPE", "SHIB", "WIF",

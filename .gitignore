@@ -3,7 +3,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 state/
-data/
+data/*
 *.log
 .env
 .herd-dispatch/
@@ -11,3 +11,6 @@ data/
 build/
 dist/
 .tmp/
+# OKX 标的快照要进版本库：build_matrix 依赖它（ant-cross-arb 删除后唯一的来源）
+!data/snapshots/
+!data/snapshots/*.json
