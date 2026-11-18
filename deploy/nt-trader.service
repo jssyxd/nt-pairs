@@ -1,0 +1,25 @@
+[Unit]
+Description=nt-pairs two-leg hedger (dry-run)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/nt-pairs
+Environment=PYTHONPATH=/opt/nt-pairs/src
+EnvironmentFile=/etc/nt-pairs/env
+# --dry-run：执行端是 nautilus 沙盒，不会发出真实订单。切真单前必须先补
+# docs/LIVE_TRADING_SPEC.md §3 的闸门接线（当前 0/11 在运行时生效）。
+# --max-secs 0：一直跑到 systemctl stop。
+# 默认值是 60 秒 → 节点 60s 后自己优雅停机，systemd 又把它拉起来，
+# 于是变成每分钟一次的"重启循环"（实测 NRestarts 一夜涨到 6029）。
+ExecStart=/opt/nt-pairs/.venv/bin/python -m nt_pairs.live_runner --config configs/pair_rklb.json --dry-run --max-secs 0
+Restart=always
+RestartSec=15
+TimeoutStopSec=45
+StandardOutput=journal
+StandardError=journal
+MemoryMax=500M
+
+[Install]
+WantedBy=multi-user.target

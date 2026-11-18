@@ -34,10 +34,10 @@ timedatectl status                     # 必须 synchronized
 ```bash
 git clone https://github.com/jssyxd/nt-pairs.git
 python3.12 -m venv /opt/nt-pairs-venv
-/opt/nt-pairs-venv/bin/pip install -U pip
-/opt/nt-pairs-venv/bin/pip install "nautilus_trader==2.0.0rc6" pyyaml pytest
-/opt/nt-pairs-venv/bin/pip install -e .           # 或直接 pip install -e ".[dev]"
-/opt/nt-pairs-venv/bin/python -c "import nautilus_trader, importlib.metadata as m; print(m.version('nautilus_trader'))"
+/opt/nt-pairs/.venv/bin/pip install -U pip
+/opt/nt-pairs/.venv/bin/pip install "nautilus_trader==2.0.0rc6" pyyaml pytest
+/opt/nt-pairs/.venv/bin/pip install -e .           # 或直接 pip install -e ".[dev]"
+/opt/nt-pairs/.venv/bin/python -c "import nautilus_trader, importlib.metadata as m; print(m.version('nautilus_trader'))"
 ```
 > ⚠️ **版本锁死 2.0.0rc6**：1.231.0 的 Python 包**没有** Lighter 适配器（只有 Rust crate）。
 
@@ -150,7 +150,7 @@ OKX_API_KEY=...              OKX_SECRET=...              OKX_PASSPHRASE=...
 
 ```bash
 cd /opt/nt-pairs
-nohup /opt/nt-pairs-venv/bin/python scripts/collect_l2.py --interval 1 --days 30 \
+nohup /opt/nt-pairs/.venv/bin/python scripts/collect_l2.py --interval 1 --days 30 \
   > state/collector.log 2>&1 &
 ```
 - 输出：`data/collector/<VENUE>/<YYYYMMDD>.jsonl`（每行一条完整快照）。
@@ -212,13 +212,13 @@ WorkingDirectory=/opt/nt-pairs
 EnvironmentFile=/etc/nt-pairs/env
 Environment=PYTHONUNBUFFERED=1
 Environment=NT_PAIRS_DRY_RUN=1
-ExecStart=/opt/nt-pairs-venv/bin/python -m nt_pairs.runtime --pair configs/openai_entropy_lighter.json
+ExecStart=/opt/nt-pairs/.venv/bin/python -m nt_pairs.runtime --pair configs/openai_entropy_lighter.json
 Restart=always
 RestartSec=10
 TimeoutStopSec=60
 KillSignal=SIGTERM
 # 进程退出前必须撤单
-ExecStopPost=/opt/nt-pairs-venv/bin/python -m nt_pairs.runtime --cancel-all
+ExecStopPost=/opt/nt-pairs/.venv/bin/python -m nt_pairs.runtime --cancel-all
 
 [Install]
 WantedBy=multi-user.target

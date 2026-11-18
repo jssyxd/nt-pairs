@@ -53,6 +53,10 @@ git -C "${REPO_DIR}" \
 if [ -f "${SSH_KEY}" ]; then
   export GIT_SSH_COMMAND="ssh -i ${SSH_KEY} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
 fi
-git -C "${REPO_DIR}" push "${REMOTE}" "HEAD:${BRANCH}"
+if ! git -C "${REPO_DIR}" push "${REMOTE}" "HEAD:${BRANCH}"; then
+  echo "[${STAMP}] 报告已在本地生成并提交，但推送失败（${REMOTE}/${BRANCH} 无写权限或网络不通）。"
+  echo "[${STAMP}] 本地报告：${REPORT_MD} / ${REPORT_JSON}"
+  exit 3
+fi
 
 echo "[${STAMP}] 已推送 ${REPORT_MD} / ${REPORT_JSON} → ${REMOTE}/${BRANCH}"

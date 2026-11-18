@@ -100,7 +100,7 @@ wc -l /opt/nt-pairs/data/collector/*/*.jsonl
 
 ```bash
 cd /opt/nt-pairs
-PYTHONPATH=/opt/nt-pairs/src /opt/nt-pairs/venv312/bin/python analyze_collector.py \
+PYTHONPATH=/opt/nt-pairs/src /opt/nt-pairs/.venv/bin/python analyze_collector.py \
   --root data/collector --qty 100 --out data/fill_calibration.json
 ```
 
@@ -133,7 +133,7 @@ PYTHONPATH=/opt/nt-pairs/src /opt/nt-pairs/venv312/bin/python analyze_collector.
 
 ```bash
 cd /opt/nt-pairs
-PYTHONPATH=/opt/nt-pairs/src /opt/nt-pairs/venv312/bin/python -m nt_pairs.live_runner \
+PYTHONPATH=/opt/nt-pairs/src /opt/nt-pairs/.venv/bin/python -m nt_pairs.live_runner \
   --config configs/rklb_xyz_lighter.json --dry-run --max-secs 86400
 ```
 
