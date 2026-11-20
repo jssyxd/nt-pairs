@@ -30,7 +30,31 @@
 
 ## 3. 当前仍然卡住的地方
 
-### 3.1 GitHub 推送链路全线断开（**需要人工**）
+### 3.1 GitHub 推送链路：**已于 2026-11-20 恢复** ✅
+
+**恢复后的状态**（实测）：本机 `git push` 正常；VPS 的 deploy key 有写权限；
+VPS 的 6h 报告 cron 能自动提交并推送；GitHub Actions 的 `6h-report` 工作流在最新提交上 **success**；
+仓库 `reports/` 里已有 29 期报告（最新 `20261120T092143Z`）。
+
+**当时断开的三个原因（已全部处理）**：
+1. **凭证全部失效**：local 的 Git Credential Manager 里的 token、旧 remote URL 里明文 PAT（`W:\.env.md` 等处，
+   因长期明文存放被 GitHub secret scanning 自动吊销）、本机 SSH key、VPS deploy key —— 逐一验证都是 401 / publickey 拒绝。
+   处理：用户新签发一个 PAT（到期 2027-02-18，仅 `repo` 权限），用 `git credential approve` 存进 Windows 凭据管理器
+   （**不再落任何明文文件**；旧 token 的明文副本已从 `.git/config`、`W:\.env.md`、
+   `W:\twinCheck\generate_20261106_html.py`、agent 报告里清除）。
+2. **VPS 的 deploy key 没在 GitHub 注册**：用新 PAT 调 API
+   `POST /repos/jssyxd/nt-pairs/keys`（title `nt-pairs-vps`、`allow_write_access=true`）注册完成，
+   key id `170545395`；`ssh -T -i /root/.ssh/nt_pairs_report git@github.com` 现在回
+   `Hi jssyxd/nt-pairs! You've successfully authenticated`。
+3. **VPS 仓库与上游分叉**（本地领先 26 个 report commit，且与本机仓库的修复 commit 重复）：
+   用 `scripts/vps_recover_push.sh` 处理——**先备份分支 → fetch → `reset --hard origin/main` → 立刻跑一次报告脚本验证推送**
+   （历史报告的内容由本机提交 `c57d54b` 承载在上游，所以这里用 reset 而不是 rebase，避免和同一批 `reports/*.md` 撞车）。
+
+**本机没有凭证时的备用通路**：`scripts/push_via_vps.py`——把 `origin/main..main` 打成 bundle 送到 VPS，由 VPS 代推
+（`--dry-run` 可先看要推什么）。现在本机已有 GCM 凭证，日常用 `git push origin main` 即可。
+
+<details>
+<summary>当时的原始故障描述（保留备查）</summary>
 
 GitHub 上 `nt-pairs` 的 main 停在 `3d797e5`（2026-11-13）。此后所有提交都没推上去，原因有三层：
 
@@ -58,14 +82,13 @@ bash /opt/nt-pairs/scripts/vps_recover_push.sh
   （VPS 上 `cat /root/.ssh/nt_pairs_report.pub`）。在仓库 `Settings → Deploy keys → Add deploy key` 勾上 **Allow write access**。
 - 或者：`gh auth login` 重新登录，然后本地 `git push origin main`（需把当前 `main` 推上去）。
 
-**恢复后的收尾动作**
+**恢复后的收尾动作（已于 2026-11-20 执行完毕）**
 ```bash
-# malaysia 上：把 VPS 的 24 个 report commit 并回上游，然后验证报告推送
-cd /opt/nt-pairs && git fetch origin && git rebase origin/main && git push origin HEAD:main
-bash /opt/nt-pairs/scripts/vps_report_cron.sh          # 期望输出「已推送 … → origin/main」
+cd /opt/nt-pairs && bash scripts/vps_recover_push.sh   # 备份 → fetch → reset --hard origin/main → 跑一次报告脚本验证推送
 ```
-注意：`scripts/vps_report_cron.sh` 本次已改成 **先 `git fetch` + `rebase` 再提交推送**（旧版不 fetch，
+注意：`scripts/vps_report_cron.sh` 已改成 **先 `git fetch` + `rebase` 再提交推送**（旧版不 fetch，
 所以 48 次推送全部被 `! [rejected] HEAD -> main (fetch first)` 挡掉，报告一次都没进仓库）。
+</details>
 
 ### 3.2 trader 的数据连接曾间歇失败（已定位并绕过）
 
