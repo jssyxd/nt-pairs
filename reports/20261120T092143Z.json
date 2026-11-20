@@ -1,0 +1,248 @@
+{
+ "generated_utc": "2026-11-20T09:21:43Z",
+ "window_start": "2026-11-20T03:21:43Z",
+ "window_hours": 6.0,
+ "logs": {
+  "files": [
+   {
+    "name": "analyze.log",
+    "bytes": 96,
+    "age_h": 41.57,
+    "lines": 2,
+    "state": "",
+    "last_ts": "",
+    "in_window": false
+   },
+   {
+    "name": "report_cron.log",
+    "bytes": 23006,
+    "age_h": 5.07,
+    "lines": 427,
+    "state": "",
+    "last_ts": "",
+    "in_window": true
+   },
+   {
+    "name": "smoke_send.log",
+    "bytes": 36108,
+    "age_h": 40.73,
+    "lines": 211,
+    "state": "",
+    "last_ts": "2026-11-18T16:38:07",
+    "in_window": false
+   },
+   {
+    "name": "smoke_send2.log",
+    "bytes": 39478,
+    "age_h": 40.62,
+    "lines": 216,
+    "state": "",
+    "last_ts": "2026-11-18T16:44:46",
+    "in_window": false
+   },
+   {
+    "name": "smoke_send3.log",
+    "bytes": 39839,
+    "age_h": 40.56,
+    "lines": 219,
+    "state": "",
+    "last_ts": "2026-11-18T16:48:12",
+    "in_window": false
+   },
+   {
+    "name": "smoke_send4.log",
+    "bytes": 529,
+    "age_h": 40.53,
+    "lines": 11,
+    "state": "",
+    "last_ts": "",
+    "in_window": false
+   },
+   {
+    "name": "smoke_send5.log",
+    "bytes": 39725,
+    "age_h": 40.45,
+    "lines": 218,
+    "state": "",
+    "last_ts": "2026-11-18T16:54:28",
+    "in_window": false
+   },
+   {
+    "name": "smoke_send6.log",
+    "bytes": 143,
+    "age_h": 40.37,
+    "lines": 4,
+    "state": "",
+    "last_ts": "",
+    "in_window": false
+   },
+   {
+    "name": "smoke_send7.log",
+    "bytes": 39950,
+    "age_h": 40.22,
+    "lines": 219,
+    "state": "",
+    "last_ts": "2026-11-18T17:08:33",
+    "in_window": false
+   }
+  ],
+  "lines": 1527,
+  "lines_in_window": 427,
+  "fills": 0,
+  "no_fills": 0,
+  "risk_events": 0,
+  "errors": 31,
+  "basis": [],
+  "ev": [],
+  "p_fill": [],
+  "findings": [],
+  "dir_exists": true
+ },
+ "error_signatures": [
+  {
+   "count": 24,
+   "text": "error: failed to push some refs to 'github.com:jssyxd/nt-pairs.git'"
+  },
+  {
+   "count": 7,
+   "text": "fatal: Could not read from remote repository."
+  }
+ ],
+ "collector": {
+  "root": "/opt/nt-pairs/data/collector",
+  "exists": true,
+  "venues": {
+   "HYPERLIQUID": {
+    "samples": 438402,
+    "window_samples": 13500,
+    "files": 9,
+    "first_ts": "2026-11-12T15:58:10.535061+00:00",
+    "last_ts": "2026-11-20T09:21:36.928600+00:00",
+    "symbols": {
+     "xyz:SOXL": {
+      "n": 73066,
+      "stale": 1219
+     },
+     "xyz:RKLB": {
+      "n": 73065,
+      "stale": 7877
+     },
+     "xyz:KIOXIA": {
+      "n": 73065,
+      "stale": 11734
+     },
+     "xyz:MRVL": {
+      "n": 73066,
+      "stale": 7044
+     },
+     "xyz:EWY": {
+      "n": 73066,
+      "stale": 11719
+     },
+     "io:OAI": {
+      "n": 73066,
+      "stale": 33423
+     },
+     "para:ANTH": {
+      "n": 8,
+      "stale": 5
+     }
+    },
+    "stale_ratio": 0.1665617401380468,
+    "n_symbols": 7
+   },
+   "LIGHTER": {
+    "samples": 438429,
+    "window_samples": 13512,
+    "files": 9,
+    "first_ts": "2026-11-12T15:58:10.535061+00:00",
+    "last_ts": "2026-11-20T09:21:53.137635+00:00",
+    "symbols": {
+     "RKLB": {
+      "n": 73071,
+      "stale": 17243
+     },
+     "SOXL": {
+      "n": 73071,
+      "stale": 6662
+     },
+     "KIOXIA": {
+      "n": 73071,
+      "stale": 15389
+     },
+     "MRVL": {
+      "n": 73071,
+      "stale": 6446
+     },
+     "EWY": {
+      "n": 73071,
+      "stale": 19844
+     },
+     "OPENAI": {
+      "n": 73066,
+      "stale": 15847
+     },
+     "ANTHROPIC": {
+      "n": 8,
+      "stale": 0
+     }
+    },
+    "stale_ratio": 0.18573360795020402,
+    "n_symbols": 7
+   },
+   "OKX": {
+    "samples": 438423,
+    "window_samples": 13524,
+    "files": 9,
+    "first_ts": "2026-11-12T15:58:10.535061+00:00",
+    "last_ts": "2026-11-20T09:22:10.636107+00:00",
+    "symbols": {
+     "SOXL-USDT-SWAP": {
+      "n": 73068,
+      "stale": 10284
+     },
+     "RKLB-USDT-SWAP": {
+      "n": 73070,
+      "stale": 24437
+     },
+     "KIOXIA-USDT-SWAP": {
+      "n": 73070,
+      "stale": 43171
+     },
+     "MRVL-USDT-SWAP": {
+      "n": 73069,
+      "stale": 10792
+     },
+     "EWY-USDT-SWAP": {
+      "n": 73069,
+      "stale": 20671
+     },
+     "OPENAI-USDT-SWAP": {
+      "n": 73069,
+      "stale": 38419
+     },
+     "ANTHROPIC-USDT-SWAP": {
+      "n": 8,
+      "stale": 2
+     }
+    },
+    "stale_ratio": 0.3370626084854125,
+    "n_symbols": 7
+   }
+  },
+  "total_samples": 1315254,
+  "window_samples": 40536
+ },
+ "matrix": {
+  "available": false,
+  "generated_utc": "",
+  "pairs": 0,
+  "tradable": 0,
+  "top": [],
+  "repeat_close": [],
+  "basis_p95": []
+ },
+ "sim": {
+  "available": false
+ }
+}
