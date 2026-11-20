@@ -1,9 +1,17 @@
 .venv/
+.venv-nt/
 __pycache__/
 *.pyc
 .pytest_cache/
 state/
 data/*
+# OKX 标的快照要进版本库：build_matrix 依赖它（ant-cross-arb 删除后唯一的来源）
+!data/snapshots/
+!data/snapshots/*.json
+# 座舱与扫描产物同样需要进版本库（报告与复现用）
+!data/cockpit/
+!data/chd_screen.json
+!data/chd_universe.json
 *.log
 .env
 .herd-dispatch/
@@ -11,6 +19,3 @@ data/*
 build/
 dist/
 .tmp/
-# OKX 标的快照要进版本库：build_matrix 依赖它（ant-cross-arb 删除后唯一的来源）
-!data/snapshots/
-!data/snapshots/*.json

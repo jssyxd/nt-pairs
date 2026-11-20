@@ -160,3 +160,122 @@ HyperliquidExecutionClientConfig(account_id, private_key, vault_address, account
   实际费率必须以成交回执 `fee` 字段为准。
 - `fundingHistory` 的 `fundingRate` 是**每小时**；14 天实测均值 **0.87 bps/h**（累计 34 bps）。
 - HL 推断成交（inferred fill）的 `commission` 为 `None` —— 自建账本不得据此推算费率，也不得用 adapter 的 realized PnL 当净收益。
+## 2026-11-14: CryptoHFTData 是可行的 L2 回测数据源（路径/参数已实测）
+
+- 基址 `https://api.cryptohftdata.com/v1`；`GET /symbols?exchange=&data_type=`、`GET /symbol-counts?exchange=&data_type=`、
+  `GET /status?lookback_hours=24`、`POST /jwt-token`（header `X-API-Key`）、`GET /download?file=...`。
+- **文件路径模板**：`{exchange}/{YYYY-MM-DD}/{HH}/{symbol}_{data_type}.parquet`（UTC 小时）。
+- **`/download` 必须跟随 302**（`curl -L`）；不跟只拿到 302 空体。文件是 zstd Parquet。
+- 交易所 id：`hyperliquid_futures` / `lighter` / `okx_futures` / `binance_futures` / `bybit` /
+  `kraken_derivatives` / `aster_futures` / `bitget_futures`（+ 若干 spot）。
+- data_type：`orderbook` / `trades` / `ticker` / `mark_price`（含 funding）/ `open_interest` / `liquidations`。
+- 符号命名：HL 的 HIP-3 带 deployer 前缀（`XYZ:SOXL`、`IO:OAI`、`CASH:EWY`、`FLX:NVDA`、`VNTL:OPENAI`）；
+  Lighter 裸名（`SOXL`）；OKX `SOXL-USDT-SWAP`；Binance `SOXLUSDT`。
+  **四所共有的股票类标的 56 个**（见 `data/chd_universe.json`）。
+- **orderbook 文件是 L2 增量流**：`event_type` ∈ {snapshot, update}；**同一 event_time 的一组行里只要有一行是
+  snapshot 就整组重置盘口**，按行逐条处理会把盘口清空 → 深度算成 0（我第一次就踩了）。
+  重建时必须**先按 event_time 分组**再应用增量。`quantity<=0` 表示删除该价位。
+- trades 表：`trade_time`（成交时刻）/ `received_time`（落库时刻）/ `trade_id` / `is_buyer_maker` / `order_type`；
+  HL 的 tid 只在 (coin,time) 唯一、Lighter 的 trade_id 是全所唯一且可能延迟送达（文件按 received_time 分桶）。
+- 权威语义清单在 `https://www.cryptohftdata.com/llms.txt`（docs 页是 Docusaurus，markdown 内容抓不到，
+  要抓 `https://www.cryptohftdata.com/llms.txt` 或用 GitBook 式 `?ask=&goal=` 接口问）。
+
+## 2026-11-14: 本机 pip 装 nautilus 会被 pythonhosted 掐断（uv + 镜像可行）
+
+- 直连 `files.pythonhosted.org` 下载大 wheel（numpy/pandas/pyarrow 15-30MB）**频繁 operation timed out**。
+- 可用：`uv pip install --index-url https://pypi.tuna.tsinghua.edu.cn/simple`（清镜像，秒下）；
+  或先 `uv venv --python 3.12`（uv 自带 3.12.15），再 `--index-url` 安装。
+- `nautilus_trader==2.0.0rc6` 支持 Python `>=3.12,<3.15`（有 cp312/cp313/cp314 wheel）；
+  **2.0.0rc9 要求 Python >=3.13,<3.16**（cp312 无 wheel）。仓库锁 rc6 → 本机 py3.12 即可。
+- 装完 2.0.0rc6 后 `nautilus_trader.adapters` **不是顶层属性**，`nautilus_trader.adapters` 会 AttributeError；
+  要用 `os.path.join(os.path.dirname(nautilus_trader.__file__), "adapters")` + `pkgutil.iter_modules([path])`。
+- 实测 adapters（2.0.0rc6）：architect_ax betfair binance blockchain bybit coinbase databento deribit
+  derive dydx **hyperliquid** interactive_brokers kraken **lighter** **okx** polymarket sandbox tardis。
+  Lighter 的 Robinhood 部署在**同一个 lighter 适配器**里：`LighterDeployment.ROBINHOOD` +
+  常量 `LIGHTER_ROBINHOOD` / `LIGHTER_ROBINHOOD_CLIENT_ID` / `LIGHTER_ROBINHOOD_VENUE`。
+
+## 2026-11-14: 官方费率实测（不能靠记忆）
+
+- Lighter（docs.lighter.xyz/trading/trading-fees）：Standard 账号普通永续单 **maker 0% / taker 0%**；
+  TWAP/advanced 单与 RFQ 收 **1bp**；Plus 0.5bps；Premium 随质押 LIT 递减（0.0040%/0.0280% → 0.0028%/0.0196%）。
+- Lighter on Robinhood Chain：Standard 同样 **0%/0%**，TWAP 1bp；**Standard maker 单在 Robinhood 链有 200ms 延迟**
+  （做 maker 腿是硬约束）。Plus 0.015%/0.015%。
+- Hyperliquid（gitbook fees）：perps Tier0 **taker 0.045% / maker 0.015%**；Tier4 ($500M 14d) maker 0%。
+  HIP-3 `deployerFeeScale`：deployer 抽用户手续费 0-300%（growth mode 0-100%），>100% 时协议费也涨到与
+  deployer fee 相等；growth mode 全包 taker 0.0045%-0.009%。
+
+## 2026-11-14: X 账号时间线用 jina 抓，agent-reach twitter 装不上
+
+- `agent-reach add twitter` 在本机失败：`UPSTREAM_BROKEN`（OpenCLI 扩展 release 下载 SSL EOF）→ 不要重试。
+- 可行替代：`curl -sL "https://r.jina.ai/https://x.com/<handle>"` 拿到时间线正文（Markdown）；
+  图片 `https://pbs.twimg.com/media/<id>?format=jpg&name=large` 下载后本地读图即可识别表格/截图。
+  单条 `status/<id>` 页会 404（登录墙），只有 profile 时间线可用。
+
+## 2026-11-15: NautilusTrader 2.0.0rc9 + 可视化座舱（实测）
+
+- rc9 的 `requires_python = ">=3.13,<3.16"`，**cp312 无 wheel**；要装 rc9 必须 Python 3.13/3.14/3.15。
+  仓库原锁 rc6（支持 3.12），已升级到 rc9 + `requires-python>=3.13`。
+- rc9 实测适配器 **21 个**（比 rc6 多 coinapi / finfeed / kalshi）：
+  architect_ax betfair binance blockchain bybit coinapi coinbase databento deribit derive dydx
+  finfeed hyperliquid interactive_brokers kalshi kraken lighter okx polymarket sandbox tardis
+- `nautilus_trader.adapters` **不是顶层属性**；要 `os.path.join(os.path.dirname(nautilus_trader.__file__), "adapters")`
+  再 `pkgutil.iter_modules([that_path])`。传字符串给 `iter_modules` 会抛 ValueError。
+- 2.0 的 `LiveNode` 取代了 1.x 的 `TradingNode`：
+  `LiveNodeBuilder.from_config(name) → add_data_client/add_exec_client/add_simulated_exec_client → build()`。
+  2.0 **没有** `TradingNode`/`TradingNodeConfig`。
+- **`LiveNode.handle` 是方法不是属性**：必须 `node.handle()` 才拿到 `LiveNodeHandle`
+  （`handle.stop()` / `.is_running` / `.state`）。
+  直接写 `self._handle = node.handle` 拿到的是 bound method → 停机回调里 `self._handle.stop()` 抛
+  `AttributeError: 'builtin_function_or_method' object has no attribute 'stop'`（会无限重试刷屏）。
+- `LiveNode` 是 pyo3 的 **unsendable** 类型：不能丢给别的线程（panic），
+  停表必须挂 `self.clock.set_timer(...)` 在节点自己的事件循环里。
+- 自检脚本：`scripts/verify_nautilus.py`（`--json` 机器可读，退出码 0 = 全齐）；
+  可视化座舱：`scripts/make_tearsheet.py`（Nautilus 原生 tearsheet + 降级版 plotly HTML）。
+- plotly 的 `fig.to_html()` 会把非 ASCII 转义成 `\uXXXX` 放进 JSON，
+  **降级原因在 HTML 源文件里搜不到** → 需要额外插一段可见横幅（`make_tearsheet.render_degraded` 已修）。
+- `pandas.read_parquet` 需要 **pyarrow**；nautilus 的 `[visualization]` extra **不带** pyarrow，必须单独装。
+
+## 2026-11-15: 事件级 EV 回放的三个「让结论系统性偏负」的缺陷（全部已修）
+
+按缺陷对结论的影响排序：
+
+### D1（最隐蔽）：HIP-3 费率查表用大写 dex 名 → 费率高估 5 倍
+- HL 的 HIP-3 符号在数据源里是**大写**（`XYZ:SOXL`、`IO:OAI`），但 HL API 的 dex 名只认**小写**（`xyz`）。
+  `{"type":"meta","dex":"XYZ"}` 返回 `null`，`{"type":"meta","dex":"xyz"}` 才返回 universe。
+- 不归一化 → 查不到 `deployerFeeScale`/`growthMode` → 退回基础档 1.5/4.5 bps。
+- 实际（`{"type":"meta","dex":"xyz"}`）：`xyz:SOXL` 的 `deployerFeeScale="1.0"` + `growthMode="enabled"`
+  → **maker 0.30 / taker 0.90 bps**（官方公式：base × (scale≥1 ? scale×2 : scale+1) × (growth ? 0.1 : 1)）。
+- 影响：`XYZ:SOXL`↔`Lighter SOXL` 的 `b*` 从 15.9 → **11.1 bps**，p95 覆盖 1.59 → **2.27**，
+  这一对从「勉强不亏」变成「明确正 EV」。**费率假设错了，结论就整个反过来。**
+- 查费率的正确端点：`POST /info {"type":"meta","dex":"<小写 dex>"}`（per-asset 的
+  `deployerFeeScale`/`growthMode` 在 `universe[]` 里）；`{"type":"perpDexs"}` 只给 dex 级别信息，
+  **不含**这两个字段。
+
+### D2：`p_fill` 模型用错 → 净 EV 恒为 0（假阴性）
+- 「窗口内总成交量必须 ≥ 整条队列」的指数模型 `P = exp(−need/E[V])` 要求整条队列在 TTL 内被吃光，
+  实测把 `p_fill` 压到 ~0 → 所有标的净 EV 恒为 0，看不出任何差别。
+- 正确口径（仓库 `docs/FILL_MODEL.md` / `scripts/fill_model.py::p_fill`）：
+  **Poisson 队列消耗** `P(fill) = 1 − exp(−λ·dt·E[size] / (queue_ahead + our_size))`。
+  `λ` 是**笔/秒**（不是成交量/秒），`E[size]` 是均单量 → 调用方要同时给笔数与成交量。
+- 修好后 `mean_p_fill` 从 0 → 0.03~0.66，净 EV 才有了区分度。
+
+### D3：回放窗口的 trades 没下载 → 逐笔明细为空 → `p_fill=0`
+- Stage A 用「最近 N 小时」的 trades，但回放窗口常常落在**更早的 RTH 小时**
+  （数据按整点发布，当前小时未落盘；最近的窗口可能整段都不是 RTH）。
+- 结果：回放窗口的 `trade_detail` 为空 → `volume_through` 返回 0 → `p_fill=0` → 又是假阴性。
+- 修法：回放窗口的 trades 要**单独补下载**（不能假设它落在 Stage A 的窗口内）。
+
+## 2026-11-15: 「跑两周」的验收口径是**逐日**净 EV，不是聚合平均
+
+- `scripts/chd_screen.py` 增加 `by_day` 输出（按 NYSE 交易日拆分：事件数/胜率/净 EV/毛捕获/p_fill）
+  + 报告 §2.2 逐日表 + 「正 EV 天数占比」。
+- 实测 `XYZ:SOXL`(HL) ↔ `SOXL`(Lighter)，72 小时回放（2443 事件，4 个交易日）：
+  **4/4 天净 EV 为正**（+0.66 / +3.97 / +4.58 / +0.75 bps/事件）。
+- **会话结论与直觉相反**：RTH（美股盘中）净 +11.56 bps/事件、胜率 82.8%、
+  毛捕获 27.3 bps；closed（休市）虽机会最多（745/日）但净只有 +0.86 bps
+  （毛捕获 11.97、p_fill 仅 0.235）。
+  → **休市时段「价差大」来自预言机+情绪，不是可收割的收敛；盘口反而更薄、成交更难。**
+  「避开美股盘中」在本项目的链上跨场所版本上是**错的**（与 2026-11-12 K 线级口径的结论相反，
+  以盘口级回放为准）。
+- **maker 腿的选择随窗口长度翻转**：1 小时窗口下 HL 当 maker 更好，72 小时窗口下 Lighter 更好
+  → 腿角色必须用**足够长的窗口**（≥3 天）决定，不能只看一小时。

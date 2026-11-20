@@ -6,9 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "nt-pairs"
 version = "0.1.0"
 description = "Two-leg cross-venue basis oscillation harvester on NautilusTrader"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = [
-    "nautilus_trader==2.0.0rc6",
+    # 2.0.0rc9 是当前最新 rc：cp314 wheel 存在，且要求 Python >=3.13,<3.16。
+    # [visualization] extra 提供 plotly/kaleido（可视化座舱用）。
+    "nautilus_trader[visualization]==2.0.0rc9",
     "pyyaml>=6.0",
     "pytest>=8.0",
 ]

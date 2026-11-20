@@ -1,0 +1,288 @@
+# 2026-11-14 · 全市场标的扫描与 EV 回测（captain 实测）
+
+数据源：**CryptoHFTData**（API key 通过 `CHD_API_KEY` 环境变量提供，不入库）。
+窗口：2026-11-11 ~ 11-13（3 天，1 分钟粒度 trades）+ 2026-11-14 10:00 UTC 整点 L2 orderbook 快照。
+场所：Hyperliquid（HIP-3）/ Lighter / OKX / Binance 四家 futures。
+
+## 1. 数据可用性（已验证）
+
+| 项 | 结论 |
+|---|---|
+| 端点 | `/v1/status` `/v1/symbols` `/v1/symbol-counts` `/v1/jwt-token` `/v1/download?file=...` |
+| 文件路径 | `{exchange}/{YYYY-MM-DD}/{HH}/{symbol}_{data_type}.parquet`（UTC 小时） |
+| 历史深度 | 四所均能取到 **2026-09-01 起的**逐小时 trades / orderbook（实测 09-01、10-01、10-20、11-01、11-14 均 200） |
+| 品种 | orderbook（L2 增量）、trades（L0）、ticker、mark_price（含资金费）、open_interest、liquidations |
+| 限速 | 匿名 60 req/min/IP；带 key 亦受同量级约束 → **必须本地缓存** |
+
+**两个必须记住的坑**
+
+1. `/download` 返回 **302**，不跟随重定向只拿到空体（`curl -L` / `requests` 默认跟随）。
+2. `orderbook` 文件是 **L2 增量流**：`event_type ∈ {snapshot, update}`。
+   **必须先按 `event_time` 分组**，一组里只要出现 `snapshot` 就整组重置盘口；
+   逐行处理会把盘口清空 → 深度算成 0（第一次踩这个坑，56 个标的的深度全变 0）。
+   `quantity<=0` 表示删除该价位。
+
+## 2. 四所共有的股票类标的：56 个
+
+`hyperliquid_futures ∩ lighter ∩ okx_futures ∩ binance_futures`，剔除纯加密标的后：
+
+```
+AAOI AAPL AMD AMZN ANTHROPIC ARM ASML AVGO BB BE BMNR BOT CBRS COIN CRCL CRWV
+CXMT DELL DRAM EWY GEV GME GOOGL HOOD HYUNDAI IBM INTC IREN KORU LITE META MINIMAX
+MRNA MRVL MSFT MSTR MU NBIS NOW NVDA OPENAI ORCL OURA PLTR QNT RKLB SKHY SNDK SOXL
+SPCX STRC TSLA TSM TTWO UNITREE ZHIPU
+```
+
+- HL 的 HIP-3 符号带 deployer 前缀（`XYZ:SOXL`、`IO:OAI`、`CASH:EWY`、`FLX:NVDA`、`VNTL:OPENAI`）；
+  Lighter 裸名；OKX `SOXL-USDT-SWAP`；Binance `SOXLUSDT`。
+- HL HIP-3 覆盖 263/463 个符号（10 个 deployer，XYZ 122 / PARA 34 / HYNA 22 / KM 22 / CASH 15 / FLX 15 / IO 15 / VNTL 13 / MKTS 5）。
+- **单位一致性闸门**（|价格比 − 1| > 5% 即不同标的）在这一轮挡下 4 个：
+  `ANTHROPIC`（OKX 侧 103 vs Lighter 1779 vs Binance 1352，**根本不是同一个东西**）、
+  `OPENAI`（OKX 129）、`BB`（Binance 0.0058 vs 其他 8.77）、`QNT`（HL 34.97）。
+  → **同名 ≠ 同标的**，跨所配对必须先过这一关。
+
+## 3. 流动性实测（2026-11-14 10:00 UTC 整点 L2 快照，重建后 ±25bps 深度中位数）
+
+| 标的 | HL | Lighter | OKX | Binance | 备注 |
+|---|---:|---:|---:|---:|---|
+| SPCX | $702k | $730k | $671k | $2.72M | 四所都厚 |
+| NVDA | $467k | $672k | $625k | $1.37M | 最厚 |
+| GOOGL | $190k | $258k | $408k | $553k | |
+| SKHY | $266k | $214k | $137k | $569k | |
+| EWY | $131k | $135k | $170k | $427k | **Lighter 侧成交仅 2.7 笔/分** |
+| MSTR | $160k | $130k | $234k | $527k | |
+| AAPL | $127k | $506k | $272k | $356k | |
+| DRAM | $110k | $516k | $205k | $323k | |
+| SNDK | $105k | $467k | $1.77M | $819k | |
+| TSLA | $93k | $498k | $275k | $353k | |
+| MRVL | $79k | $420k | $116k | $112k | |
+| SOXL | $79k | $547k | $653k | $1.36M | |
+
+成交笔数/分（3 天均值，同一小时内）：Binance 288~2916 ≫ OKX 40~827 ≫ HL 18~238 > Lighter 2.7~74。
+→ **Binance 最深最快，OKX 次之，HL 中等，Lighter 最慢**；Lighter 的价值在**费率 0**，不在深度。
+
+## 4. 跨所价差结构：稳定水平 + 随机偏离
+
+朴素算「绝对基差」会得出错误结论（HL 相对 OKX/Binance 常年 −12~16bps，是**结构性折价**，不会收敛到 0）。
+可交易信号是**相对 60 分钟滚动中位数的偏离**（3 天 1 分钟网格）：
+
+| 标的 | 对 | 稳定水平 | 偏离 p95 | 偏离 p99 | RTH 命中率@5bps |
+|---|---|---:|---:|---:|---:|
+| EWY | HL~Lighter | +4.5 | **15.0** | 26.3 | 0.388（但 Lighter 仅 2.7 笔/分 → 不可执行） |
+| SKHY | Lighter~Binance | +14.5 | **11.5** | 20.8 | 0.302 |
+| SKHY | HL~Lighter | −0.6 | **11.1** | 20.7 | 0.278 |
+| SKHY | Lighter~OKX | +16.5 | **11.1** | 20.3 | 0.296 |
+| EWY | HL~Binance | +12.6 | 6.8 | 10.9 | 0.104 |
+| SPCX | Lighter~Binance | +12.8 | 5.8 | 8.7 | 0.132 |
+| NVDA | HL~Lighter | +6.2 | 4.6 | 7.4 | 0.048 |
+| GOOGL | HL~Lighter | +3.1 | 4.1 | 6.1 | 0.047 |
+| （对照）| OKX~Binance | ≈0 | 2.0~3.5 | 3.0~5.5 | 0.000 |
+
+**读法**：OKX 与 Binance 之间几乎无价差（偏离 p95 ≤ 3.5bps）→ 这两家是「真价格」锚。
+真正的可交易偏离出现在**HL / Lighter 这类 HIP-3 或永续封装场所**与真价格之间，
+且**HL~Lighter 之间的偏离最大**（SKHY 11.1bps、EWY 15.0bps），因为两边都不是指数价。
+
+## 5. 事件级 EV 回测（严格口径，同刻定价 + 1 分钟执行延迟 + 新鲜度过滤）
+
+口径修正了本项目历史上最大的三个错误：
+
+- **同刻定价**：入场用信号分钟的**下一分钟**两边成交价，不跨瞬间；
+- **新鲜度**：两边都必须在该分钟内有过成交（`fresh ≤ 60s`），把「沿用旧打印」的机械回归排除掉；
+- **P&L 用真实价格算**（多便宜腿、空贵腿的价差收敛），不是用偏离量倒推 → 不会出现恒定 100% 胜率。
+
+成本模型（bps，四次成交：leader maker + follower taker ×2 + leader taker）：
+
+| 组合 | 费率 | 半价差 | $100 滑点 | 合计成本 |
+|---|---|---|---|---:|
+| HL~Lighter（HL 当 leader） | 0.30+0+0+0.90 | 0.9+1.2 | 0.9 | **4.2** |
+| HL~Lighter（Lighter 当 leader） | 0+0.90+0.90+0.30 | 1.2+0.9 | 0.9 | **4.8** |
+| Lighter~OKX | 0+5+5+2 | 1.2+0.5 | 0.9 | 13.2 |
+| Lighter~Binance | 0+5+5+2 | 1.2+0.5 | 0.9 | 13.2 |
+| HL~OKX | 0.3+5+5+0.9 | 0.9+0.5 | 0.9 | 11.1 |
+| HL~Binance | 0.3+5+5+0.9 | 0.9+0.5 | 0.9 | 11.1 |
+
+### 结果（3 天样本，阈值=偏离 8bps，最大持仓 60 分钟）
+
+| 标的 | 组合 | 成本 | 笔数 | 次/天 | 净 bps/笔 | 胜率 | 毛 bps/笔 | 中位持仓 |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| SKHY | OKX~Lighter | 13.2 | 71 | 23.7 | **−0.9** | 0.30 | 12.3 | 11 min |
+| NVDA | HL~Lighter | 7.8 | 11 | 3.7 | −1.9 | 0.27 | 5.9 | 7 min |
+| SPCX | OKX~HL | 14.7 | 5 | 1.7 | −4.6 | 0.00 | 10.2 | 18 min |
+| SNDK | HL~Lighter | 7.8 | 58 | 19.3 | −3.4 | 0.05 | 4.5 | 5 min |
+| SKHY | HL~Lighter | 7.8 | 105 | 35.0 | −3.9 | 0.11 | 3.9 | 3 min |
+| MSTR | Binance~HL | 14.7 | 89 | 29.7 | −5.2 | 0.12 | 9.6 | 7 min |
+| NVDA | Binance~Lighter | 13.2 | 14 | 4.7 | −5.3 | 0.07 | 7.9 | 9 min |
+
+**结论：在 $500 名义、严格同刻 + 新鲜度口径下，四所之间没有任何一对是稳定正 EV。**
+毛捕获（gross）通常 4~12bps，但成本（尤其是 OKX/Binance 的 taker 5bps）把边际吃掉。
+
+### 阈值 / 规模敏感性（只有 HL~Lighter / Lighter~OKX / Lighter~Binance 这一类能活）
+
+| 阈值 | 名义 | 最佳对 | 次/天 | 净 bps/笔 | 胜率 |
+|---:|---:|---|---:|---:|---:|
+| 4bps | $100 | SKHY OKX~Lighter | 31.0 | +2.8 | 0.75 |
+| 6bps | $100 | SOXL OKX~Lighter | 55.7 | **+4.9** | 0.65 |
+| 6bps | $100 | SOXL HL~Lighter | 56.3 | +3.6 | 0.63 |
+| 8bps | $100 | SOXL OKX~Lighter | 52.0 | +4.5 | 0.65 |
+| 8bps | $100 | SOXL HL~Lighter | 53.3 | +3.7 | 0.59 |
+| 12bps | $100 | SOXL OKX~Lighter | 46.7 | +5.0 | 0.64 |
+| 6bps | $500 | SOXL OKX~Lighter | 55.7 | +1.3 | 0.50 |
+| 8bps | $500 | SOXL OKX~Lighter | 52.0 | +0.9 | 0.47 |
+| 12bps | $500 | SOXL OKX~Lighter | 46.7 | +1.4 | 0.44 |
+
+- **$100 是唯一有意义的规模**：滑点按目标名义吃盘口，$500 就把边际吃掉一半，$1000 以上为负。
+- **SOXL 是唯一在多阈值/多规模下都排第一的标的**（与仓库既有 `DECISION.md` 的结论一致，且这次是用
+  真实 L2 深度 + 同刻定价独立复核出来的）。
+- 注意 SOXL 的 `HL~Lighter` 成本 4.2bps 明显低于 `OKX~Lighter` 13.2bps，
+  但**收益反而是 OKX~Lighter 更高**——因为 Lighter 的 HL 对腿在偏离时刻深度更差、
+  追价成本被低估。**这正是「费率优先」规则的反例：费率低的一腿如果深度差，实际净边际更差。**
+  → 腿选择不能只看费率，必须把「按目标规模吃盘口后的滑点」放进同一口径排序。
+
+## 6. 主推方案（跑两周）
+
+**主推：`SOXL`，腿 = Lighter（maker/leader）+ Hyperliquid `XYZ:SOXL`（taker/follower）**
+（备选：`SOXL` Lighter + OKX `SOXL-USDT-SWAP`；次选 `SKHY` Lighter + HL `XYZ:SKHY`）
+
+| 参数 | 值 | 依据 |
+|---|---|---|
+| 入场阈值 | 基差偏离 ≥ 6bps（相对 60 分钟滚动中位数） | 6bps 在 $100/$500 两档都正 EV |
+| 目标名义 | **$100/腿**（不超过 $200） | $500 起边际腰斩，$1000 转负 |
+| 成本门槛 b* | 4.2bps（HL~Lighter） / 13.2bps（Lighter~OKX） | 上表实测 |
+| 持仓上限 | 60 分钟（时间止损） | 中位持仓 3~5 分钟，60 分钟已足够 |
+| 会话过滤 | RTH / pre / post / closed **全开**，但 post/pre 单独统计 | SOXL 在 RTH 净最高（+5.2bps@8bps 阈值），closed 次之 |
+| 退出 | 偏离回到 0 或持仓满 60 分钟 | 事件级回放口径 |
+| 单腿上限 | ≤ $200，且两腿同时平 | 仓库既有 `naked_flatten_s` / `naked_halt_s` 保留 |
+
+**两周运行纪律**（对应 @LIU985985HU 的「周均/月均」纪律的翻译）
+1. 只用**滚动 7 天 / 30 天**统计，不看瞬时值；日终滚动更新「近 7 日达标天数」。
+2. 任一日出现「偏离 p95 < b*」或「两腿深度 < 10× 名义」→ 当日停手。
+3. **周均净 EV 转负连续 3 天 → 暂停并复盘**（不是单日）。
+4. 允许的微调只有：阈值（±2bps）、名义（$100↔$200）、持仓上限（30↔90 分钟）。
+   **不允许换标的**（换标的等于重新走一遍五道闸门，两周窗口不够）。
+
+**必须先做的两件事**
+1. **fill 级标定**：用 L2 回放或 paper 跑 24~48 小时，标定真实 `p_fill(Δt)` 与成交后 markout。
+   本报告的成本模型用的是「盘口吃单价差 + 经验滑点斜率」，**没有验证排队成交概率**；
+   若 maker 腿实际成交率低于 60%，$100 档的 +3.6bps 会变成负数。
+2. **补 7 天以上的完整窗口**：本报告只有 3 天（11-11~11-13）。用户的「稳定运行两周」要求
+   至少 14 天的逐日稳定性检验——CryptoHFTData 能取到 09-01 起的逐小时数据，
+   扩到 14 天只需再拉 ~11 天 × 4 所 × 1 标的 × 24 小时 ≈ 1056 个文件。
+
+## 7. 否定清单（避免重复劳动）
+
+- **OKX ↔ Binance 之间不要做**：偏离 p95 只有 2.0~3.5bps，扣掉 22.5bps 成本后必然为负。
+- **Binance 当 taker 腿**：taker 5bps × 2 次成交 = 10bps，比捕获幅度还大。
+- **ANTHROPIC / OPENAI / BB / QNT 的跨所配对**：单位口径不一致，不是同一标的。
+- **EWY 的 Lighter 腿**：2.7 笔/分、11.8% 的分钟有 >60s 空档 → 任何基于 EWY~Lighter 的
+  「15bps 偏离」都是陈旧打印造成的假象（与仓库历史上 RKLB/KORU/KIOXIA 的教训同型）。
+- **不要用瞬时费率/瞬时价差选标**：本轮所有「漂亮」的高偏离对，在加新鲜度过滤后净 EV 立刻转负。
+
+## 8. 复现
+
+```bash
+export CHD_API_KEY=<key>
+python scripts/chd_universe.py                 # 56 个四所共有股票标的 → data/chd_universe.json
+python scripts/chd_screen.py --days 14 --qty 100   # 全市场扫描 + 事件级 EV
+```
+
+（captain 侧的独立探针脚本在 `.tmp/`：`probe3.json` = L2 深度、`dev_study.json` = 偏离统计、
+`ev_strict.json` = 严格 EV 回测、`liq.json` = 流动性统计。）
+
+---
+
+## 9. 2026-11-15 复核：修正三处管线缺陷后的结果
+
+上一节（§1–§8）是 captain 独立脚本的结果。合并 worker 交付的 `scripts/chd_screen.py` 后，
+复核发现**三处会让结论系统性偏负的缺陷**，已全部修正：
+
+| # | 缺陷 | 现象 | 修正 |
+|---|---|---|---|
+| D1 | `market_micro.fill_probability` 用「窗口总成交量必须 ≥ 整条队列」的指数模型 | `p_fill` 对所有标的恒为 ~0 → 净 EV 恒为 0（假阴性） | 改为 Poisson 队列消耗模型，与仓库既有 `docs/FILL_MODEL.md` / `scripts/fill_model.py::p_fill` 同口径：`P = 1 − exp(−λ·dt·E[size]/(queue+our_size))` |
+| D2 | `chd_screen.py` 只下载最近 N 小时的 trades，而回放窗口常落在更早的 RTH 小时 | 回放窗口的逐笔明细缺失 → `p_fill=0` | 回放窗口的 trades 单独补下载 |
+| D3 | HL HIP-3 费率查表用大写 dex 名（`XYZ:SOXL` → dex=`XYZ`），而 HL API 只认小写（`xyz`） | 查不到 → 退回基础档 1.5/4.5bps，**比实际高 5 倍** | dex 名归一化为小写。实测 `xyz` 的 `deployerFeeScale=1.0` + `growthMode=enabled` → **maker 0.30 / taker 0.90 bps** |
+
+D3 影响最大：`XYZ:SOXL` ↔ `Lighter SOXL` 的 `b*` 从 **15.9 → 11.1 bps**，
+p95 覆盖倍数从 1.59 → **2.27**，把这一对从「勉强不亏」变成「明确正 EV」。
+
+### 修正后：`XYZ:SOXL`（HL）↔ `SOXL`（Lighter）
+（72 小时窗口下 **Lighter 是 maker 腿、HL 是 taker 腿**；1 小时窗口下结论相反 →
+**maker 腿的选择必须用足够长的窗口决定，不能只看一小时**。）
+
+| entry_z | TTL | 事件数 | 日均机会(RTH) | 胜率 | 净 EV/事件 | 判定 |
+|---:|---:|---:|---:|---:|---:|---|
+| 1.5 | 60s | 50 | 325 | 34% | +0.63 | 通过 |
+| 1.5 | 180s | 50 | 325 | 50% | +0.81 | 通过 |
+| **2.5** | **180s** | 38 | **247** | **61%** | **+2.80** | **通过（最优）** |
+| 2.5 | 60s | 38 | 247 | 45% | +2.12 | 通过 |
+
+- `b* = 11.1 bps`，p95 覆盖倍数 2.27，±25bps 最小深度 $264,600（远大于 10×$100）。
+- `mean_p_fill = 0.66`，平均持仓 42 秒，裸腿暴露上限 $9,600·s。
+- **规模不敏感**：$100 → +2.80、$200 → +2.79、$500 → +2.77 bps/事件
+  （深度足够，滑点占比小）。这是「$100 就够，但放大到 $500 也不掉」——与 §5 中
+  captain 用 K 线级数据得到的「$500 边际腰斩」结论不同，**盘口级回放更可信**。
+
+### 其余候选（同一窗口、同一口径）
+
+| 对 | b* bps | p95 覆盖 | 最小深度 | 净 EV/事件 | 判定 |
+|---|---:|---:|---:|---:|---|
+| Lighter SOXL ↔ OKX SOXL | 19.8 | 1.43 | $295,360 | −2.19 ~ −4.63 | ❌ OKX taker 太贵 |
+| HL XYZ:CRCL ↔ Lighter CRCL | 7.1 | 1.79 | $131,387 | −0.11 ~ −1.49 | ❌ 捕获不够 |
+| HL XYZ:SKHY ↔ Lighter SKHY | 8.0 | 1.12 | $154,440 | −0.17 ~ −0.60 | ❌ 捕获不够 |
+
+### 结论（修正后）
+
+**唯一通过全部五道闸门且净 EV 为正的对：`Hyperliquid XYZ:SOXL`（maker 腿）↔ `Lighter SOXL`（taker 腿）。**
+推荐参数：`entry_z = 2.5`、`TTL = 180s`、`$100/腿`、`b* = 11.1 bps`、日均 ~247 个机会（RTH 口径）。
+
+其余全部为负 EV —— **Lighter↔OKX 的组合被 OKX 的 taker 费（5bps×2）压死**，
+CRCL/SKHY 则是「捕获幅度不够」（毛捕获 3~6 bps < b* 7~8 bps）。
+
+### 3 天多会话验证（72 小时回放，2443 个事件）
+
+把回放窗口从 1 个 RTH 小时扩到 **72 小时**（3 天，含 4 个交易日、会话全覆盖）后：
+
+| 交易日 | 事件数 | 胜率 | 净 EV/事件 | 毛捕获 | mean p_fill |
+|---|---:|---:|---:|---:|---:|
+| 2026-11-11 | 92 | 57% | +0.66 | 12.27 | 0.314 |
+| 2026-11-12 | 937 | 66% | **+3.97** | 17.76 | 0.427 |
+| 2026-11-13 | 872 | 49% | **+4.58** | 17.36 | 0.304 |
+| 2026-11-14 | 542 | 30% | +0.75 | 10.68 | 0.213 |
+| **合计** | **2443** | — | — | — | — |
+
+**逐日净 EV 4/4 天为正**（这正是「跑两周」的验收口径：不是聚合平均好看，而是每天都为正）。
+
+按会话拆分（同一 72 小时窗口）：
+
+| 会话 | 事件数 | 日均机会 | 胜率 | 净 EV/事件 | 毛捕获 | mean p_fill | 平均持仓 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| **rth**（美股盘中） | 489 | 227.0 | **82.8%** | **+11.56** | 27.31 | 0.559 | 39s |
+| pre（盘前） | 448 | 205.3 | 57.1% | +2.70 | 16.20 | 0.357 | 42s |
+| post（盘后） | 263 | 131.5 | 33.5% | +0.94 | 12.13 | 0.322 | 43s |
+| closed（休市时段） | 1243 | 745.8 | 40.9% | +0.86 | 11.97 | 0.235 | 44s |
+
+- **RTH 是最赚钱的会话**（+11.56 bps/事件、胜率 82.8%），
+  这与用户直觉「休市时价差更大」**相反** —— 休市时段虽然机会多（745/日）但
+  毛捕获只有 11.97 bps、p_fill 只有 0.235，净边际只有 +0.86。
+  **休市时段的「价差大」是噪声（预言机+情绪），不是可收割的收敛。**
+- `b* = 11.1 bps`，p95 覆盖 2.39×，最小深度 $178,678（≫ 10×$100）。
+- 72 小时窗口内 stale 占比 12.3%（缺行不当连续时间，已按固定网格前向填充并记录）。
+
+### 仍未解决的两件事（必须在上实盘前做掉）
+
+1. **只验证了 4 个交易日，不是 14 天**。两周的完整检验还需要再拉 11 天
+   （CryptoHFTData 能取到 09-01 起的逐小时数据，扩窗只是拉取量的问题）。
+   现有的 4/4 天为正是必要条件，但不是充分条件。
+2. **`p_fill` 仍是模型估计**，未用真实 fill 日志标定。
+   仓库 `docs/FILL_MODEL.md` 已警告：同一模型两次运行对 EWY 给出 3% 与 97% 两个结果，
+   差异全来自贴价队列的单次快照。**挂单前必须逐笔采样贴价队列（≥3 次取中位数）**。
+   本报告的净 EV 因此是**上界**。
+
+### 复现
+
+```bash
+export CHD_API_KEY=<key>
+python scripts/chd_screen.py --hours 24 --replay-hours 4 --qty 100 \
+    --entry-z 2.5 --ttl-s 180 \
+    --pairs "hyperliquid_futures:XYZ:SOXL,lighter:SOXL" \
+    --out data/chd_screen.json --report docs/CHD_SCREEN.md
+```

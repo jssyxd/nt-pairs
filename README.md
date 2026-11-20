@@ -41,14 +41,21 @@ tests/
 仓库在 UNC 共享盘（`\\fnos2\iflow\nt-pairs`），**venv 必须放本地盘**（否则 pip 扫描会挂几分钟）：
 
 ```bash
+# Linux（本机实测路径）
+uv venv --python 3.14 .venv
+uv pip install --python .venv/bin/python "nautilus_trader[visualization]==2.0.0rc9" pyarrow
+uv pip install --python .venv/bin/python -e .
+.venv/bin/python -m pytest -q
+
+# Windows
 python -m venv C:\Users\da\venvs\np2
-C:\Users\da\venvs\np2\Scripts\python.exe -m pip install -e "C:/path/to/nt-pairs"   # 或 pip install nautilus_trader==2.0.0rc6
-C:\Users\da\venvs\np2\Scripts\python.exe scripts/probe_basis.py --days 14          # 先看「值不值得做」
-python -m pytest -q                                                               # 纯逻辑测试不依赖 nautilus
+C:\Users\da\venvs\np2\Scripts\python.exe -m pip install -e .
 ```
 
 版本注意：`nautilus_trader==1.231.0` **没有** Python 端 Lighter 适配器（只有 Rust crate）；
-**`2.0.0rc6`（cp312 win wheel）同时含 `hyperliquid` 与 `lighter`**，是本仓库锁定的版本。
+**`2.0.0rc9`（cp313/cp314/cp315 wheel）同时含 `hyperliquid` 与 `lighter`**，是本仓库锁定的版本
+（`requires-python >= 3.13`；**rc9 没有 cp312 wheel**，3.12 装不了）。
+`[visualization]` extra 提供 plotly/kaleido（可视化座舱），但**不带 pyarrow** → 读 parquet 要另装。
 
 ## 验收标准（先验证再交易）
 
@@ -91,3 +98,39 @@ python -m pytest -q                # 纯逻辑 + 统计测试（不依赖 nautil
 - 两腿保证金不互通：单边被强平会让整个组合变成裸腿。
 - HL 请求配额按地址计（`10000 + 累计成交`），配额耗尽时平仓只能靠预挂的 trigger。
 - 本仓库默认 `dry_run=True`，不发真实订单。
+
+### 2026-11-15：CryptoHFTData 数据层 + 可视化座舱
+
+| 文件 | 内容 |
+|---|---|
+| `src/nt_pairs/chd.py` | CryptoHFTData HTTP 客户端（符号发现 / 逐小时 Parquet 下载 / 本地缓存 / 429 退避） |
+| `src/nt_pairs/chd_client.py` | 盘口重建（`rebuild_book_series`：L2 增量 → 盘口快照序列） |
+| `src/nt_pairs/market_micro.py` | tick 反推 / 吃盘口滑点 / Poisson 队列成交概率 / 滑点曲线 |
+| `src/nt_pairs/funding_fee.py` | 费率表 + `b*`（复用 `costs.round_cost_bps`，不另立口径） |
+| `src/nt_pairs/equity_universe.py` | 股票/ETF/pre-IPO 分类与场所符号归一化 |
+| `src/nt_pairs/runtime2.py` | **NautilusTrader 2.0 引擎启动**（`LiveNodeBuilder` → `LiveNode`，替代已删除的 `TradingNode`） |
+| `scripts/chd_universe.py` | 标的宇宙枚举 → `data/chd_universe.json` + `docs/CHD_UNIVERSE.md` |
+| `scripts/chd_screen.py` | **全市场扫描 + 事件级 EV 回测**（Stage A 统计闸门 → Stage B 盘口回放） |
+| `scripts/chd_coverage.py` | 各场所数据起始日/缺口抽样 |
+| `scripts/verify_nautilus.py` | 装没装 / 适配器清单 / visualization 可用性自检（退出码 0 = 全齐） |
+| `scripts/make_tearsheet.py` | **可视化座舱**：回测结果 → 自包含 HTML tearsheet（数据不足时输出标注降级原因的降级版） |
+| `scripts/run_pair_backtest.py` | Nautilus 回测跑单一 pair |
+| `docs/2026-11-14-CHD_SCREENING.md` | **本轮结论**：数据可用性、56 个共有标的、流动性实测、偏离结构、EV 回测、主推标的 |
+| `docs/CHD_DATA_SURVEY.md` / `docs/CHD_UNIVERSE.md` | 数据可用性调查 / 标的宇宙 |
+| `docs/NAUTILUS_SETUP.md` | 2.0.0rc9 安装与适配器实测、2.0 runtime API |
+| `docs/RESEARCH_LIU_ARBITRAGE.md` | @LIU985985HU 套利系列帖研究（含图片识别）+ 费率/适配器核实 |
+
+快速开始（扫描）：
+
+```bash
+export CHD_API_KEY=<key>                      # 见 .env.example
+.venv/bin/python scripts/chd_universe.py --no-price-evidence
+.venv/bin/python scripts/chd_screen.py --hours 24 --replay-hours 4 --qty 100 \
+    --entry-z 2.5 --ttl-s 180 \
+    --pairs "hyperliquid_futures:XYZ:SOXL,lighter:SOXL" \
+    --out data/chd_screen.json --report docs/CHD_SCREEN.md
+```
+
+**当前结论**：`Hyperliquid XYZ:SOXL`（maker）↔ `Lighter SOXL`（taker）是唯一通过全部五道闸门
+且净 EV 为正的对（`b*=11.1 bps`，覆盖 2.27×，~247 次机会/日，净 +2.80 bps/事件）。
+详见 `docs/2026-11-14-CHD_SCREENING.md` §9。

@@ -120,3 +120,48 @@
   ② `stale_print_suspect`：CV > 0.005 或任一侧重复收盘率 > 10%（报价不新鲜）→ 排除出 `tradable`。
 → 这是本项目第三次「结论被自己推翻」（前两次：方向标注、tick 估计）。**任何高胜率（>90%）的回归结果，
   必须先查重复收盘率与 markout，再谈 EV。**
+
+---
+
+## 2026-11-15：CryptoHFTData 数据层 + Nautilus 2.0.0rc9 + 可视化座舱 + 唯一主推标的
+
+### 新增能力
+
+| 能力 | 产物 | 状态 |
+|---|---|---|
+| L2/L0 历史数据接入 | `src/nt_pairs/chd.py`（HTTP 客户端 + 本地缓存 + 429 退避） | ✅ 四所 futures 实测：HL 463 / Lighter 254 / OKX 662 / Binance 921 个符号，历史回溯到 2026-09-01 |
+| 盘口重建 | `src/nt_pairs/chd_client.py::rebuild_book_series` | ✅ L2 增量流 → 盘口快照序列（**必须按 event_time 分组，snapshot 组整组重置**） |
+| 微观结构模型 | `src/nt_pairs/market_micro.py` | ✅ tick 反推 / 吃盘口滑点 / Poisson 队列成交概率 / 滑点曲线 |
+| 成本模型 | `src/nt_pairs/funding_fee.py` | ✅ 复用 `costs.round_cost_bps`，不另立口径 |
+| 全市场扫描 + EV 回测 | `scripts/chd_screen.py` | ✅ Stage A（统计闸门）→ Stage B（盘口回放），输出逐会话 + **逐交易日**净 EV |
+| 标的宇宙 | `scripts/chd_universe.py` | ✅ 四所共有股票类标的 **56 个**（`data/chd_universe.json`） |
+| Nautilus 2.0 引擎启动 | `src/nt_pairs/runtime2.py` | ✅ `LiveNodeBuilder`→`LiveNode`，**取代 2.0 已删除的 `TradingNode`**；`--seconds N` 实测起停正常 |
+| 可视化座舱 | `scripts/make_tearsheet.py` + `reports/tearsheet/soxl_hl_lighter_14d.html` | ✅ Nautilus 原生 tearsheet + 降级版 plotly HTML |
+| 安装自检 | `scripts/verify_nautilus.py` | ✅ 退出码 0 = 全齐（21 个适配器，含 lighter/hyperliquid/okx/binance/tardis） |
+
+### 本轮修掉的三个「让结论系统性偏负」的缺陷（重要）
+
+1. **HIP-3 费率查表用大写 dex 名**（`XYZ:SOXL` → 查 `XYZ`，而 HL 只认 `xyz`）→ 退回基础档 1.5/4.5bps，
+   **比实际高 5 倍**。实际 `xyz:SOXL`：`deployerFeeScale=1.0` + `growthMode=enabled` → **0.30/0.90bps**。
+   影响：`b*` 15.9 → **11.1**，p95 覆盖 1.59 → **2.27**，主推对从「不亏」变「明确正 EV」。
+2. **`p_fill` 模型用错**（指数总成交量模型）→ `p_fill≈0` → 净 EV 恒为 0（假阴性）。
+   改为仓库既有的 Poisson 队列消耗口径（`docs/FILL_MODEL.md`）。
+3. **回放窗口的 trades 没下载**（回放常落在更早的 RTH 小时）→ 逐笔明细为空 → `p_fill=0`。
+
+### 结论
+
+**唯一通过全部五道闸门且净 EV 为正的对：`Hyperliquid XYZ:SOXL` ↔ `Lighter SOXL`。**
+
+- 72 小时回放（2443 事件，4 个交易日）：**逐日净 EV 4/4 天为正**（+0.66 / +3.97 / +4.58 / +0.75 bps/事件）。
+- `b*=11.1 bps`、p95 覆盖 2.39×、最小深度 $178,678、RTH 净 **+11.56 bps/事件**（胜率 82.8%）。
+- **会话结论与直觉相反**：RTH 最赚，休市时段虽机会多但净仅 +0.86（毛捕获低 + p_fill 低）。
+  「休市价差大」是预言机/情绪噪声，**不是可收割的收敛**。
+- **maker 腿角色随窗口长度翻转**（1h 窗口 HL 当 maker，72h 窗口 Lighter 当 maker）→ 腿角色必须用 ≥3 天窗口定。
+- 其余候选（Lighter↔OKX、CRCL、SKHY）净 EV 全负；**OKX 只能做兜底 taker**。
+
+### 上实盘前仍必须做掉
+
+1. **扩到 14 天逐日检验**（现在只有 4 天）；CryptoHFTData 有 09-01 起的逐小时数据，扩窗只是拉取量。
+2. **用真实 fill 日志标定 `p_fill`**（当前净 EV 是上界）；挂单前逐笔采样贴价队列（≥3 次取中位数）。
+3. 仓库既有 `tests/test_make_report.py::test_summary_renders_numbers` 失败是**既有问题**
+   （报告时效阈值 24h vs 固定夹具时间戳），在原始 clone 上同样失败，与本轮改动无关。
