@@ -40,3 +40,30 @@
   `git ls-remote` 还必须带 `GIT_SSH_COMMAND="ssh -i … -o IdentitiesOnly=yes"`，否则会去用默认 identity 而被拒。
 - 注册（用有 admin 的 token 调 API）：`POST /repos/{owner}/{repo}/keys`
   `{"title":"nt-pairs-vps","key":"<公钥>","allow_write_access":true}`。
+
+## 2026-11-21 · `url.<token>.insteadOf` 会**静默覆盖**凭据管理器里的 token
+- 现象：`git remote set-url` 已经把 remote 换成干净 URL、`git credential approve` 也写进了
+  新 token，`git credential fill` 返回的确实是新 token —— 但 `git push` 依然报
+  `Invalid username or token`，而 `git push https://<user>:<token>@github.com/... `（显式 URL）**能成功**。
+- 根因：`~/.gitconfig` 里残留着上一代 token 的 URL 重写：
+  `url.https://jssyxd:<旧token>@github.com/.insteadOf = https://github.com/`
+  → 任何 `https://github.com/...` 的 URL 都被**自动改写**成带旧 token 的形式，
+  凭据管理器根本没被问到。旧 token 早已被吊销 → 401。
+- 定位方法：`GIT_TRACE_CURL=1 git push` 会打印被改写后的完整 URL
+  （`== Info: [HTTP/2] [1] OPENED stream for https://jssyxd:<token>@github.com/...`）—— 对比输入 URL 即可。
+- 修法：`git config --global --unset-all url.https://<user>:<旧token>@github.com/.insteadOf`
+  然后 `git credential approve` 写入新 token（**只进凭据管理器，不进任何明文文件**）。
+- 连带教训：`git credential approve` 之后 `git credential fill` 返回正确值，**不代表 push 会用它** ——
+  先确认没有 `insteadOf` 之类的 URL 改写。
+
+## 2026-11-21 · 失败的鉴权会让 git **擦掉**刚写入的凭据
+- 现象：`git credential approve` 写入新 token → `git push` 因为别的原因 401 →
+  git 调用 `credential reject` → 凭据管理器里刚写的条目**被删除**。
+  表现是「刚 approve 过，文件里就没了」。
+- 做法：先排除鉴权本身的问题（URL 改写、代理、scope），再 approve + push；或直接用显式 URL push
+  （但**不要**把 token 写进 `.git/config`）。
+
+## 2026-11-21 · clash-verge（mihomo）的 HTTP 代理端口是 **7897**，不是面板显示的端口
+- 面板/`ss` 里能看到多个监听端口（如 39133），但**只有 7897 是 HTTP/SOCKS 混合代理**。
+- 实测：`HTTPS_PROXY=http://127.0.0.1:7897` 下 `pypi.org` / `api.github.com` / `api.cryptohftdata.com` 均 200；
+  换成面板端口直接连接失败（curl exit 7）。
