@@ -41,6 +41,16 @@ GitHub 上 `nt-pairs` 的 main 停在 `3d797e5`（2026-11-13）。此后所有�
    （`Permission denied (publickey)`）。
 3. **VPS 仓库已分叉**：VPS 的 `main` 领先 `origin/main` 24 个 report commit，且 `git fetch` 同样被 1 挡住。
 
+**已备好的自动化脚本（一旦凭证到位，一条命令走完）**
+
+```bash
+# 本地：把本机「还没进上游」的提交打包，经 VPS 推上去
+python scripts/push_via_vps.py            # --dry-run 先看要推什么
+
+# VPS：把本地那 26 个 report 提交重放到上游并推送（之后 6h 报告链路自动恢复）
+bash /opt/nt-pairs/scripts/vps_recover_push.sh
+```
+
 **恢复办法（任选其一，5 分钟内可完成）**
 - 推荐：在 GitHub 上给 **malaysia 的 deploy key** 加写权限：
   `ssh -T git@github.com` 应回 `Hi jssyxd! You've successfully authenticated…`。
