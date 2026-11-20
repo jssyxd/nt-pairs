@@ -45,7 +45,8 @@ jobs:
       - name: Install pure-logic test deps
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest pyyaml
+          # requests：tests/test_chd.py（离线测试 CHD 客户端）需要它
+          python -m pip install pytest pyyaml requests
 
       - name: Run pure-logic tests (no nautilus needed)
         run: python -m pytest tests -q
@@ -94,6 +95,22 @@ jobs:
           echo "probe_exit=${rc}" >> "$GITHUB_OUTPUT"
           for f in ci-out/*.log; do echo "--- ${f}"; tail -n 20 "${f}"; done
 
+      - name: Compute cockpit stop conditions
+        id: cockpit
+        continue-on-error: true
+        run: |
+          # 只读本地数据（data/chd_screen.json 等）+ 纯函数判据，不联网、不需要 plotly。
+          # 退出码 3 = 停机判据出现红色（--strict）。
+          set -uo pipefail
+          rc=0
+          python scripts/cockpit.py \
+            --metrics-only \
+            --metrics-out ci-out/cockpit_metrics.json \
+            --strict > ci-out/cockpit.log 2>&1 || rc=$?
+          echo "${rc}" > ci-out/cockpit_exit.txt
+          echo "cockpit_exit=${rc}" >> "$GITHUB_OUTPUT"
+          cat ci-out/cockpit.log
+
       - name: Render job summary
         id: summary
         continue-on-error: true
@@ -105,6 +122,7 @@ jobs:
             --matrix ci-out/matrix.json \
             --fill ci-out/fill_model.json \
             --sim ci-out/soxl_sim.json \
+            --cockpit ci-out/cockpit_metrics.json \
             --out ci-out/summary.md || rc=$?
           echo "${rc}" > ci-out/summary_exit.txt
           echo "summary_exit=${rc}" >> "$GITHUB_OUTPUT"
@@ -126,15 +144,23 @@ jobs:
           set -uo pipefail
           probe_rc=$(cat ci-out/probe_exit.txt 2>/dev/null || echo 1)
           summary_rc=$(cat ci-out/summary_exit.txt 2>/dev/null || echo 1)
+          cockpit_rc=$(cat ci-out/cockpit_exit.txt 2>/dev/null || echo 0)
           if [ "${probe_rc}" != "0" ]; then
             echo "::error::公开数据探针失败（见 artifact 里的 ci-out/*.log）"
           fi
           if [ "${summary_rc}" = "3" ]; then
             echo "::error::reports/ 里没有报告，或最新报告超过 24 小时未更新（VPS 侧 cron/deploy key 问题）"
+          elif [ "${summary_rc}" = "4" ]; then
+            echo "::error::座舱停机判据出现红色（见 summary 的「运行期座舱 · 停机判据」表格）"
           elif [ "${summary_rc}" != "0" ]; then
             echo "::error::summary 渲染失败（退出码 ${summary_rc}）"
           fi
-          [ "${probe_rc}" = "0" ] && [ "${summary_rc}" = "0" ]
+          if [ "${cockpit_rc}" = "3" ]; then
+            echo "::error::座舱停机判据出现红色：scripts/cockpit.py --strict 退出码 3（见 ci-out/cockpit.log）"
+          elif [ "${cockpit_rc}" != "0" ]; then
+            echo "::error::座舱判据计算失败（退出码 ${cockpit_rc}）"
+          fi
+          [ "${probe_rc}" = "0" ] && [ "${summary_rc}" = "0" ] && [ "${cockpit_rc}" = "0" ]
 
   # ------------------------------------------------------------------ 失败通告
   notify:
@@ -169,6 +195,7 @@ jobs:
           title="6h-report"
           probe_rc=$(cat ci-out/probe_exit.txt 2>/dev/null || echo n/a)
           summary_rc=$(cat ci-out/summary_exit.txt 2>/dev/null || echo n/a)
+          cockpit_rc=$(cat ci-out/cockpit_exit.txt 2>/dev/null || echo n/a)
           body=$(cat <<EOF
           自动汇报流水线失败（UTC $(date -u +%Y-%m-%dT%H:%M:%SZ)）。
 
@@ -178,6 +205,7 @@ jobs:
           | report | ${REPORT_RESULT} |
           | probe 退出码 | ${probe_rc} |
           | summary 渲染退出码 | ${summary_rc} |
+          | 座舱停机判据退出码 | ${cockpit_rc} |
           | run | ${RUN_URL} |
 
           最近一次失败原因：
@@ -185,6 +213,9 @@ jobs:
             详见 run 里 artifact \`6h-report-summary\` 的 \`ci-out/*.log\`；
           - \`summary_exit=3\`：\`reports/\` 里没有报告，或最新报告超过 24 小时未更新 ——
             **VPS 侧 cron / deploy key 有问题**；
+          - \`cockpit_exit=3\`（或 \`summary_exit=4\`）：**座舱停机判据出现红色** ——
+            逐条原因见 run 的 job summary「运行期座舱 · 停机判据」表格与 artifact 里的
+            \`ci-out/cockpit.log\`；
           - \`unit-tests=failure\`：纯逻辑单测失败。
 
           下一步：打开上面的 run 链接；补跑用本 workflow 的 \`workflow_dispatch\`。

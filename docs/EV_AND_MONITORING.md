@@ -162,3 +162,86 @@ k = 1 + 1/√ESS,  ESS = n(1−ρ)/(1+ρ)
 
 **已知不可靠项**：`p_fill`（单次盘口快照会让结果在 3%↔97% 之间跳）→ 必须逐笔采样队列后再用；
 `recon = 0.5 bps`（假设）→ 待实盘标定；`HL deployer fee share`（未含）→ 以成交回执 `fee` 校准。
+---
+
+## 6. 运行期座舱（把「跑两周」变成能盯的仪表盘）
+
+> 面板：`reports/cockpit/cockpit.html`（**自包含单文件**，plotly.js 内联，可离线打开）
+> 生成：`python scripts/cockpit.py`
+> 内核：`src/nt_pairs/cockpit.py`（**纯标准库**）＋ `src/nt_pairs/cockpit_html.py`（渲染）
+
+回测结果能回答「历史上赚不赚」，但**跑两周**要回答的是「**现在**还该不该继续跑」。
+座舱把四类输入汇到一块面板上，并且把停机纪律做成**可执行的判据**（纯函数 + 单测），
+而不是等人翻日志。
+
+### 6.1 输入与板块
+
+| 输入 | 面板板块 | 缺输入时的表现 |
+|---|---|---|
+| `data/chd_screen.json`（Stage B 回放） | 逐日净 EV、两腿深度（±25bps）、`b*` / `k`、模型 p_fill、单腿暴露时长分布 | 对应板块显示「无数据」 |
+| `data/collector/<VENUE>/<YYYYMMDD>.jsonl` | 基差偏离曲线 + 滚动 z-score、两腿深度实测、重复收盘率 | 基差 / 深度 / 陈旧率板块显示「无数据」 |
+| `data/fill_calibration.json`（P0-2 标定） | 实测 p_fill（与模型并排） | 成交率对比显示「无数据」 |
+| `data/cockpit/backtest_stats.json`（可选） | 净值 / 回撤 / 回测统计 | 整个板块不出现 |
+| `data/cockpit/live_fills.jsonl`（可选） | 今日 / 近 N 日 **实盘** P&L | 显示「**无实盘数据**」——**不显示 0** |
+
+> **硬规则**：缺失 = 「无数据」，绝不拿 0 顶替。0 深度意味着「腿不可用」，
+> 「没有深度数据」意味着「不知道」——在停机判据里两者含义完全相反。
+
+### 6.2 停机判据（阈值集中在 `nt_pairs.cockpit.STOP_RULES`）
+
+| 条件 | 红 | 黄 | 依据 | 实现位置 |
+|---|---|---|---|---|
+| 滚动净 EV 转负 | 连续 **3** 个交易日净 EV ≤ 0 | 连续 2 日 | 两周运行纪律 3：「周均净 EV 转负连续 3 天 → 暂停并复盘」；3 天是确认，不是噪音 | `cockpit._rule_net_ev` |
+| 两腿深度不足 | 任一腿 ±25bps 深度 < **10 ×** 目标名义 | < 20 × | 闸门④（`chd_screen.py: gate4_capacity`：`depth_min ≥ 10 × qty_usd`） | `cockpit._rule_depth` |
+| 成本覆盖失效 | 基差 p95 < **k·b\***（比值 < 1.0） | 比值 < 1.5 | 闸门③（`gate3_cost_cover`：`basis_p95_dev ≥ k × b*`） | `cockpit._rule_cost_cover` |
+| 成交率塌陷 | 实测 p_fill < **60%** × 模型 p_fill | < 80% | 「必须先做的两件事」①：maker 腿成交率低于 60% 时 $100 档边际翻负 | `cockpit._rule_fill_rate` |
+| 裸腿超时 | 单腿暴露 > **180 s** 未对冲 | > 60 s | `nt_pairs.risk.RiskLimits`：`naked_flatten_s=180` / `naked_warn_s=60` | `cockpit._rule_naked_leg` |
+| 陈旧报价 | 任一腿重复收盘率 > **10%** | > 5% | 闸门②（`gate2_fresh`：`repeat_a/b ≤ 10%`）；RKLB / KORU / KIOXIA 的陈旧打印假象 | `cockpit._rule_stale_quote` |
+
+调用方式（**纯函数、无 IO、可单独被 cron / CI 调用**）：
+
+```python
+from nt_pairs.cockpit import build_metrics, evaluate_stop_conditions, overall_status
+
+metrics = build_metrics(chd=..., collector=..., calibrations=...)
+conditions = evaluate_stop_conditions(metrics)   # {"depth": "GREEN: 两腿深度均 ≥ 10× …", …}
+overall_status(conditions)                       # GREEN / YELLOW / RED / UNKNOWN
+```
+
+* 返回值形如 `"<状态>: <原因>"`，状态 ∈ `GREEN | YELLOW | RED | UNKNOWN`；
+* **`UNKNOWN` = 无数据，不等于通过**（缺数据时不要把它当成绿灯）；
+* 单测：`tests/test_cockpit_stop.py`（阈值表、绿/黄/红、缺数据、CLI 行为）。
+
+命令行：
+
+```bash
+# 渲染面板（自包含 HTML）
+python scripts/cockpit.py --out reports/cockpit/cockpit.html
+
+# 只算判据（CI / cron 用，不需要 plotly）
+python scripts/cockpit.py --metrics-only --metrics-out data/cockpit/metrics.json --strict
+#   --strict：出现红色时退出码 3
+```
+
+### 6.3 口径说明（避免误读）
+
+* **模型 p_fill 与实测 p_fill 单位不同**：模型是「每轮机会的成交概率」，
+  实测是「每分钟成交概率」。判据用的是**归一化口径**（每分钟成交次数）：
+  模型 = 单次机会成交概率 × 每分钟机会数，实测 = 成交数 ÷ 对齐分钟数。
+  归一化不了（只有其中一侧）时，判据给 `UNKNOWN` 而不是硬比。
+* **重复收盘率按小时收盘算**（与 `chd_screen.py: hourly_repeat_pct` 同口径）：
+  采集器是秒级快照，直接按快照比会把「1 秒内没动」当成陈旧，指标会失真。
+* **深度按 ±25bps 带统计**（买侧 `mid×(1−25bps)` 之上、卖侧 `mid×(1+25bps)` 之下），
+  数量取盘口原始 qty（不乘订单数，避免重复计数）。
+* **净 EV 来自 Stage B 回放时是「模型 EV」**，不是实盘；实盘跑起来后由
+  `live_fills` / 运行期统计接管。
+
+### 6.4 已知限制
+
+1. 仓库里**没有实盘成交数据**（`data/cockpit/live_fills.jsonl` 不存在），
+   所以 P&L 板块显示「无实盘数据」，裸腿超时判据为 `UNKNOWN`。
+2. 采集器数据只在 VPS 上（`/opt/nt-pairs/data/collector/`），仓库里没有 →
+   基差曲线 / 实测深度 / 陈旧率在 CI 里是空的。
+3. `data/fill_calibration.json` 同样只在 VPS 上 → 成交率判据在 CI 里是 `UNKNOWN`。
+4. 回测统计（`data/cockpit/backtest_stats.json`）需要跑一次
+   `scripts/run_pair_backtest.py` 才有（公开端点，HL/Lighter 偶发 429）。

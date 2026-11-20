@@ -30,6 +30,8 @@ flowchart LR
   WH --> SUM
   WH -->|公开端点探针| PROBE["build_matrix / fill_model / sim_soxl"]
   PROBE --> SUM
+  WH -->|本地数据（不联网）| COCKPIT["cockpit.py<br/>停机判据"]
+  COCKPIT --> SUM
   WH -->|失败| ISS
 ```
 
@@ -64,18 +66,36 @@ CI 是**只读**的：它不 push、不改分支、不下单。
 把这些模块整份跳过并在终端摘要里列出，而不是让 `ModuleNotFoundError` 在 import 阶段
 **中断整个 suite 的收集**（那会连纯逻辑测试一起变红）。
 
-`report` 的失败判定有两个来源：
+`report` 的失败判定有三个来源：
 
 1. 探针失败 → `ci-out/probe_exit.txt` 非 0；
-2. summary 渲染返回 **3** → `reports/` 里没有报告，或最新报告超过 24 小时（VPS 侧 cron 挂了）。
+2. summary 渲染返回 **3** → `reports/` 里没有报告，或最新报告超过 24 小时（VPS 侧 cron 挂了）；
+3. **座舱停机判据出现红色** → `ci-out/cockpit_exit.txt` 为 **3**
+   （`scripts/cockpit.py --strict` 的退出码），同时 summary 渲染返回 **4**。
 
-两者都会让 `report` job 失败，进而触发 `notify`。
+三者都会让 `report` job 失败，进而触发 `notify`。
+
+### 2.1 座舱判据这一步（新增）
+
+```yaml
+- name: Compute cockpit stop conditions
+  run: python scripts/cockpit.py --metrics-only \
+         --metrics-out ci-out/cockpit_metrics.json --strict
+```
+
+* 只读仓库里已有的数据（`data/chd_screen.json` 等）、**不联网、不需要 plotly**
+  （`--metrics-only` 只跑纯逻辑内核 `src/nt_pairs/cockpit.py`）；
+* 判据与阈值见 `docs/EV_AND_MONITORING.md` §6.2，纯函数 `evaluate_stop_conditions`，
+  单测在 `tests/test_cockpit_stop.py`；
+* 判据里出现 **红色** 时退出码 3 → job 失败 → `notify` 开/更新 issue「6h-report」，
+  正文里点名 `cockpit_exit=3`，逐条原因看 job summary 的「运行期座舱 · 停机判据」表格；
+* **红色才失败**：`YELLOW` 只是提示，`UNKNOWN`（无数据）**不算通过也不算失败**。
 
 ---
 
 ## 3. summary 里渲染什么
 
-`scripts/ci_summary.py` 把两段内容拼进 GitHub job summary（页面上直接可见）：
+`scripts/ci_summary.py` 把三段内容拼进 GitHub job summary（页面上直接可见）：
 
 **A. VPS 6 小时报告**（读 `reports/<最新>.json` 旁挂文件）
 
@@ -93,6 +113,13 @@ CI 是**只读**的：它不 push、不改分支、不下单。
 
 > 探针数字是**模型输出**，不是实盘结果；`p_fill` 只是单次贴价队列快照的代理。
 
+**C. 运行期座舱 · 停机判据**（读 `ci-out/cockpit_metrics.json`）
+
+- 逐条停机条件的状态（GREEN / YELLOW / RED / UNKNOWN）与原因；
+- 整体状态；出现红色时 summary 渲染返回 **4**（→ job 失败）。
+
+> 判据口径与阈值见 `docs/EV_AND_MONITORING.md` §6.2。
+
 ---
 
 ## 4. 失败处理
@@ -102,7 +129,8 @@ CI 是**只读**的：它不 push、不改分支、不下单。
 | 单测失败 | `unit-tests` job | `notify` 开/更新 issue「6h-report」 |
 | 公开数据探针失败（网络/接口变更） | `probe_exit=1` | 同上，issue 正文指出看 artifact `6h-report-summary` 的 `ci-out/*.log` |
 | VPS 侧 cron 没跑 / deploy key 失效 | `summary_exit=3` | 同上，正文明确指向 VPS 侧 |
-| summary 渲染异常 | `summary_exit∉{0,3}` | 同上 |
+| **座舱停机判据出现红色** | `cockpit_exit=3`（同时 `summary_exit=4`） | 同上，正文点名 `cockpit_exit=3`，逐条原因看 job summary 的座舱表格 |
+| summary 渲染异常 | `summary_exit∉{0,3,4}` | 同上 |
 
 issue 策略：
 
@@ -111,7 +139,7 @@ issue 策略：
 - 不存在 → 新建；
 - 关闭 issue 由人工判断（系统不自动关，避免掩盖反复失败）。
 
-每次失败都会把 `probe` / `summary` 的退出码和 run 链接写进 issue 正文。
+每次失败都会把 `probe` / `summary` / `cockpit` 的退出码和 run 链接写进 issue 正文。
 
 > ⚠️ **在 captain 完成 §7 的 ①（deploy key）之前**，VPS 侧还没有任何报告推进仓库，
 > 于是每次 schedule 都会因为「`reports/` 里没有报告」而开/更新 issue。
@@ -134,6 +162,11 @@ python scripts/make_report.py --logdir /var/log/nt-pairs --out /tmp/r.md --json-
 # 4) 本地看 summary 长什么样
 python scripts/ci_summary.py --reports reports \
   --matrix data/matrix.json --fill data/fill_model.json --sim data/soxl_sim.json
+
+# 5) 本地看座舱面板（自包含 HTML）+ 判据（纯函数，不需要 plotly）
+python scripts/cockpit.py --out reports/cockpit/cockpit.html
+python scripts/cockpit.py --metrics-only --metrics-out /tmp/cockpit.json --strict
+python scripts/ci_summary.py --reports reports --cockpit /tmp/cockpit.json
 ```
 
 ---

@@ -19,3 +19,5 @@ data/*
 build/
 dist/
 .tmp/
+# 座舱面板是自包含 HTML（内联 plotly.js ≈ 5MB），与 tearsheet 一样只留本地、不进版本库
+reports/cockpit/*.html
