@@ -10,7 +10,8 @@
 
 退出码：
   * 0 —— summary 渲染成功（哪怕报告本身是「无数据」）；
-  * 3 —— `reports/` 里没有可用报告 / 报告太旧（调用方据此开 issue）。
+  * 3 —— `reports/` 里没有可用报告 / 报告太旧（调用方据此开 issue）；
+  * 4 —— 座舱停机判据出现 **红色**（`--cockpit` 传入的指标里有 RED）。
 """
 
 from __future__ import annotations
@@ -142,6 +143,28 @@ def render_report_block(md_path: str, ts: datetime | None, side: Any) -> list[st
     return L
 
 
+def render_cockpit_block(payload: Any) -> list[str]:
+    """座舱停机判据面板（来自 scripts/cockpit.py --metrics-out）。"""
+    L: list[str] = []
+    L.append("## 运行期座舱 · 停机判据")
+    L.append("")
+    conditions = (payload or {}).get("stop_conditions") or {}
+    if not conditions:
+        L.append("- 座舱指标里没有停机判据（`--cockpit` 未提供或文件不可读）。")
+        L.append("")
+        return L
+    L.append("| 条件 | 状态 | 原因 |")
+    L.append("|---|---|---|")
+    for key, value in conditions.items():
+        status, _, reason = str(value).partition(":")
+        L.append(f"| {esc(key)} | {esc(status.strip())} | {esc(reason.strip())} |")
+    L.append("")
+    overall = (payload or {}).get("overall_status", "")
+    L.append(f"- 整体状态：**{esc(overall)}**（UNKNOWN = 无数据，不等于通过）")
+    L.append("")
+    return L
+
+
 def render_probe_block(matrix: Any, fill: Any, sim: Any) -> list[str]:
     L: list[str] = []
     L.append("## 只读公开数据探针")
@@ -230,6 +253,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--matrix", default=None, help="build_matrix.py 的 JSON 输出")
     ap.add_argument("--fill", default=None, help="fill_model.py 的 JSON 输出")
     ap.add_argument("--sim", default=None, help="sim_soxl.py 的 JSON 输出")
+    ap.add_argument("--cockpit", default=None,
+                    help="scripts/cockpit.py --metrics-out 产出的座舱指标 JSON")
     ap.add_argument("--max-age-hours", type=float, default=24.0,
                     help="报告最大允许年龄（小时）；超过视为失败")
     ap.add_argument("--out", default=None, help="输出文件；缺省打到 stdout")
@@ -256,6 +281,9 @@ def main(argv: list[str] | None = None) -> int:
     L += render_report_block(md_path_disp, ts, sidecar(md_path))
     L += render_probe_block(load_json(args.matrix), load_json(args.fill), load_json(args.sim))
 
+    cockpit = load_json(args.cockpit)
+    L += render_cockpit_block(cockpit)
+
     text = "\n".join(x for x in L if x is not None) + "\n"
     if args.out:
         os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
@@ -263,6 +291,14 @@ def main(argv: list[str] | None = None) -> int:
             fh.write(text)
     else:
         sys.stdout.write(text)
+
+    red = [
+        key for key, value in ((cockpit or {}).get("stop_conditions") or {}).items()
+        if str(value).upper().startswith("RED")
+    ]
+    if red:
+        print("座舱停机判据出现红色：" + ", ".join(sorted(red)), file=sys.stderr)
+        return 4
     return 0
 
 

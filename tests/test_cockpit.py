@@ -13,6 +13,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
+# make_tearsheet.py 直接 import pandas / nautilus_trader（原生 tearsheet 必需）。
+# CI 的快速单测 job 不装这两个包 → 整份跳过，避免**收集阶段**报错中断整个 suite。
+pytest.importorskip("nautilus_trader")
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
