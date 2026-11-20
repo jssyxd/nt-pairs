@@ -279,3 +279,21 @@ HyperliquidExecutionClientConfig(account_id, private_key, vault_address, account
   以盘口级回放为准）。
 - **maker 腿的选择随窗口长度翻转**：1 小时窗口下 HL 当 maker 更好，72 小时窗口下 Lighter 更好
   → 腿角色必须用**足够长的窗口**（≥3 天）决定，不能只看一小时。
+
+## 2026-11-21 · CHD 限速是**全局共享**的：多任务并发会互相饿死
+- 现象：captain 自己跑 14 天扫描（1008 个 orderbook 文件，24 并发）与 4 个 worker 同时拉 CHD，
+  扫描卡在「下载 orderbook」不动，**5 分钟内 0 个新文件**；worker 侧自己的缓存反而在涨。
+- 根因：CHD 限速是 **60 req/min/IP**（不区分任务），并发任务共享同一个配额。
+  高并发 + 多任务 → 每个任务的有效速率被摊薄到接近 0，看起来像「卡死」。
+- 做法：**同一时刻只跑一个大规模 CHD 拉取**；多任务并行时把 `--workers` 降到 4~6；
+  大扫描要么等 worker 结束再跑，要么把目标对数/窗口砍小。
+
+## 2026-11-21 · herdr 复用旧 pane 会把新 worker 丢进**过期的 worktree**
+- 现象：`assign --worktree --name p1-okx` 之后，`status` 显示它的 cwd 是
+  `.herd-dispatch/worktrees/research-x`（上一轮已停止的 worker 的 worktree，HEAD 停在旧提交），
+  而不是新建的 `worktrees/p1-okx` —— 该 worktree 里没有 `scripts/chd_screen.py`、
+  `src/nt_pairs/market_micro.py`，而新任务正依赖它们。
+- 成因：pane 复用时保留旧的 cwd；`worktrees/<name>` 虽然建好了，但进程没进去。
+- 症状识别：`status --name <n>` 的 `agent.cwd` 与 `.herd-dispatch/worktrees/<n>` 不一致。
+- 处置：`git -C <旧worktree> reset --hard main` + `checkout -B <name> main`
+  把代码补齐（注意 worktree 里的未跟踪文件要先确认是否已在 main）。
