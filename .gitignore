@@ -12,6 +12,9 @@ data/*
 !data/cockpit/
 !data/chd_screen.json
 !data/chd_universe.json
+!data/universe_stage_a.json
+!data/universe_stage_b.json
+!data/universe_bases.txt
 *.log
 .env
 .herd-dispatch/
