@@ -35,6 +35,51 @@ CHD_BASE = "https://api.cryptohftdata.com/v1"
 _UA = {"User-Agent": "nt-pairs-chd/1.0"}
 
 
+class _QuotaGate:
+    """CHD 配额闸门：60 req/min/IP，**只有 302/200（文件存在）才消耗配额**，
+    404 不消耗。所以节流只作用在「成功下载」之间，404 仍可并发跑。
+    """
+
+    def __init__(self, interval: float = 1.02) -> None:
+        self.interval = interval
+        self._lock = threading.Lock()
+        self._next_ok = 0.0
+
+    def mark(self) -> None:
+        """登记一次成功下载，并把下一次成功推后 `interval` 秒。"""
+        with self._lock:
+            now = time.monotonic()
+            wait = self._next_ok - now
+            if wait > 0:
+                time.sleep(wait)
+                now = time.monotonic()
+            self._next_ok = now + self.interval
+
+
+_QUOTA = _QuotaGate()
+
+
+def _reset_delay(exc: urllib.error.HTTPError, attempt: int) -> float:
+    """429 之后该等多久：优先用服务端的 `x-ratelimit-reset`，否则退避。"""
+    hdrs = getattr(exc, "headers", None)
+    raw = None
+    if hdrs is not None:
+        try:
+            raw = hdrs.get("x-ratelimit-reset") or hdrs.get("ratelimit-reset")
+        except Exception:  # noqa: BLE001
+            raw = None
+    if raw:
+        txt = str(raw).strip()
+        if txt.isdigit():                       # 剩余秒数
+            return max(1.0, float(txt)) + 0.3
+        try:                                     # ISO 时间戳
+            ts = datetime.fromisoformat(txt.replace("Z", "+00:00")).timestamp()
+            return max(0.5, ts - time.time()) + 0.3
+        except ValueError:
+            pass
+    return 5.0 + 3.0 * (attempt % 5) + (attempt * 1.7) % 5
+
+
 def _api_key_header() -> dict[str, str]:
     key = os.environ.get("CHD_API_KEY", "").strip()
     if not key:
@@ -122,7 +167,9 @@ class ChdClient:
         url = f"{self.base}/download?file={rel}"
         headers = {**_UA, **_api_key_header()}
         last: Exception | None = None
-        for attempt in range(self.retries + 1):
+        attempts = self.retries + 1
+        attempt = 0
+        while attempt < attempts:
             try:
                 body = self._fetch(url, headers)
                 if not body.startswith(b"PAR1"):
@@ -130,12 +177,27 @@ class ChdClient:
                 tmp = dest.with_suffix(".part")
                 tmp.write_bytes(body)
                 tmp.replace(dest)
+                _QUOTA.mark()      # 成功下载消耗配额 → 节流到 60/min 以内
                 return dest
+            except urllib.error.HTTPError as exc:
+                if exc.code == 429:
+                    # 配额用尽（60 req/min/IP）：等配额窗口重置再试，
+                    # 否则上层会把这一小时当成「没有数据」→ 静默丢样本。
+                    time.sleep(_reset_delay(exc, attempt))
+                    last = exc
+                    attempt += 1
+                    attempts = max(attempts, attempt + 6)   # 配额窗口重置后还有机会
+                    continue
+                last = exc
+                if exc.code == 404:
+                    return None
+                time.sleep(1.0 * (attempt + 1))
             except Exception as exc:  # noqa: BLE001 - 网络异常一律重试
                 last = exc
                 if isinstance(exc, urllib.error.HTTPError) and exc.code == 404:
                     return None
                 time.sleep(1.0 * (attempt + 1))
+            attempt += 1
         raise RuntimeError(f"download {rel} failed: {last}")
 
     def _fetch(self, url: str, headers: dict[str, str]) -> bytes:
@@ -153,9 +215,10 @@ class ChdClient:
             self._local.session = session
         if session:
             r = session.get(url, headers=headers, timeout=self.timeout, allow_redirects=True)
-            if r.status_code == 404:
-                raise urllib.error.HTTPError(url, 404, "Not Found", None, None)
-            r.raise_for_status()
+            if r.status_code >= 400:
+                # 统一抛 urllib 的 HTTPError：上层按 `code` 分流（404 = 没有数据，
+                # 429 = 配额用尽 → 退避重试）。
+                raise urllib.error.HTTPError(url, r.status_code, r.reason, r.headers, None)
             return r.content
         req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=self.timeout) as fh:

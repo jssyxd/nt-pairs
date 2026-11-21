@@ -873,13 +873,21 @@ def pfill_scenarios(sess: dict[str, Any]) -> dict[str, Any]:
 # --------------------------------------------------------------------------
 
 def build_candidates(venues: Sequence[str],
-                     symbols_by_venue: dict[str, list[str]]) -> list[Pair]:
-    """同名跨场所配对（含 HL 内部跨 deployer）。"""
+                     symbols_by_venue: dict[str, list[str]],
+                     extra_bases: Sequence[str] = ()) -> list[Pair]:
+    """同名跨场所配对（含 HL 内部跨 deployer）。
+
+    `extra_bases` 里的 base **额外**允许进入候选（默认空 → 行为不变）。
+    """
+    allow = {b.strip().upper() for b in extra_bases if b.strip()}
     by_base: dict[str, list[Leg]] = defaultdict(list)
     for venue in venues:
         for sym in symbols_by_venue.get(venue, []):
             base = base_of(sym)
-            if base not in EQUITY_BASES_ALL:
+            if allow:
+                if base not in allow:
+                    continue
+            elif base not in EQUITY_BASES_ALL:
                 continue
             prefix = sym.split(":", 1)[0] if ":" in sym else ""
             by_base[base].append(Leg(venue, sym, base, prefix))
@@ -1087,6 +1095,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                     help="只看指定对，逗号分隔，如 hyperliquid_futures:XYZ:SOXL,lighter:SOXL")
     ap.add_argument("--qty", type=float, default=500.0, help="目标单笔名义（USD/腿）")
     ap.add_argument("--venues", type=str, default=",".join(VENUES))
+    ap.add_argument("--bases", type=str, default="",
+                    help="只扫这些 base（逗号分隔，**白名单**，覆盖 EQUITY_BASES_ALL 名单）；"
+                         "默认空 = 原名单 EQUITY_BASES_ALL（行为不变）")
     ap.add_argument("--grid-s", type=int, default=60, help="Stage A 网格（秒）")
     ap.add_argument("--band-bps", type=float, default=25.0, help="深度统计带宽（±bps）")
     ap.add_argument("--entry-z", type=float, default=1.5,
@@ -1134,7 +1145,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"      [warn] {v} 符号清单失败：{exc}")
             symbols_by_venue[v] = []
 
-    pairs = build_candidates(venues, symbols_by_venue)
+    pairs = build_candidates(venues, symbols_by_venue, extra_bases=args.bases.split(","))
     if args.pairs:
         want = {p.strip() for p in args.pairs.split(",") if p.strip()}
         want_legs = {w for w in want if any(w.startswith(f"{v}:") for v in VENUES)}

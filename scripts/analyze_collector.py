@@ -49,7 +49,8 @@ def canonical_symbol(venue: str, sym: str) -> str:
                 break
     return s.upper()
 
-def load_venue(root: str, venue: str, max_files: int = 2, max_rows: int = 40000) -> dict[str, list[dict]]:
+def load_venue(root: str, venue: str, max_files: int = 2, max_rows: int = 40000,
+                levels: int = 5) -> dict[str, list[dict]]:
     """只读最近 `max_files` 个文件、每个标的最多留 `max_rows` 行。
 
     VPS 只有 960MB：把 5 天 330MB 的 JSONL 全读进内存会被 OOM kill（dmesg 证据：
@@ -76,10 +77,11 @@ def load_venue(root: str, venue: str, max_files: int = 2, max_rows: int = 40000)
                     except Exception:  # noqa: BLE001
                         continue
                     if r.get("symbol"):
-                        # 只留 top-of-book 一档：完整 20 档 × 2 边是内存杀手
-                        # （VPS 960MB，之前两次被 OOM kill）。
-                        r["bids"] = (r.get("bids") or [])[:1]
-                        r["asks"] = (r.get("asks") or [])[:1]
+                        # 只留 top-N 档：完整簿（Lighter 有 ~350 档）是内存杀手
+                        # （VPS 960MB，之前两次被 OOM kill）。N>1 才能在决策时刻
+                        # 回看「我们那一档」上还有多少 resting 量。
+                        r["bids"] = (r.get("bids") or [])[:levels]
+                        r["asks"] = (r.get("asks") or [])[:levels]
                         out[r["symbol"]].append(r)
                         if len(out[r["symbol"]]) > max_rows:
                             del out[r["symbol"]][: len(out[r["symbol"]]) - max_rows]
@@ -99,14 +101,64 @@ def mid_of(snap: dict) -> float | None:
     return (float(b[0][0]) + float(a[0][0])) / 2
 
 
+def level_size(snap: dict, side: str, px: float) -> float | None:
+    """某一价位的 resting 总量。
+
+    ⚠️ 两所的簿格式不同：HL 的 `l2Book` 已经是**按价位聚合**的（`sz` = 该价总量）；
+    Lighter 的 `orderBookOrders` 返回**逐笔挂单** → 必须按价格求和。
+    旧代码把 HL 的 `sz` 乘以订单数 `n`、把 Lighter 的第一笔挂单当成整档 →
+    两边的队列量都是错的（实测 Lighter 买一档有 4 笔共 330 股，只取到 45 股）。
+    """
+    lv = snap.get("bids") if side == "buy" else snap.get("asks")
+    total = 0.0
+    found = False
+    for row in lv or []:
+        try:
+            p, q = float(row[0]), float(row[1])
+        except (TypeError, ValueError, IndexError):
+            continue
+        if abs(p - px) < 1e-9:
+            total += q
+            found = True
+    return total if found else None
+
+
 def touch(snap: dict, side: str) -> tuple[float, float] | None:
     """返回 (价格, 同档 resting 数量)。side='buy' → 买一；'sell' → 卖一。"""
     lv = snap.get("bids") if side == "buy" else snap.get("asks")
     if not lv:
         return None
-    p, q = float(lv[0][0]), float(lv[0][1])
-    n = int(lv[0][2]) if len(lv[0]) > 2 else 1
-    return p, q * max(n, 1)
+    p = float(lv[0][0])
+    q = level_size(snap, side, p)
+    return (p, q if q is not None else 0.0)
+
+
+def sample_queue(snaps: list[dict], t: float, px: float, side: str,
+                 n_samples: int = 3, min_gap_s: float = 0.2) -> tuple[list[float | None], float | None]:
+    """在决策时刻**向前**（挂单前）采样贴价档位的 resting 量，取中位数。
+
+    `docs/FILL_MODEL.md` §3 的硬要求：贴价队列必须逐笔采样 ≥3 次取中位数，
+    否则同一模型两次运行能对同一标的给出 3% 与 97% 两个 p_fill。
+
+    返回 (每次采样值, 中位数)；该价位在某次采样时不存在 → 记 `None`。
+    """
+    idx = None
+    for i, s in enumerate(snaps):
+        if s.get("t_epoch", 0.0) >= t:
+            idx = i
+            break
+    if idx is None:
+        return [], None
+    samples: list[float | None] = []
+    last = None
+    for j in range(idx, max(-1, idx - n_samples), -1):
+        st = snaps[j].get("t_epoch", 0.0)
+        if last is not None and (last - st) < min_gap_s - 1e-9:
+            continue
+        last = st
+        samples.append(level_size(snaps[j], side, px))
+    vals = [v for v in samples if v is not None]
+    return samples, (statistics.median(vals) if vals else None)
 
 
 def zscore(series: list[float], idx: int, W: int) -> tuple[float, float, float] | None:
@@ -139,11 +191,12 @@ def main() -> int:
     ap.add_argument("--out", default="data/fill_calibration.json", help="输出 JSON 路径")
     ap.add_argument("--max-files", type=int, default=2, help="每个场所最多读几个文件")
     ap.add_argument("--max-rows", type=int, default=40000, help="每个标的最多保留多少行")
+    ap.add_argument("--levels", type=int, default=5, help="每个标的每边保留多少档（队列采样需要 >1 档）")
     args = ap.parse_args()
 
-    hl = load_venue(args.root, "HYPERLIQUID")
-    lt = load_venue(args.root, "LIGHTER")
-    okx = load_venue(args.root, "OKX")
+    hl = load_venue(args.root, "HYPERLIQUID", levels=args.levels)
+    lt = load_venue(args.root, "LIGHTER", levels=args.levels)
+    okx = load_venue(args.root, "OKX", levels=args.levels)
     print(f"loaded: HL {sum(len(v) for v in hl.values())} snaps / "
           f"Lighter {sum(len(v) for v in lt.values())} / OKX {sum(len(v) for v in okx.values())}", file=sys.stderr)
 
@@ -214,12 +267,21 @@ def main() -> int:
                         snap = am[k] if maker_venue == "HYPERLIQUID" else bm[k]
                         t = touch(snap, side)
                         if t:
-                            px, queue = t
+                            px, touch_q = t
+                            # 贴价队列：向前逐笔采样 ≥3 次取中位数（docs/FILL_MODEL.md §3）
+                            raw_snaps = a_snaps if maker_venue == "HYPERLIQUID" else b_snaps
+                            q_samples, q_med = sample_queue(raw_snaps, float(k), px, side)
+                            queue = q_med if q_med is not None else touch_q
                             order = {"side": side, "venue": maker_venue, "px": px, "qty": args.qty,
-                                     "queue": queue, "idx": i, "min": k,
+                                     "queue": queue, "queue_samples": q_samples,
+                                     "idx": i, "min": k,
                                      "basis": series[i], "z": z, "basis_ref": med}
         n_min = len(keys)
         p_fill = len(fills) / n_min
+        queue_spreads = [max(x for x in f["queue_samples"] if x is not None)
+                         - min(x for x in f["queue_samples"] if x is not None)
+                         for f in fills if f.get("queue_samples")
+                         and len([x for x in f["queue_samples"] if x is not None]) >= 2]
         waits = [f["fill_min"] - f["min"] for f in fills]
         mo1 = [f["markout_1"] for f in fills]
         mo5 = [f["markout_5"] for f in fills]
@@ -229,6 +291,8 @@ def main() -> int:
                "fills": len(fills), "p_fill_per_min": round(p_fill, 5),
                "median_wait_min": statistics.median(waits) if waits else None,
                "queue_at_touch_median": statistics.median([f["queue"] for f in fills]) if fills else None,
+               "queue_samples_spread_median": (statistics.median(queue_spreads)
+                                               if queue_spreads else None),
                "markout_1_mean": round(statistics.mean(mo1), 2) if mo1 else None,
                "markout_5_mean": round(statistics.mean(mo5), 2) if mo5 else None,
                "markout_15_mean": round(statistics.mean(mo15), 2) if mo15 else None,
