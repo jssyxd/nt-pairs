@@ -223,3 +223,24 @@ OKX 只能当**第二条腿的备选、且当 maker**，与 HL 配对。
 `reports/cockpit/cockpit.html`（自包含，plotly 内联）当前判定：
 `overall GREEN`（4 条绿 / 2 条 **UNKNOWN**）——
 UNKNOWN 的是「实测 p_fill」与「实盘裸腿状态」，**无数据 ≠ 通过**。
+
+### 2026-11-21 收尾
+
+| 项 | 状态 | 产物 |
+|---|---|---|
+| P0-1 14 天逐日验证 | ✅ | `docs/DAILY_STABILITY.md`、`data/daily_stability.json`、`scripts/aggregate_daily.py` |
+| P0-2 p_fill 标定 | ✅ | `docs/FILL_CALIBRATION.md`、`data/fill_calibration.json`、`scripts/calibrate_fill_chd.py` |
+| P1-3 OKX 腿 | ✅ | `docs/OKX_ACCESS.md`、`docs/OKX_LEG_REVIEW.md`、`src/nt_pairs/okx_meta.py` |
+| P2-6 全宇宙排序 | ⏳ Stage A 扫描运行中 | `scripts/universe_rank.py`（已合入） |
+| P1/P2 座舱 | ✅ | `src/nt_pairs/cockpit.py`、`reports/cockpit/cockpit.html` |
+
+**修掉的工具缺陷（都会改变结论）**：
+1. `chd_screen.py --hours` 永远锚定「现在」→ 逐日回放每次结果完全相同（新增 `--end`）。
+2. `fill_probability` 用错模型（指数总成交量）→ `p_fill≈0`、净 EV 恒为 0（改回 Poisson 队列消耗）。
+3. HIP-3 费率查表用大写 dex 名 → 退回 1.5/4.5bps，比实际高 5 倍（`b*` 15.9→11.1）。
+4. 回放窗口的 trades 未下载 → 逐笔明细为空 → `p_fill=0`。
+5. 成交归属把「更低价位的量」算到自己头上（新增 `fill_outcome_at_touch`）。
+6. 座舱三处误报：腿未限定 pair、成交率跨口径比较、报价陈旧与采集缺口混淆。
+
+**Git 推送链路**：PAT 缺 `workflow` scope 推不动 `.github/workflows/*` → 改用 SSH deploy key
+（`170591927 omp-local-deploy-20261121`，本机 `~/.ssh/id_ed25519`，走 **443 端口**，22 不通）。
