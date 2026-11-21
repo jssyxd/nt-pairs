@@ -297,3 +297,20 @@ HyperliquidExecutionClientConfig(account_id, private_key, vault_address, account
 - 症状识别：`status --name <n>` 的 `agent.cwd` 与 `.herd-dispatch/worktrees/<n>` 不一致。
 - 处置：`git -C <旧worktree> reset --hard main` + `checkout -B <name> main`
   把代码补齐（注意 worktree 里的未跟踪文件要先确认是否已在 main）。
+
+## 2026-11-21 · Lighter 公共 REST 现在对本机 IP 返回 **Human Verification**（403/405）
+- 现象：采集器跑到 Lighter 时不再产出（`data/collector/LIGHTER/*.jsonl` 停止增长），
+  而 HL / OKX 侧正常。手工验证：
+  - `GET  /api/v1/markets` → **403**
+  - `GET  /api/v1/orderBookOrders?market_id=197&limit=20` → **405** + HTML「Human Verification」页
+  - `POST` 同路径 → 405（方法不对）
+  - 同一时刻 `api.hyperliquid.xyz/info` → 200 正常
+- 判断：Lighter 在 API 前加了一层**反爬/风控**（不是我们 UA 或参数的问题 —— 加 `User-Agent: Mozilla/5.0` 无效）。
+- 影响：**Lighter 腿的实时 L2 采集在换 IP/换出口前采不到** → 成交率标定缺一半数据。
+  绕法（按优先级）：
+  1. 走 clash 代理换出口 IP（`HTTPS_PROXY=http://127.0.0.1:7897`）后重试；
+  2. 用已落盘的 `data/collector/LIGHTER/20261120.jsonl`（约 15 分钟匹配样本）做初版标定；
+  3. 改从 **CryptoHFTData 的 `lighter` 历史**取 L2（`lighter/..._orderbook.parquet`），
+     代价是没有「同一时刻两所快照」但可以按时间栅格对齐。
+- 教训：跨场所采集的可用性是**逐所独立**的 —— 一所被墙/被风控不代表全线不可用，
+  但凡涉及「同刻两边快照」的标定，就必须逐所单独验证可达性。

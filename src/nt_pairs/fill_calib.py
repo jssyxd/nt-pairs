@@ -236,6 +236,42 @@ def fill_outcome(queue_ahead: float, our_size: float, cum: float) -> str:
     return "full"
 
 
+def fill_outcome_at_touch(queue_ahead: float, our_size: float,
+                           trades: Sequence[tuple[int, float, float, str]],
+                           px: float, side: str, tick: float = 0.0) -> str:
+    """**按贴价档位精确归属**的成交判定（比 `fill_outcome` 更贴近撮合现实）。
+
+    被动买入挂在 `px`：
+      * 成交价**等于** `px`（±tick 容差）→ 消耗我们这一档的队列；
+      * 成交价**低于** `px` → 市价已穿过我们的买价（队列必然已被吃光）→ 视为全部成交；
+      * 成交价高于 `px` → 与我们无关。
+    被动卖出对称。
+
+    为什么不能直接用「窗口内所有穿过价位的成交量」：
+    成交价远低于我们的买价时，那部分量消耗的是**更低价位**的队列，不是我们的。
+    把它算进来会把「市价扫穿」误判成「我们的单被慢慢吃完」，从而高估/低估成交时间。
+    """
+    tol = max(tick, 1e-9) * 0.5
+    at_px = 0.0
+    through = False
+    for _t, tp, q, _s in trades:
+        if side == "buy":
+            if tp < px - tol:
+                through = True
+                break
+            if abs(tp - px) <= tol:
+                at_px += q
+        else:
+            if tp > px + tol:
+                through = True
+                break
+            if abs(tp - px) <= tol:
+                at_px += q
+    if through:
+        return "full"
+    return fill_outcome(queue_ahead, our_size, at_px)
+
+
 def model_p_fill(queue_ahead: float, lam: float, dt: float, our_size: float,
                  avg_size: float) -> float:
     """仓库现用模型（Poisson 队列消耗），口径与 `scripts/chd_screen.py` 完全一致。"""
