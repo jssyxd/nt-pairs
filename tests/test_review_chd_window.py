@@ -79,16 +79,23 @@ def test_unparsable_end_falls_back_to_now(tmp_path, monkeypatch):
     assert payload["window"]["end"] == f"{old_hours[-1][0]} {old_hours[-1][1]:02d}:00"
 
 
-@pytest.mark.xfail(reason=(
-    "已知缺陷：默认（不加 --end）时 --replay-rth 的回放窗口与改动前不一致 —— "
-    "旧代码用 last_rth_hours(now)，新代码用 last_rth_hours(now-1h)；"
-    "当 now 落在 [15:00,16:00) UTC（当前 RTH 块的首个小时的前一小时是盘前）时，"
-    "新代码会回退到上一个 RTH 块（甚至只剩 1 小时）→ 回放窗口与改动前不同"),
-    strict=False)
 def test_default_replay_rth_window_matches_pre_change(tmp_path, monkeypatch):
-    """默认 + --replay-rth：回放窗口应与改动前（last_rth_hours(now, n)）一致。"""
+    """默认（不加 --end）+ --replay-rth：回放窗口必须与改动前一致。
+
+    改动前用 ``last_rth_hours(now, n)``；若改成 ``last_rth_hours(now-1h, n)``，
+    在 now 落在 [15:00,16:00) UTC（当前 RTH 块首个小时的前一小时是盘前）时
+    会回退到**上一个** RTH 块（甚至只剩 1 小时）→ 回放窗口不可复现。
+
+    这里直接跑 ``main`` 走真实代码路径，而不是比较两次函数调用 ——
+    函数本身的「减 1 小时」是它的定义（调用方传什么就该是什么）。
+    """
     now = datetime(2026, 11, 2, 16, 5, tzinfo=timezone.utc)
-    assert cs.last_rth_hours(now, 2) == cs.last_rth_hours(now - timedelta(hours=1), 2)
+    payload = _run_main(tmp_path, monkeypatch,
+                        ["--hours", "24", "--replay-rth", "--replay-hours", "2"], now)
+    # 改动前的行为：回放窗口 = last_rth_hours(now, 2)
+    expected = cs.last_rth_hours(now, 2)
+    assert payload["window"]["replay_start"] == f"{expected[0][0]} {expected[0][1]:02d}:00"
+    assert payload["window"]["replay_end"] == f"{expected[-1][0]} {expected[-1][1]:02d}:00"
 
 
 def test_end_anchor_replay_rth_lands_on_that_day(tmp_path, monkeypatch):

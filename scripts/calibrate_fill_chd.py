@@ -222,20 +222,24 @@ def main(argv: list[str] | None = None) -> int:
 
     rows: list[dict[str, Any]] = []
     last_probe_t = None
-    for i, ts in enumerate(common):
+    # maker_snaps 的时间 → 下标映射：`sample_queue` 要的是 **maker_snaps 的下标**，
+    # 不能用 common 的下标（common 是 maker 时间的**子集**，下标不对齐 → 采到的队列是别的时间）。
+    maker_index = {int(s.t): j for j, s in enumerate(maker_snaps)}
+    for ts in common:
         # 探针按**时间间隔**取（不是索引间隔）—— 否则 common 序列稀疏时探针数会很少
         if last_probe_t is not None and (ts - last_probe_t) < args.probe_interval:
             continue
         last_probe_t = ts
-        snap = next((s for s in maker_snaps if int(s.t) == ts), None)
-        if snap is None:
+        j = maker_index.get(ts)
+        if j is None:
             continue
+        snap = maker_snaps[j]
         for side in ("buy", "sell"):
             bl = fc.best_level(snap, side)
             if bl is None:
                 continue
             px, resting = bl
-            samples, q_med = fc.sample_queue(maker_snaps, i, side, px, n_samples=3, min_gap_s=0.2)
+            samples, q_med = fc.sample_queue(maker_snaps, j, side, px, n_samples=3, min_gap_s=0.2)
             if q_med is None or q_med <= 0:
                 continue
             for notional in notionals:

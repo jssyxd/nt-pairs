@@ -1,0 +1,20 @@
+[
+ {
+  "symbol": "SOXL",
+  "minutes": 38.95,
+  "fills": null,
+  "p_fill_per_minute": 8.1504,
+  "model_p_fill_per_minute": 5.1876,
+  "empirical_p_fill": 0.6792,
+  "model_p_fill": 0.4323,
+  "ttl_s": 180,
+  "probe_interval_s": 5.0,
+  "by_session": {
+   "notional_100": 1.5711,
+   "notional_200": 1.6179,
+   "notional_500": 1.7309,
+   "notional_1000": 1.8659
+  },
+  "source": "CryptoHFTData \u5386\u53f2 L2\uff08Lighter \u516c\u5171 API \u88ab Human Verification \u6321\u4f4f\u7684\u66ff\u4ee3\u8def\u5f84\uff09"
+ }
+]

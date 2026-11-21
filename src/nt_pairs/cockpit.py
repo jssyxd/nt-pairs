@@ -286,6 +286,26 @@ class ChdScreen:
     leg_b_symbol: str | None = None
 
 
+def _venue_key(venue: str) -> str:
+    """场所名归一化：``hyperliquid_futures`` / ``HYPERLIQUID`` → 同一个键。
+
+    数据里场所名有两种写法（stage_a 用 ``hyperliquid_futures``，
+    采集器目录用 ``HYPERLIQUID``），不归一化就会比不上 → 腿被误删。
+    """
+    v = str(venue or "").strip().upper()
+    if v.startswith("HYPERLIQUID"):
+        return "HYPERLIQUID"
+    if v.startswith("OKX"):
+        return "OKX"
+    if v.startswith("BINANCE"):
+        return "BINANCE"
+    if v.startswith("LIGHTER"):
+        return "LIGHTER"
+    if v.startswith("BYBIT"):
+        return "BYBIT"
+    return v
+
+
 def _as_float(value: Any) -> float | None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
@@ -430,8 +450,14 @@ class CollectorSeries:
 
 
 def canonical_symbol(venue: str, symbol: str) -> str:
-    """把各场所的 instrument id 归一到同一个基础标的（与 analyze_collector.py 同口径）。"""
+    """把各场所的 instrument id 归一到同一个基础标的（与 analyze_collector.py 同口径）。
+
+    场所名要**先归一化**：数据里同一个所会出现两种写法
+    （stage_a 写 ``hyperliquid_futures``，采集器目录写 ``HYPERLIQUID``），
+    不归一化就剥不掉 ``xyz:`` 前缀 / ``-USDT-SWAP`` 后缀 → 同名不同形态 → 腿被误删。
+    """
     text = symbol.strip()
+    venue = _venue_key(venue)
     if venue == "HYPERLIQUID":
         for prefix in ("xyz:", "io:", "cash:", "flx:", "vntl:"):
             if text.lower().startswith(prefix):
@@ -808,17 +834,22 @@ def build_metrics(
     # --- 两腿深度 / 重复收盘率：优先采集器实测，回放作为补充 -------------------
     # **只取所选标的这一对的两条腿**。采集器目录里可能有别的标的（例如 OKX:KIOXIA
     # 深度为 0），把它们一并算进来会让闸门④/②对「不属于这个 pair 的标的」报红。
-    pair_symbols: set[str] = set()
+    # 键必须是 **(场所, 标的)**，不能只用标的：
+    # 同名标的会同时出现在多个所（SOXL 在 HL/Lighter/OKX/Binance 都有），
+    # 只比标的会把**别的所的同名标的**（如 OKX:SOXL）混进来。
+    pair_legs: set[tuple[str, str]] = set()
     if chd:
-        for sym in (chd.leg_a_symbol, chd.leg_b_symbol):
-            if sym:
-                pair_symbols.add(canonical_symbol(chd.leg_a_venue or "", sym))
-                pair_symbols.add(canonical_symbol(chd.leg_b_venue or "", sym))
+        for ven, sym in ((chd.leg_a_venue, chd.leg_a_symbol),
+                         (chd.leg_b_venue, chd.leg_b_symbol)):
+            if not sym:
+                continue
+            pair_legs.add((_venue_key(ven or ""), canonical_symbol(ven or "", sym)))
     collector_for_pair = tuple(
         s for s in collector
-        if not pair_symbols or canonical_symbol(s.venue, s.symbol) in pair_symbols
+        if not pair_legs
+        or (_venue_key(s.venue), canonical_symbol(s.venue, s.symbol)) in pair_legs
     )
-    if pair_symbols and not collector_for_pair:
+    if pair_legs and not collector_for_pair:
         notes.append(
             "采集器里没有本 pair 的两条腿（目录里只有其它标的），深度/陈旧率改用回放数据"
         )
@@ -1075,9 +1106,10 @@ def _rule_fill_rate(rule: StopRule, metrics: CockpitMetrics) -> str:
         measured_value = measured.value
         basis = f"同为 {model.unit} 口径"
     else:
+        # 单位不同且没有同口径归一化值 → **不能**直接比（per_event vs per_minute 无意义）
         return _status_line(
             UNKNOWN,
-            f"口径不同（模型 {model.unit} vs 实测 {measured.unit}）且无法归一化，无法比较："
+            f"单位不同（模型 {model.unit} vs 实测 {measured.unit}）且没有同口径归一化值，无法比较："
             f"模型 {model.value:.3f}（{model.source}）实测 {measured.value:.3f}（{measured.source}）",
         )
     if model_value <= 0:

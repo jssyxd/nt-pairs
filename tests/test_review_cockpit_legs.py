@@ -97,10 +97,6 @@ def test_foreign_base_leg_is_excluded(tmp_path):
     assert not verdicts["depth"].startswith(RED), verdicts["depth"]
 
 
-@pytest.mark.xfail(reason=(
-    "已知缺陷：腿过滤只比符号、不比场所 → 同一 base 的第三个场所"
-    "（如 OKX:SOXL，深度可能为 0）仍会被当成本 pair 的腿混进闸门②④"),
-    strict=False)
 def test_same_base_other_venue_is_excluded(tmp_path):
     """同一 base、不同场所的腿不属于本 pair，必须排除。"""
     chd = _write_chd(tmp_path)
@@ -115,11 +111,6 @@ def test_same_base_other_venue_is_excluded(tmp_path):
     assert labels == {"HYPERLIQUID:SOXL", "LIGHTER:SOXL"}
 
 
-@pytest.mark.xfail(reason=(
-    "已知缺陷：canonical_symbol 只认精确大写场所名，而 stage_a 里的场所名是 "
-    "'okx_futures'/'hyperliquid_futures' → OKX 后缀 '-USDT-SWAP' 没被剥掉 → "
-    "含 OKX 的对会被误删腿"),
-    strict=False)
 def test_okx_leg_of_the_pair_is_kept(tmp_path):
     """pair 里含 OKX 腿时，那条腿必须保留。"""
     chd = _write_chd(tmp_path, b="okx_futures:SOXL-USDT-SWAP")

@@ -627,7 +627,14 @@ def replay_pair(a: BookLeg, b: BookLeg, trades_a: LegSeries | None,
         return ReplayResult([], 0, 0, 1.0, maker.leg.venue, taker.leg.venue, ["盘口窗口为空"])
     n = int((t1 - t0) / cfg.grid_ms) + 1
     if n > 200_000:
-        notes.append("窗口过长，已截断")
+        # 静默截断会让人以为回放了整个窗口 —— 必须写明**丢了多少**。
+        covered_h = 200_000 * cfg.grid_ms / 3600_000
+        total_h = (t1 - t0) / 3600_000
+        notes.append(
+            f"窗口过长，已截断：请求 {total_h:.1f}h，实际只回放前 {covered_h:.1f}h"
+            f"（{100 * covered_h / max(total_h, 1e-9):.0f}%）；"
+            f"长时间窗口请分段跑（逐日/逐周），否则尾部样本被丢弃"
+        )
         n = 200_000
 
     ga = _grid_from_points(a.points, t0, t0 + (n - 1) * cfg.grid_ms, cfg.grid_ms, cfg.max_age_ms)
@@ -1138,18 +1145,23 @@ def main(argv: Sequence[str] | None = None) -> int:
                 continue
         if end_dt is None:
             print(f"[warn] 无法解析 --end {args.end!r}，回退到当前", file=sys.stderr)
+    explicit_end = end_dt is not None
     if end_dt is None:
         end_dt = now - timedelta(hours=1)
     hours_all = hour_range(end_dt, args.hours)
     hours_replay = hours_all[-max(1, args.replay_hours):]
+    # RTH 回退的基准：**默认用 now**（保持改动前行为），只有显式 --end 才用窗口结束时刻 ——
+    # 否则 end_dt=now-1h 会被 last_rth_hours 再减 1h，在每天 15:00–16:00 UTC
+    # 跳到上一周的 RTH 块（结论不可复现）。
+    rth_base = end_dt if explicit_end else now
     if args.replay_rth:
-        rth = last_rth_hours(end_dt, args.replay_hours)
+        rth = last_rth_hours(rth_base, args.replay_hours)
         if rth:
             hours_replay = rth
     elif not any(classify(int(datetime.strptime(f"{d} {h:02d}:00", "%Y-%m-%d %H:%M")
                                 .replace(tzinfo=timezone.utc).timestamp() * 1000)).session == "rth"
                  for d, h in hours_replay):
-        rth = last_rth_hours(end_dt, args.replay_hours)
+        rth = last_rth_hours(rth_base, args.replay_hours)
         if rth:
             hours_replay = rth
             print(f"      最近的窗口没有 RTH → 回放窗口改用最近 RTH 时段：{rth[0]} … {rth[-1]}")
@@ -1278,7 +1290,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "generated_at": now.isoformat(),
         "window": {"hours": args.hours, "replay_hours": args.replay_hours,
                    "start": f"{hours_all[0][0]} {hours_all[0][1]:02d}:00",
-                   "end": f"{hours_all[-1][0]} {hours_all[-1][1]:02d}:00"},
+                   "end": f"{hours_all[-1][0]} {hours_all[-1][1]:02d}:00",
+                   "replay_start": f"{hours_replay[0][0]} {hours_replay[0][1]:02d}:00",
+                   "replay_end": f"{hours_replay[-1][0]} {hours_replay[-1][1]:02d}:00"},
         "config": {"qty_usd": args.qty, "grid_s": args.grid_s, "band_bps": args.band_bps,
                    "venues": venues, "max_replay_pairs": args.max_replay_pairs},
         "n_candidate_pairs": len(pairs),

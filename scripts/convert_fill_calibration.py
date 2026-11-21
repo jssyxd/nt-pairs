@@ -34,8 +34,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--in", dest="src", default="data/fill_calibration.json")
     ap.add_argument("--out", dest="dst", default="data/fill_calibration_cockpit.json")
     ap.add_argument("--ttl", type=int, default=180, help="取哪个 TTL 的口径（默认 180s）")
-    ap.add_argument("--probe-interval", type=float, default=5.0,
-                    help="标定时的探针间隔（秒）；用于把 p_fill 换算成「成交/分钟」")
+    ap.add_argument("--probe-interval", type=float, default=0.0,
+                    help="标定时的探针间隔（秒）；默认 0 = 从标定 JSON 里读，"
+                         "再退回 calibrate_fill_chd.py 的默认 30.0")
     ap.add_argument("--model", default="model_full",
                     help="用哪个模型与实测比较（model_full / model_any / compound_full / compound_any）")
     args = ap.parse_args(argv)
@@ -51,7 +52,10 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     symbol = str(payload.get("symbol") or "")
-    probes_per_min = 60.0 / max(args.probe_interval, 1e-9)
+    probe_interval = args.probe_interval
+    if probe_interval <= 0:
+        probe_interval = float(payload.get("probe_interval_s") or 0.0) or 30.0
+    probes_per_min = 60.0 / max(probe_interval, 1e-9)
 
     rows = [r for r in summary
             if r.get("ttl_s") == args.ttl and r.get("model") == args.model]
@@ -84,7 +88,7 @@ def main(argv: list[str] | None = None) -> int:
         "empirical_p_fill": round(emp, 4),
         "model_p_fill": round(mdl, 4),
         "ttl_s": args.ttl,
-        "probe_interval_s": args.probe_interval,
+        "probe_interval_s": probe_interval,
         "by_session": by_session,
         "source": payload.get("source"),
     }

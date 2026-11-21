@@ -1,0 +1,264 @@
+{
+ "pair": "hyperliquid_futures:XYZ:SOXL~lighter:SOXL",
+ "days": 14,
+ "positive_days": 14,
+ "positive_day_ratio": 1.0,
+ "total_net_bps": 51504.32,
+ "mean_net_bps_per_event": 4.971,
+ "worst_day": "2026-11-03",
+ "worst_day_net": 0.93,
+ "daily": [
+  {
+   "date": "2026-11-03",
+   "events": 880,
+   "net_bps_per_event": 0.93,
+   "gross_capture_bps_per_event": 10.6,
+   "win_rate": 0.4625,
+   "mean_p_fill": 0.326,
+   "net_bps_total": 822.01,
+   "sessions": {
+    "rth": 2.05208199657508,
+    "pre": 0.49280965089734535,
+    "post": 0.5243679431617918,
+    "closed": -0.10797955327613246
+   },
+   "b_star_bps": 9.32,
+   "coverage_ratio": 1.9742457668812587,
+   "depth_min_usd": 207253.97436999995
+  },
+  {
+   "date": "2026-11-04",
+   "events": 949,
+   "net_bps_per_event": 3.45,
+   "gross_capture_bps_per_event": 15.51,
+   "win_rate": 0.5922023182297155,
+   "mean_p_fill": 0.475,
+   "net_bps_total": 3276.91,
+   "sessions": {
+    "rth": 6.412421792999848,
+    "pre": 2.543907465472413,
+    "post": 0.05091078092599396,
+    "closed": 3.0655798322860663
+   },
+   "b_star_bps": 10.35,
+   "coverage_ratio": 2.429964418579831,
+   "depth_min_usd": 227335.88186099997
+  },
+  {
+   "date": "2026-11-05",
+   "events": 939,
+   "net_bps_per_event": 8.95,
+   "gross_capture_bps_per_event": 22.75,
+   "win_rate": 0.6208732694355698,
+   "mean_p_fill": 0.535,
+   "net_bps_total": 8401.39,
+   "sessions": {
+    "rth": 19.516232679403906,
+    "pre": 0.5104833065292137,
+    "post": 7.151843940532132,
+    "closed": 1.3169491687371966
+   },
+   "b_star_bps": 12.03,
+   "coverage_ratio": 2.1928473568881373,
+   "depth_min_usd": 219655.33951999998
+  },
+  {
+   "date": "2026-11-06",
+   "events": 831,
+   "net_bps_per_event": 3.72,
+   "gross_capture_bps_per_event": 18.04,
+   "win_rate": 0.6077015643802648,
+   "mean_p_fill": 0.517,
+   "net_bps_total": 3094.06,
+   "sessions": {
+    "rth": 5.731165532215344,
+    "pre": 3.193890889770266,
+    "post": 2.6457572182188454,
+    "closed": 3.3244812858870674
+   },
+   "b_star_bps": 13.58,
+   "coverage_ratio": 1.5745241781136226,
+   "depth_min_usd": 209530.84867500002
+  },
+  {
+   "date": "2026-11-09",
+   "events": 868,
+   "net_bps_per_event": 1.24,
+   "gross_capture_bps_per_event": 13.77,
+   "win_rate": 0.4078341013824885,
+   "mean_p_fill": 0.416,
+   "net_bps_total": 1080.48,
+   "sessions": {
+    "rth": 2.468892328445638,
+    "pre": 0.89136122137965,
+    "post": -0.4179241248624097,
+    "closed": 1.9488204621780476
+   },
+   "b_star_bps": 13.2,
+   "coverage_ratio": 1.6756987423197613,
+   "depth_min_usd": 185628.71197000003
+  },
+  {
+   "date": "2026-11-10",
+   "events": 809,
+   "net_bps_per_event": 3.42,
+   "gross_capture_bps_per_event": 16.5,
+   "win_rate": 0.4363411619283066,
+   "mean_p_fill": 0.442,
+   "net_bps_total": 2766.49,
+   "sessions": {
+    "rth": 10.153776205381877,
+    "pre": 1.1782338904750391,
+    "post": -0.33384429145261085,
+    "closed": -0.4819642155940915
+   },
+   "b_star_bps": 12.38,
+   "coverage_ratio": 1.841219232413874,
+   "depth_min_usd": 173574.55336
+  },
+  {
+   "date": "2026-11-11",
+   "events": 793,
+   "net_bps_per_event": 1.9,
+   "gross_capture_bps_per_event": 13.22,
+   "win_rate": 0.4968474148802018,
+   "mean_p_fill": 0.44,
+   "net_bps_total": 1504.23,
+   "sessions": {
+    "rth": 3.531620873706351,
+    "pre": 0.21104127214466728,
+    "post": 3.497357149617413,
+    "closed": 0.5654188272479538
+   },
+   "b_star_bps": 10.62,
+   "coverage_ratio": 1.7434771046217745,
+   "depth_min_usd": 223850.63246
+  },
+  {
+   "date": "2026-11-12",
+   "events": 758,
+   "net_bps_per_event": 4.69,
+   "gross_capture_bps_per_event": 18.42,
+   "win_rate": 0.5408970976253298,
+   "mean_p_fill": 0.601,
+   "net_bps_total": 3551.57,
+   "sessions": {
+    "rth": 8.268770882638433,
+    "pre": 4.528193650603036,
+    "post": 0.24428568589852634,
+    "closed": 1.9479692744263402
+   },
+   "b_star_bps": 10.76,
+   "coverage_ratio": 2.100396124671625,
+   "depth_min_usd": 230798.31284000003
+  },
+  {
+   "date": "2026-11-13",
+   "events": 704,
+   "net_bps_per_event": 5.59,
+   "gross_capture_bps_per_event": 19.12,
+   "win_rate": 0.5894886363636364,
+   "mean_p_fill": 0.346,
+   "net_bps_total": 3935.35,
+   "sessions": {
+    "rth": 14.636212113431727,
+    "pre": 0.9612461801508821,
+    "post": 1.4250396859822585,
+    "closed": 1.0627026707114988
+   },
+   "b_star_bps": 10.71,
+   "coverage_ratio": 2.7680122924186037,
+   "depth_min_usd": 218747.00864000001
+  },
+  {
+   "date": "2026-11-16",
+   "events": 636,
+   "net_bps_per_event": 3.98,
+   "gross_capture_bps_per_event": 19.07,
+   "win_rate": 0.5267295597484277,
+   "mean_p_fill": 0.61,
+   "net_bps_total": 2533.94,
+   "sessions": {
+    "rth": 6.512018029505753,
+    "pre": 3.399374638327432,
+    "post": -0.12780320110013202,
+    "closed": 4.775145719746071
+   },
+   "b_star_bps": 12.13,
+   "coverage_ratio": 2.3532359846299875,
+   "depth_min_usd": 213720.220835
+  },
+  {
+   "date": "2026-11-17",
+   "events": 709,
+   "net_bps_per_event": 6.83,
+   "gross_capture_bps_per_event": 21.89,
+   "win_rate": 0.7531734837799718,
+   "mean_p_fill": 0.471,
+   "net_bps_total": 4843.04,
+   "sessions": {
+    "rth": 14.053572392333042,
+    "pre": 2.1572333802490116,
+    "post": 8.076952287435601,
+    "closed": 1.73425443870232
+   },
+   "b_star_bps": 12.58,
+   "coverage_ratio": 2.515031040463564,
+   "depth_min_usd": 228466.64988999994
+  },
+  {
+   "date": "2026-11-18",
+   "events": 659,
+   "net_bps_per_event": 4.92,
+   "gross_capture_bps_per_event": 19.59,
+   "win_rate": 0.6418816388467374,
+   "mean_p_fill": 0.409,
+   "net_bps_total": 3241.21,
+   "sessions": {
+    "rth": 10.955517346855421,
+    "pre": 1.2898811136150508,
+    "post": 0.3016264963618524,
+    "closed": 3.1135443655698474
+   },
+   "b_star_bps": 11.98,
+   "coverage_ratio": 2.3442521244942016,
+   "depth_min_usd": 250159.772465
+  },
+  {
+   "date": "2026-11-19",
+   "events": 622,
+   "net_bps_per_event": 8.19,
+   "gross_capture_bps_per_event": 22.54,
+   "win_rate": 0.72508038585209,
+   "mean_p_fill": 0.571,
+   "net_bps_total": 5093.41,
+   "sessions": {
+    "rth": 18.293114844235646,
+    "pre": 1.3379349332609292,
+    "post": 6.592496400008447,
+    "closed": 2.4572150122823615
+   },
+   "b_star_bps": 12.02,
+   "coverage_ratio": 1.9153623935883308,
+   "depth_min_usd": 228296.15076
+  },
+  {
+   "date": "2026-11-20",
+   "events": 625,
+   "net_bps_per_event": 11.78,
+   "gross_capture_bps_per_event": 28.71,
+   "win_rate": 0.7248,
+   "mean_p_fill": 0.549,
+   "net_bps_total": 7360.23,
+   "sessions": {
+    "rth": 34.94420314717118,
+    "pre": 3.4304174355720995,
+    "post": 2.884796563131085,
+    "closed": 3.830722915724593
+   },
+   "b_star_bps": 14.44,
+   "coverage_ratio": 2.0492527114931836,
+   "depth_min_usd": 211614.67411999998
+  }
+ ]
+}

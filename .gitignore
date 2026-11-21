@@ -15,6 +15,9 @@ data/*
 !data/universe_stage_a.json
 !data/universe_stage_b.json
 !data/universe_bases.txt
+!data/daily_stability.json
+!data/fill_calibration.json
+!data/fill_calibration_cockpit.json
 *.log
 .env
 .herd-dispatch/
