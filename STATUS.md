@@ -165,3 +165,61 @@
 2. **用真实 fill 日志标定 `p_fill`**（当前净 EV 是上界）；挂单前逐笔采样贴价队列（≥3 次取中位数）。
 3. 仓库既有 `tests/test_make_report.py::test_summary_renders_numbers` 失败是**既有问题**
    （报告时效阈值 24h vs 固定夹具时间戳），在原始 clone 上同样失败，与本轮改动无关。
+
+---
+
+## 2026-11-21：P0/P1/P2 多 agent 波次结果
+
+### 派发与收工
+
+4 个 worker（herdr-dispatch，`--worktree` 隔离，各自 commit）：
+
+| 任务 | 状态 | 产出 |
+|---|---|---|
+| `p2-cockpit` 运行期座舱 + 停机判据 | ✅ 完成并合入 | `src/nt_pairs/cockpit.py`（1208 行）、`cockpit_html.py`、`scripts/cockpit.py`；CI 接入 6h 报告 |
+| `p1-okx` OKX 腿复核 | ✅ 完成并合入 | `docs/OKX_ACCESS.md`、`docs/OKX_LEG_REVIEW.md`、`src/nt_pairs/okx_meta.py`、`bstar_detail.py` |
+| `p0-fill` 成交率标定 | ⚠️ 被 provider 配额（429）截断，**代码已合入** | `src/nt_pairs/fill_calib.py`、`scripts/calibrate_fill_model.py`、采集器扩展 |
+| `p2-universe` 全宇宙排序 | ⚠️ 同上，**代码已合入** | `scripts/universe_rank.py`、`chd_client.py` 配额闸门、`chd_screen.py --bases` |
+
+**踩到的两个坑（已记入 `.field-guide/`）**：
+1. `herdr` 复用旧 pane 会把新 worker 丢进**过期的 worktree**（`status` 的 `agent.cwd` 与
+   `.herd-dispatch/worktrees/<name>` 不一致即可识别）。
+2. CHD 的 60 req/min 限速是**全局共享**的 —— captain 的大规模扫描与 worker 并发会互相饿死，
+   表现为「卡在下载中、5 分钟 0 新文件」。**同一时刻只跑一个大规模 CHD 拉取。**
+
+### 关键结论：实测 p_fill **高于**模型（原报告是上界）
+
+用 CryptoHFTData 历史 L2 标定（2026-11-13 12:00–19:00 UTC，SOXL，1060 探针）：
+
+| TTL | 实测 p_fill | model_full | model_any | compound_full |
+|---:|---:|---:|---:|---:|
+| 30s | **0.328** | 0.205 | 0.222 | 0.163 |
+| 60s | **0.442** | 0.276 | 0.297 | 0.223 |
+| 120s | **0.623** | 0.389 | 0.405 | 0.331 |
+| 180s | **0.679** | 0.432 | 0.448 | 0.370 |
+
+- 模型**保守**（偏差 −0.10 ~ −0.24）：真实成交里相当一部分是**市价扫穿**，
+  会一次性吃掉整条队列；模型却按「慢慢消耗队列」算，低估了成交速度。
+- 实测 p_fill **对名义档几乎不敏感**（$100→$1000 不变）→ 成交主要来自扫穿而非排队，
+  **$1000 档仍可能有正边际**。
+- 修正了两处口径缺陷：`fill_outcome_at_touch`（区分「成交价==贴价档位」与「穿过贴价档位」）、
+  探针按**时间**间隔取（原来按索引，common 稀疏时探针过少）、tick 从盘口反推。
+- 仍为**上界**：样本仅 1 日 1 会话、盘口是重建值、假设排队尾。上实盘前需真实成交日志复核。
+
+### OKX 腿定位（`docs/OKX_LEG_REVIEW.md`）
+
+| 对 | b* | 费率 | 净 EV/事件 (RTH) | 判定 |
+|---|---:|---:|---:|---|
+| HL `XYZ:SOXL` ↔ Lighter `SOXL` | 11.03 | 1.80 | **+3.31** | ✅ 主推不变 |
+| HL ↔ OKX `SOXL-USDT-SWAP` | 14.94 | 8.80 | +2.03 | ⚠️ 闸门③不过（覆盖 0.65×） |
+| Lighter ↔ OKX | 19.79 | 10.00 | −4.12 | ❌ |
+
+**结论**：「OKX 只能当兜底 taker」**依然成立**，但理由更精确了 ——
+不是 OKX 的 taker 费贵（10 bps 里 OKX 占 8.8），而是**它的 p95 覆盖倍数只有 0.65**（基差不够宽）。
+OKX 只能当**第二条腿的备选、且当 maker**，与 HL 配对。
+
+### 座舱（`scripts/cockpit.py`）
+
+`reports/cockpit/cockpit.html`（自包含，plotly 内联）当前判定：
+`overall GREEN`（4 条绿 / 2 条 **UNKNOWN**）——
+UNKNOWN 的是「实测 p_fill」与「实盘裸腿状态」，**无数据 ≠ 通过**。

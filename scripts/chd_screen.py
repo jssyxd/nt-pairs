@@ -1090,6 +1090,10 @@ def write_report(payload: dict[str, Any], path: str) -> None:
 def main(argv: Sequence[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="CryptoHFTData 全市场扫描 + 事件级 EV 回测")
     ap.add_argument("--hours", type=int, default=24, help="Stage A 扫描窗口（最近 N 小时）")
+    ap.add_argument("--end", default="",
+                    help="窗口**结束**时间（UTC 'YYYY-MM-DD HH' 或 'YYYY-MM-DD HH:MM'）。"
+                         "默认 = 当前小时的前一小时。用于按历史日逐日回放"
+                         "（否则 --hours 永远锚定在「现在」，跑多次结果完全相同）。")
     ap.add_argument("--replay-hours", type=int, default=2, help="Stage B 盘口回放窗口（小时）")
     ap.add_argument("--pairs", type=str, default="",
                     help="只看指定对，逗号分隔，如 hyperliquid_futures:XYZ:SOXL,lighter:SOXL")
@@ -1121,16 +1125,31 @@ def main(argv: Sequence[str] | None = None) -> int:
     client = ChdClient(cache_dir=args.cache_dir)
     now = utcnow()
     # 数据按整点发布，当前小时尚未落盘 → 窗口右端取上一小时
-    hours_all = hour_range(now - timedelta(hours=1), args.hours)
+    # 窗口锚点：默认「现在的前一小时」；--end 可指定历史时刻（逐日回放必须用它，
+    # 否则每次跑的都是同一段最近 N 小时 → 结果完全相同，看不出逐日稳定性）
+    end_dt = None
+    if args.end:
+        end_s = args.end.strip()
+        for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%d %H"):
+            try:
+                end_dt = datetime.strptime(end_s, fmt).replace(tzinfo=timezone.utc)
+                break
+            except ValueError:
+                continue
+        if end_dt is None:
+            print(f"[warn] 无法解析 --end {args.end!r}，回退到当前", file=sys.stderr)
+    if end_dt is None:
+        end_dt = now - timedelta(hours=1)
+    hours_all = hour_range(end_dt, args.hours)
     hours_replay = hours_all[-max(1, args.replay_hours):]
     if args.replay_rth:
-        rth = last_rth_hours(now, args.replay_hours)
+        rth = last_rth_hours(end_dt, args.replay_hours)
         if rth:
             hours_replay = rth
     elif not any(classify(int(datetime.strptime(f"{d} {h:02d}:00", "%Y-%m-%d %H:%M")
                                 .replace(tzinfo=timezone.utc).timestamp() * 1000)).session == "rth"
                  for d, h in hours_replay):
-        rth = last_rth_hours(now, args.replay_hours)
+        rth = last_rth_hours(end_dt, args.replay_hours)
         if rth:
             hours_replay = rth
             print(f"      最近的窗口没有 RTH → 回放窗口改用最近 RTH 时段：{rth[0]} … {rth[-1]}")
