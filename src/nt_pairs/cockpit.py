@@ -200,6 +200,9 @@ class LegMetric:
     depth_multiple: float | None = None
     repeat_close_ratio: float | None = None
     basis_p95_bps: float | None = None
+    # 采集覆盖率（1.0 = 无缺口）。< 1 说明这条腿的数据流有缺口（运维问题），
+    # 与「报价陈旧」是两回事，必须分开报。
+    coverage: float | None = None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -233,6 +236,7 @@ class CockpitMetrics:
     #: 归一化到「每分钟成交次数」后的模型 / 实测 p_fill（口径不同时的可比基准）。
     p_fill_model_per_min: float | None = None
     p_fill_measured_per_min: float | None = None
+    p_fill_probe_ratio: float | None = None
     naked_leg_age_s: float | None = None
     naked_leg_exposure_usd: float | None = None
     leg_exposure_seconds: tuple[float, ...] = ()
@@ -276,6 +280,10 @@ class ChdScreen:
     leg_labels: tuple[str, ...] = ()
     leg_depth_usd: dict[str, float] = field(default_factory=dict)
     repeat_close_ratio: dict[str, float] = field(default_factory=dict)
+    leg_a_venue: str | None = None
+    leg_a_symbol: str | None = None
+    leg_b_venue: str | None = None
+    leg_b_symbol: str | None = None
 
 
 def _as_float(value: Any) -> float | None:
@@ -315,6 +323,15 @@ def load_chd_screen(path: str, pair_key: str | None = None) -> ChdScreen | None:
 
     leg_labels: list[str] = []
     leg_depth: dict[str, float] = {}
+    leg_sym: dict[str, str] = {}
+    leg_ven: dict[str, str] = {}
+    for side, label in (("a", "A"), ("b", "B")):
+        raw = str(stage_a.get(side) or "")
+        # stage_a 的 a/b 是 "<venue>:<symbol>"（HL 的是 "hyperliquid_futures:XYZ:SOXL"）
+        if ":" in raw:
+            leg_ven[side], leg_sym[side] = raw.split(":", 1)
+        else:
+            leg_sym[side] = raw
     for side, label in (("a", "A"), ("b", "B")):
         leg_book = book.get(side) if isinstance(book.get(side), dict) else {}
         depths = [_as_float(leg_book.get("depth_bid_usd")), _as_float(leg_book.get("depth_ask_usd"))]
@@ -377,6 +394,10 @@ def load_chd_screen(path: str, pair_key: str | None = None) -> ChdScreen | None:
         leg_exposure_usd=exposures,
         max_leg_exposure_usd=max_exposure,
         leg_labels=tuple(leg_labels),
+        leg_a_venue=leg_ven.get("a") or None,
+        leg_a_symbol=leg_sym.get("a") or None,
+        leg_b_venue=leg_ven.get("b") or None,
+        leg_b_symbol=leg_sym.get("b") or None,
         leg_depth_usd=leg_depth,
         repeat_close_ratio=repeat,
     )
@@ -405,6 +426,7 @@ class CollectorSeries:
     symbol: str
     samples: tuple[CollectorSample, ...] = ()
     repeat_close_ratio: float | None = None
+    coverage: float | None = None
 
 
 def canonical_symbol(venue: str, symbol: str) -> str:
@@ -534,16 +556,23 @@ def load_collector(
                 symbol=symbol,
                 samples=tuple(samples),
                 repeat_close_ratio=ratio,
+                coverage=_collector_coverage(samples),
             )
         )
     return tuple(series)
 
 
 def _hourly_repeat_ratio(samples: Sequence[CollectorSample]) -> float | None:
-    """重复收盘率 = 相邻**小时收盘**未变的比例（闸门②口径）。
-    与 ``scripts/chd_screen.py`` 的 ``hourly_repeat_pct`` 同口径：取每小时最后一帧的 mid，
-    中间缺小时就沿用上一个收盘价（空档也算「没动」）。
- """
+    """重复收盘率 = 相邻**有数据的小时**收盘未变的比例（闸门②的「真陈旧」口径）。
+
+    与 ``scripts/chd_screen.py`` 的 ``hourly_repeat_pct`` 有一处**刻意不同**：
+    那个口径会把**缺小时**沿用上一收盘价（空档也算「没动」），
+    于是「采集器断流 5 小时」会被算成「重复收盘率 80%」——
+    但那是**数据缺口**，不是报价陈旧（交易所可能根本没成交）。
+
+    这里只在**实际采到数据的小时之间**比较收盘价，
+    把「断流」单独用覆盖率（``_collector_coverage``）表达。
+    """
     if len(samples) < 2:
         return None
     by_hour: dict[int, tuple[float, float]] = {}
@@ -555,17 +584,27 @@ def _hourly_repeat_ratio(samples: Sequence[CollectorSample]) -> float | None:
     if len(by_hour) < 2:
         return None
     hours = sorted(by_hour)
-    closes: list[float] = []
-    carried: float | None = None
-    for hour in range(hours[0], hours[-1] + 1):
-        if hour in by_hour:
-            carried = by_hour[hour][1]
-        if carried is not None:
-            closes.append(carried)
+    closes = [by_hour[h][1] for h in hours]
     if len(closes) < 2:
         return None
     repeats = sum(1 for a, b in zip(closes, closes[1:]) if a == b)
     return repeats / (len(closes) - 1)
+
+
+def _collector_coverage(samples: Sequence[CollectorSample]) -> float | None:
+    """采集覆盖率 = 实际采到的小时数 ÷ 观测跨度的小时数。
+
+    明显 < 1 说明**这条腿的数据流有缺口**（采集器被挡/断线/该场所有维护），
+    这是运维问题，必须与「报价陈旧」区分开报。
+    """
+    if not samples:
+        return None
+    hours = {int(s.t_epoch // 3600) for s in samples}
+    lo, hi = min(hours), max(hours)
+    span = hi - lo + 1
+    if span <= 0:
+        return None
+    return len(hours) / span
 
 
 # ---------------------------------------------------------------------------
@@ -584,6 +623,9 @@ class FillCalibration:
     markout_5_bps: float | None
     net_bps_per_fill: float | None
     by_session: dict[str, float] = field(default_factory=dict)
+    # **同一套探针方法内**的模型 vs 实测（口径天然一致，比跨来源归一化更可信）
+    probe_model_p_fill: float | None = None
+    probe_empirical_p_fill: float | None = None
 
 
 def load_fill_calibration(path: str) -> tuple[FillCalibration, ...]:
@@ -621,6 +663,8 @@ def load_fill_calibration(path: str) -> tuple[FillCalibration, ...]:
                     for k, v in (by_session.items() if isinstance(by_session, dict) else [])
                     if isinstance(v, (int, float))
                 },
+                probe_model_p_fill=_as_float(row.get("model_p_fill")),
+                probe_empirical_p_fill=_as_float(row.get("empirical_p_fill")),
             )
         )
     return tuple(out)
@@ -762,11 +806,28 @@ def build_metrics(
     basis_p95 = chd.basis_p95_bps if chd else None
 
     # --- 两腿深度 / 重复收盘率：优先采集器实测，回放作为补充 -------------------
-    leader = next((s for s in collector if s.venue == "HYPERLIQUID"), None)
-    follower = next((s for s in collector if s.venue in ("LIGHTER", "OKX")), None)
+    # **只取所选标的这一对的两条腿**。采集器目录里可能有别的标的（例如 OKX:KIOXIA
+    # 深度为 0），把它们一并算进来会让闸门④/②对「不属于这个 pair 的标的」报红。
+    pair_symbols: set[str] = set()
+    if chd:
+        for sym in (chd.leg_a_symbol, chd.leg_b_symbol):
+            if sym:
+                pair_symbols.add(canonical_symbol(chd.leg_a_venue or "", sym))
+                pair_symbols.add(canonical_symbol(chd.leg_b_venue or "", sym))
+    collector_for_pair = tuple(
+        s for s in collector
+        if not pair_symbols or canonical_symbol(s.venue, s.symbol) in pair_symbols
+    )
+    if pair_symbols and not collector_for_pair:
+        notes.append(
+            "采集器里没有本 pair 的两条腿（目录里只有其它标的），深度/陈旧率改用回放数据"
+        )
+    # 基差曲线需要「两条腿的采集序列」：leader=HL 侧，follower=Lighter/OKX 侧
+    leader = next((s for s in collector_for_pair if s.venue == "HYPERLIQUID"), None)
+    follower = next((s for s in collector_for_pair if s.venue in ("LIGHTER", "OKX")), None)
 
-    if collector:
-        for series in collector:
+    if collector_for_pair:
+        for series in collector_for_pair:
             depth = min(
                 (s.depth_bid_usd for s in series.samples if s.depth_bid_usd > 0),
                 default=None,
@@ -778,6 +839,7 @@ def build_metrics(
                     depth_usd=depth,
                     depth_multiple=multiple,
                     repeat_close_ratio=series.repeat_close_ratio,
+                    coverage=series.coverage,
                 )
             )
     elif chd:
@@ -790,6 +852,7 @@ def build_metrics(
                     depth_usd=depth,
                     depth_multiple=multiple,
                     repeat_close_ratio=chd.repeat_close_ratio.get(label),
+                    coverage=None,
                 )
             )
 
@@ -823,6 +886,14 @@ def build_metrics(
     measured_per_min: float | None = (
         calibration.p_fill_per_minute if calibration else None
     )
+    # 探针内比较（同一套方法、同一批探针 → 口径天然一致）：
+    #   实测 p_fill ÷ 模型 p_fill，就是「成交率塌陷」规则要的量。
+    # 跨来源归一化（模型 = 回放机会数 × 概率；实测 = 标定成交/分钟）两边**机会定义不同**，
+    # 比出来的比值没有意义（会算出几十倍这种荒谬数），只作参考不作判定。
+    probe_ratio: float | None = None
+    if calibration and calibration.probe_model_p_fill and calibration.probe_empirical_p_fill is not None:
+        if calibration.probe_model_p_fill > 0:
+            probe_ratio = calibration.probe_empirical_p_fill / calibration.probe_model_p_fill
 
     # --- 基差曲线 -------------------------------------------------------------
     basis_points: tuple[BasisPoint, ...] = ()
@@ -890,6 +961,7 @@ def build_metrics(
         p_fill_measured=p_fill_measured,
         p_fill_model_per_min=model_per_min,
         p_fill_measured_per_min=measured_per_min,
+        p_fill_probe_ratio=probe_ratio,
         naked_leg_age_s=None,
         naked_leg_exposure_usd=None,
         leg_exposure_seconds=chd.hold_seconds if chd else (),
@@ -975,13 +1047,25 @@ def _rule_cost_cover(rule: StopRule, metrics: CockpitMetrics) -> str:
 
 
 def _rule_fill_rate(rule: StopRule, metrics: CockpitMetrics) -> str:
+    # **优先用「同一套探针内」的模型 vs 实测**（docs/FILL_CALIBRATION.md）：
+    #   同一批探针、同一口径 → 比值直接可用，是这个规则的正确比较方式。
+    if metrics.p_fill_probe_ratio is not None:
+        ratio = metrics.p_fill_probe_ratio
+        detail = f"实测/模型 = {ratio:.2f}（同口径探针标定）"
+        if ratio < rule.red:
+            return _status_line(RED, f"成交率塌陷：{detail}")
+        if ratio < rule.yellow:
+            return _status_line(YELLOW, f"成交率偏低：{detail}")
+        return _status_line(GREEN, f"成交率健康：{detail}")
+
     model = metrics.p_fill_model
     measured = metrics.p_fill_measured
     if model is None or measured is None:
         missing = "模型" if model is None else "实测"
         return _status_line(UNKNOWN, f"缺{missing} p_fill，无法比较")
 
-    # 优先用归一化口径（每分钟成交次数）；退化到同单位直接比较。
+    # 次选：归一化口径（每分钟成交次数）。**注意两边机会定义不同**，
+    # 比值只作参考，不作判定依据。
     if metrics.p_fill_model_per_min and metrics.p_fill_measured_per_min is not None:
         model_value = metrics.p_fill_model_per_min
         measured_value = metrics.p_fill_measured_per_min
@@ -999,6 +1083,14 @@ def _rule_fill_rate(rule: StopRule, metrics: CockpitMetrics) -> str:
     if model_value <= 0:
         return _status_line(UNKNOWN, "模型 p_fill 为 0，无法比较")
     ratio = measured_value / model_value
+    if metrics.p_fill_model_per_min and metrics.p_fill_measured_per_min is not None:
+        # 跨来源归一化：机会定义不同 → 只报参考值，不给绿/黄/红
+        return _status_line(
+            UNKNOWN,
+            f"仅有跨来源参考值（{basis}）：{ratio:.2f}×。"
+            "两边「机会」定义不同，不能作为成交率判定；"
+            "请提供同口径探针标定（data/fill_calibration_cockpit.json）。",
+        )
     detail = (
         f"实测 {measured_value:.4f} ÷ 模型 {model_value:.4f} = {ratio:.2f}"
         f"（{basis}；模型：{model.source}；实测：{measured.source}）"
@@ -1036,11 +1128,19 @@ def _rule_stale_quote(rule: StopRule, metrics: CockpitMetrics) -> str:
         return _status_line(UNKNOWN, "无重复收盘率数据")
     worst_label, worst = max(ratios.items(), key=lambda item: item[1])
     detail = "，".join(f"{label} {value * 100:.1f}%" for label, value in ratios.items())
+    # 数据缺口（采集覆盖率低）**不是报价陈旧** —— 单独说明，避免把断流误报成陈旧报价。
+    gaps = [
+        f"{leg.label} 覆盖率 {leg.coverage * 100:.0f}%"
+        for leg in metrics.legs
+        if leg.coverage is not None and leg.coverage < 0.95
+    ]
+    gap_note = (f"；注意 {('、'.join(gaps))} 存在采集缺口（该腿数据不连续）"
+                if gaps else "")
     if worst > rule.red:
-        return _status_line(RED, f"{worst_label} 重复收盘率 {worst * 100:.1f}%（阈值 {rule.red * 100:.0f}%）：{detail}")
+        return _status_line(RED, f"{worst_label} 重复收盘率 {worst * 100:.1f}%（阈值 {rule.red * 100:.0f}%）：{detail}{gap_note}")
     if worst > rule.yellow:
-        return _status_line(YELLOW, f"{worst_label} 重复收盘率 {worst * 100:.1f}%：{detail}")
-    return _status_line(GREEN, f"重复收盘率正常：{detail}")
+        return _status_line(YELLOW, f"{worst_label} 重复收盘率 {worst * 100:.1f}%：{detail}{gap_note}")
+    return _status_line(GREEN, f"重复收盘率正常：{detail}{gap_note}")
 
 
 _EVALUATORS = {
@@ -1181,6 +1281,7 @@ def metrics_from_dict(payload: Mapping[str, Any]) -> CockpitMetrics:
         p_fill_measured=pfill(measured),
         p_fill_model_per_min=optional_float(payload.get("p_fill_model_per_min")),
         p_fill_measured_per_min=optional_float(payload.get("p_fill_measured_per_min")),
+        p_fill_probe_ratio=optional_float(payload.get("p_fill_probe_ratio")),
         naked_leg_age_s=optional_float(payload.get("naked_leg_age_s")),
         naked_leg_exposure_usd=optional_float(payload.get("naked_leg_exposure_usd")),
         leg_exposure_seconds=tuple(
